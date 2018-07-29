@@ -1,0 +1,83 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"45310344","1","","","2017-07-25 17:47:09","","0","253","<p>I'm using react-konva to render canvas. I assign onDblClick for a Group, I also assign onClick, onDragEnd to this Group. In onDragEnd handler, I have an axios POST request to server. Whenever I double click the Group, the onDragEnd event is fired. Does anybody know what is the problem here ?</p>
+
+<p>Here are my code</p>
+
+<pre><code>handleMoving(){
+
+    var thisElement = this.refs[this.state.key];
+
+    this.setState({
+        x: thisElement.x(),
+        y: thisElement.y(),
+        width: thisElement.getWidth(),
+        height: thisElement.getHeight()
+    });
+
+    this.focus();
+}
+
+handleDoubleClick(){
+    console.log('dbclick');
+    this.focus();
+    const stage = this.refs[this.state.key+'_wrapper'].getParent().getParent().getParent();
+    const pos = this.refs[this.state.key].getAbsolutePosition();
+    document.getElementById('newText').addEventListener('keydown',this.handleTextChange);
+    document.getElementById('newTextWrapper').style.position = ""absolute"";
+    document.getElementById('newTextWrapper').style.left = pos.x+""px"";
+    document.getElementById('newTextWrapper').style.top = pos.y+20+""px"";
+    document.getElementById('newText').style.width = this.refs[this.state.key+'_wrapper'].getWidth()+""px"";
+    document.getElementById('newTextWrapper').style.display = 'block';
+
+}
+
+syncToServer(){
+    axios.post('/api/element/text/update',{
+        uid:this.state.uid,
+        key:this.state.key,
+        content:this.state.content,
+        stage:{
+            x:this.state.x + this.refs[this.state.key].getParent().x(),
+            y:this.state.y + this.refs[this.state.key].getParent().y(),
+            width:this.state.width,
+            height:this.state.height,
+            fontSize:this.state.fontSize
+        }
+    }).then(function(response){
+        console.log(response.data);
+    });
+}
+
+render(){
+    return (
+        &lt;Layer&gt;
+            &lt;Group  onDblClick = {this.handleDoubleClick}
+                    onClick = {this.handleClick}
+                    onDragMove = {this.handleMoving}
+                    onDragEnd = {this.syncToServer}
+                    draggable = ""true""&gt;
+                &lt;Rect   ref = {this.state.key + '_wrapper'}
+                        x = {this.state.x}
+                        y = {this.state.y}
+                        width = {this.state.width}
+                        height = {this.state.height}
+                        visible = {false}
+                        fill = 'lightgrey'
+                        cornerRadius = {3}&gt; 
+                &lt;/Rect&gt;
+                &lt;Text   ref = {this.state.key} 
+                        x = {this.state.x} 
+                        y = {this.state.y} 
+                        fontSize = {this.state.fontSize}
+                        fontFamily = {this.state.fontFamily}
+                        text = {this.state.content}
+                        fill = {this.state.color}
+                        padding = {20}
+                        &gt;
+                &lt;/Text&gt;
+            &lt;/Group&gt;
+        &lt;/Layer&gt;
+    );
+}
+</code></pre>
+","7940415","","7940415","","2017-07-26 03:29:42","2017-09-26 18:50:40","onDblClick in react-konva not working","<reactjs><axios><konvajs><ondoubleclick>","1","3","0","",""

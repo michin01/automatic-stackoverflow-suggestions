@@ -1,0 +1,1820 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"40621433","1","","","2016-11-15 23:17:00","","1","101","<p>If you build your project with <code>NODE_ENV=production</code>, react automatically includes the minified production verison of the lib in the bundle. Conversely, a non production build will include the dev unminified version of react.</p>
+
+<p>How is this being achieved?</p>
+
+<p>If we install react:</p>
+
+<pre><code>npm install --save react
+</code></pre>
+
+<p>Then look at its <code>package.json</code> for the <code>main</code> key, it points to: </p>
+
+<pre><code>""main"": ""react.js"",
+</code></pre>
+
+<p>Looking at <code>react.js</code> the contents of the file are simply:</p>
+
+<pre><code>module.exports = require('./lib/React');
+</code></pre>
+
+<p>Looking in <code>./lib/React</code> I was expecting to see a conditional that loaded the minified build or not, but the conditionals seem to do other stuff:</p>
+
+<pre><code>if (process.env.NODE_ENV !== 'production') {
+  var ReactElementValidator = require('./ReactElementValidator');
+  createElement = ReactElementValidator.createElement;
+  createFactory = ReactElementValidator.createFactory;
+  cloneElement = ReactElementValidator.cloneElement;
+}
+
+var __spread = _assign;
+
+if (process.env.NODE_ENV !== 'production') {
+  var warned = false;
+  __spread = function () {
+    process.env.NODE_ENV !== 'production' ? warning(warned, 'React.__spread is deprecated and should not be used. Use ' + 'Object.assign directly or another helper function with similar ' + 'semantics. You may be seeing this warning due to your compiler. ' + 'See fb.me/react-spread-deprecation for more details.') : void 0;
+    warned = true;
+    return _assign.apply(null, arguments);
+  };
+}
+</code></pre>
+
+<p>What is react doing exactly between prod and dev builds? It doesn't seem like it interacts with the minified and unminified builds in <code>/dist</code> as I thought. </p>
+","1062794","","","","","2016-11-15 23:17:00","How does react conditionally give the minified production bundle when NODE_ENV=production?","<reactjs><build><npm>","0","0","","",""
+"32539357","1","32540332","","2015-09-12 13:25:48","","0","159","<p>I have a node module (data) that exports an object. This object has properties who's values change.</p>
+
+<pre><code>var data = require('data');
+var count = data.count;
+</code></pre>
+
+<p><code>data.count</code> is changing it's value (lets pretend it is seconds that are counting).</p>
+
+<p>I use express and handlebars and i currently display the data like this:</p>
+
+<pre><code>var express = require('express');
+var router = express.Router();
+
+router.get('/', function(req, res, next) {
+    res.render('index', { title: 'Home', data: count });
+});
+</code></pre>
+
+<p>Doing it this way requires the page to be refreshed to see the updated value. My question is: <strong>How can I display the value of count in real time without having to refresh the page?</strong></p>
+
+<p>I have been looking into <strong>React</strong> but I don't really understand how to set it up. I read some tutorials talking about the react module (nom install react) but there is not much documentation on how to use it. I understand the easy guide on the react website but that inserts react script on the client.</p>
+
+<p>If someone can point me in the right direction that would be great.</p>
+
+<p>Thank you.</p>
+
+<p><strong>UPDATE:</strong></p>
+
+<p>So I installed <code>npm insatll react</code> and <code>npm install babel</code> and created a component in react that looks like this (<code>comp.jsx</code>):</p>
+
+<pre><code>var React = require('react/addons');
+var data = require('data');
+
+var d = React.createClass({
+    render: function() {
+        return (
+            &lt;h1&gt;{data.votes}&lt;/h1&gt;
+        );
+    }
+});
+
+module.exports.Component = d;
+</code></pre>
+
+<p>I included this component in my routes file that now looks like this:</p>
+
+<pre><code>require('babel/register');
+var React = require('react/addons');
+
+var data = React.createFactory(require('comp.jsx').Component);
+
+router.get('/', function(req, res, next) {
+    var dataHtml = React.renderToString(data({}));
+    res.render('index', { reactOutput: data });
+});
+</code></pre>
+
+<p>The data is displayed in my handlebars template like this: <code>{{{reactOutput}}}</code>. The data is shown but still does not update in realtime, the page has to be refreshed to show the change of data.</p>
+
+<p>Any ideas?</p>
+","2553101","","2553101","","2015-09-12 14:59:16","2015-09-12 15:29:21","display data from node module in real time using react","<javascript><node.js><reactjs>","1","4","","",""
+"42408743","1","","","2017-02-23 06:41:35","","0","383","<p>I am integrating reactjs with my django, I have done setup and even able to render page from server too, but in client side when it comes to rendering and event handling and attaching, I am getting error ""Uncaught ReferenceError: MainContainer is not defined"".
+I am totally lost here, please help me.</p>
+
+<p><a href=""https://i.stack.imgur.com/1iuO4.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/1iuO4.png"" alt=""error in index.html""></a></p>
+
+<pre><code>&lt;html&gt;
+    &lt;head&gt;
+        &lt;link rel=""stylesheet"" type=""text/css"" href=""static/src/css/bootstrap.min.css""/&gt;
+        &lt;link rel=""stylesheet"" type=""text/css"" href=""static/src/css/style.less""/&gt;
+    &lt;/head&gt;
+
+    &lt;body&gt;
+        &lt;script&gt;
+                  // var INITIAL_DATA = JSON.parse('{{ serialized_value|safe }}')
+                    var INITIAL_DATA = {{ serialized_value|safe }}
+        &lt;/script&gt;
+        &lt;div id=""app""&gt;{{ rendered|safe }}&lt;/div&gt;
+        &lt;script type=""text/javascript"" src=""static/build/index_webpack.js""&gt;&lt;/script&gt;
+        &lt;script&gt;
+            // ReactDOM.render(React.createFactory(MainContainer)({isOpen: false, props: {'freeShipping': free_shipping_message_new,'navigationBar': [loose_leaf_content]}}), document.getElementById('app'));
+            ReactDOM.render(MainContainer({isOpen: false, props: {'freeShipping': free_shipping_message_new,'navigationBar': [loose_leaf_content]}}), document.getElementById('app'));
+        &lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+","3419299","","","","","2017-03-18 09:22:30","react client side rendering with django","<django><reactjs><serverside-rendering><react-server>","1","4","","",""
+"35959965","1","","","2016-03-12 16:01:42","","3","880","<p>I have a expressjs  app with the following code, what i am trying to do is to render a react component named <strong>Hello</strong> with the request to ""/"". Inside Hello component i am using two react-router Links, but these two Links doesn't render the href attributes.</p>
+
+<p>I am using here react-router 2</p>
+
+<p><strong>Server.js file</strong></p>
+
+<pre><code>var express = require(""express"");
+var app = express();
+var React = require(""react"");
+var ReactDOM = require(""react-dom/server"");
+
+var Hello = React.createFactory(require(""./js/components/Hello""));
+// The above is a reference to pre-compiled Hello.jsx to Hello.js using babel
+
+app.set(""view engine"", ""ejs"");
+app.set(""views"", ""./views"");
+
+app.use(express.static(""./public""));
+
+app.get(""/"", function (req, res) {
+    res.render(""Home"",{data:ReactDOM.renderToString(Hello())});
+});
+
+
+app.listen(app.get(""port""), function () {
+    console.log(""server started on port "" + app.get(""port""));
+});
+</code></pre>
+
+<p><strong>Hello.jsx File</strong></p>
+
+<pre><code>var React = require(""react"");
+var Link = require(""react-router/lib/Link"");
+
+var Hello = React.createClass({
+   callMe:function(){
+       alert(""Hurray"");
+   },
+   componentWillMount:function(){
+        console.log(""componentWillMount fired"");
+   },
+   render:function(){
+     //  console.log(this);
+       return(
+           &lt;div&gt;
+                &lt;h2 onClick={this.callMe}&gt;Hello Boom Boom {this.props.name}&lt;/h2&gt;
+                &lt;Link to=""/""&gt;Home&lt;/Link&gt;
+                &lt;Link to=""/about""&gt;About&lt;/Link&gt;
+                // above two Links rendering anchor tags without href attribute
+           &lt;/div&gt;
+       );
+   }
+});
+
+
+module.exports = Hello;
+</code></pre>
+
+<p><strong>Home.ejs File</strong></p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html xmlns=""http://www.w3.org/1999/xhtml""&gt;
+&lt;head&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h2&gt;Welcome to home page&lt;/h2&gt;
+    &lt;div id=""container""&gt;
+        &lt;%- data %&gt;
+    &lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p><a href=""https://i.stack.imgur.com/iOszp.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/iOszp.png"" alt=""in browser output""></a></p>
+","1373377","","","","","2016-12-06 16:24:34","react-router Link doesn't render href attribute with server side rendering?","<express><reactjs><react-router><isomorphic-javascript>","2","0","1","",""
+"33767577","1","","","2015-11-17 21:43:43","","0","70","<p>Using react 0.13.3 and a fresh react-canvas. I'm getting </p>
+
+<p>Invariant Violation: addComponentAsRefTo(...): Only a ReactOwner can have refs. This usually means that you're trying to add a ref to a component that doesn't have an owner (that is, was not created inside of another component's <code>render</code> method). Try rendering this component inside of a new top-level component which will hold the ref.</p>
+
+<p>With the following piece of code. It's generated from a compile-to-jsx language so looks a bit ugly even after cleaning it up a bit.</p>
+
+<pre><code>define([""reactcanvas"", ""layout"", ""jquery"", ""underscore"", ""react""],
+function(ReactCanvas, Layout, $, _, React){
+    var
+        ReactCanvas_Surface = ReactCanvas.Surface,
+        ReactCanvas_Image = ReactCanvas.Image;
+
+    var ReactCanvas_Surface_Factory = React.createFactory(ReactCanvas.Surface);
+    var ReactCanvas_Image_Factory = React.createFactory(ReactCanvas.Image);
+    var App = React.createClass({
+
+        render: function render(){
+            return (
+                ReactCanvas_Surface_Factory({
+                        top:0,
+                        left:0,
+                        width:420,
+                        height:420
+                    }, ReactCanvas_Image_Factory({
+                        src:""img/tits.jpg""
+                    }))
+
+            );
+        }
+
+    });
+
+    var App_Factory = React.createFactory(App);
+    App.createMain = function createMain(el,data){
+
+        React.render(App_Factory(), el[0]);
+    }
+    return App;
+
+});
+</code></pre>
+","1185421","","","","","2015-11-17 21:45:47","Weird issues with react-canvas (Invariant violation)","<javascript><reactjs><react-canvas>","1","0","","",""
+"35033788","1","35034055","","2016-01-27 09:45:41","","0","60","<p>I saw this <a href=""https://github.com/DavidWells/isomorphic-react-example"" rel=""nofollow"">https://github.com/DavidWells/isomorphic-react-example</a> and create another simple one,but the error message is can't find module app,is it miss  something?Or how should I change the code?thanks</p>
+
+<p>server.js</p>
+
+<pre><code>var express = require('express');
+var exphbs  = require('express-handlebars');
+
+var app = express();
+
+require(""node-jsx"").install();
+var React = require(""react"");
+ App = React.createFactory(require(""app""));
+
+
+app.engine('handlebars', exphbs());
+app.set('view engine', 'handlebars');
+
+app.get('/', function (req, res) {
+    var markup = React.renderToString(App());  
+    res.render('main', { 
+     title: 'Express',
+    markup: markup 
+  });
+});
+
+
+app.listen(3000);
+</code></pre>
+
+<p>app.js</p>
+
+<pre><code> var React = require(""react"");
+
+
+var App = React.createClass({
+  getInitialState() {
+    return {
+      search: """"
+    };
+  },
+  render() {
+    return (
+      &lt;div className=""search-component""&gt;
+        &lt;input type=""text"" onChange={this.changeSearch} /&gt;
+        &lt;p&gt;&lt;span&gt;You are searching for: {this.state.search}&lt;/span&gt;&lt;/p&gt;
+      &lt;/div&gt;
+    );
+  },
+  changeSearch(event) {
+    var text = event.target.value;
+
+    this.setState({
+      search: text
+    });
+  }
+});
+
+
+module.exports = App;
+</code></pre>
+
+<p>main.handlebars</p>
+
+<pre><code> &lt;!DOYCYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;script&gt;
+var as = ""as"";
+&lt;/script&gt;
+
+&lt;body&gt;
+&lt;p&gt; main &lt;/p&gt;
+{{{markup}}}
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+","5584828","","5584828","","2016-01-27 10:15:22","2016-01-27 10:15:22","Node.js isomorphic-react-example error","<javascript><node.js><reactjs><handlebars.js>","1","2","","",""
+"29656743","1","29663840","","2015-04-15 17:22:15","","0","241","<p>my backbone collection collection doesn't populate when i just pass it in as props to a react component. I have tried first fetching the collection using componentDidmount and componentWillMount, but that still didn't populate the collection. If I test the code by setting a window variable pointing to DecksIndex and in the console tools call getInstance() and then fetch
+,the data loads fine. my code is as follows:</p>
+
+<pre><code> //router.js
+var DeckComponent = require(""./views/deck.jsx"")
+var DecksIndex = React.createFactory(require(""./views/decks.jsx""))
+var decksCollection = require(""./component/collections/decks.js"");
+
+module.exports = Backbone.Router.extend({
+
+    initialize: function(){
+        this.rootEl = document.getElementById('container');
+    },
+
+    routes: {
+        """":""index"",
+        ""decks/:id"":""deckShow""
+    },
+
+    index: function(){
+
+        var decks = new DecksIndex({decks: decksCollection.getInstance()});
+        this._swapView(decks)
+        console.log(""hooray!"")
+    },
+
+    deckShow: function(id){
+        //var deck = Flashcards.Collections.decks.getOrFetch(id);
+        var showDeck = new DeckComponent();
+        this._swapView(showDeck);
+    },
+
+    _swapView: function(view){
+        if (this.currentView) {
+            React.unmountComponentAtNode(this.rootEl);
+        }
+        this.currentView = view
+        React.render(view, document.getElementById('container'));
+    }   
+
+});
+
+
+//decks.js
+
+var deck = require('../models/deck.js')
+var decks = Backbone.Collection.extend({
+  url: ""/api/decks"",
+  model: deck,
+  getOrFetch: function(id){
+        var model = this.get(id);
+        var that = this;
+        if (model) {
+            model.fetch();
+        }else{
+            model = new deck({id: id})
+            model.fetch({
+                success: function(){
+                    that.add(model)
+                }
+            })
+        }
+        return model;
+    },
+
+    parse: function (data) {
+        debugger;
+        return data.objects
+    },
+
+});
+
+decks.getInstance = _.memoize(function () {
+  return new decks();
+});
+
+module.exports = decks;
+
+//decks.jsx
+var DecksList = React.createClass({
+
+    render: function() {
+
+            return (
+              &lt;div className=""deck-list""&gt;
+              {
+                this.props.decks.map(function (deck) {
+                    var title = deck.name
+                    debugger;
+                  return (
+                    &lt;div key={deck.id} className=""note-summary""&gt;
+                      {title}
+                    &lt;/div&gt;
+                  );
+                })
+              }
+              &lt;/div&gt;
+            );
+      }
+});
+
+module.exports = DecksList;
+</code></pre>
+","3769323","","1455016","","2015-04-21 22:28:10","2015-04-21 22:28:10","I am having trouble passing in my backbone collection in to a react component","<javascript><backbone.js><reactjs>","1","5","","",""
+"28867871","1","28868530","","2015-03-05 00:30:24","","0","896","<p>I'm trying to create texteditor with React.JS that works a bit like Sir Trevor(<a href=""https://madebymany.github.io/sir-trevor-js/example.html"" rel=""nofollow"">https://madebymany.github.io/sir-trevor-js/example.html</a>). So you basically have blocks of different types of content that you order, edit and embed.</p>
+
+<p>I have a JSON data set from the backend that looks like this.</p>
+
+<pre class=""lang-js prettyprint-override""><code>var content = [
+    {""tag"": ""p"", ""content"": ""Lorem ipsum dolor sit amet, consectetur adipiscing elit.""},
+    {""tag"": ""Youtube"", ""content"": ""dQw4w9WgXcQ""},
+    {""tag"": ""ul"", ""content"": [
+        {""tag"": ""li"", ""content"": ""Rick""},
+        {""tag"": ""li"", ""content"": ""Astley""},
+    ]},
+    {""tag"": ""TagCloud"", ""content"": [""news"",""opinon"",""papers""]}
+];
+</code></pre>
+
+<p>Youtube and TagCloud are React classes. I render the code like this:</p>
+
+<pre><code>var ArticleContent = React.createClass({
+  render: function() {
+    var elments = this.props.content;
+    var reactElements = []
+    for (var elementIndex in elments) {
+      if (elments.hasOwnProperty(elementIndex)) {
+        var tagname = elments[elementIndex].tag;
+        var content = elments[elementIndex].content;
+        console.log(tagname.toString());
+        if(!/(div|p|li)/.test(tagname))
+          tagname = React.createFactory(tagname)
+        reactElements.push(React.createElement(tagname, null, content));
+      }
+    }
+
+    return (
+      React.createElement('div', {className: 'articleContent'},
+        reactElements
+      )
+    );
+  }
+});
+React.render(
+  &lt;ArticleContent content={content}&gt;&lt;/ArticleContent&gt;
+  document.getElementById('content')
+);
+</code></pre>
+
+<p>Now my whish is to render normal html tags with just createElement, but for those matching a defined React component Class, I want to render using the components render method.</p>
+
+<p>As far as I understand this is not possible because <code>createElement</code> only accepts proper React objects or strings of html tags. Help please :)</p>
+","1134326","","","","","2015-03-05 01:40:39","How to best render react components dynamically from data model","<javascript><reactjs>","1","0","","",""
+"39553067","1","39559826","","2016-09-18 00:48:35","","0","224","<p>I'm working on code that is many hundreds of lines long, but have boiled my issue down to the following example.  My question is why the Typescript compiler fails on one case, but succeeds when the underlying class is used.</p>
+
+<p>The following code compiles just fine:</p>
+
+<pre><code>import * as React from ""react"";
+
+interface ComponentProps {
+}
+
+class Component&lt;P extends ComponentProps&gt; extends React.Component&lt;P, any&gt; {
+}
+
+interface RootComponentProps extends ComponentProps {
+    viewManager?: ViewManager;
+}
+
+class RootComponent&lt;P extends RootComponentProps&gt; extends Component&lt;P&gt; {
+
+    static childContextTypes = {
+        viewManager: React.PropTypes.object
+    }
+
+    private _viewManager: ViewManager;
+
+    getChildContext(): RootComponentProps {
+        return { viewManager: this._viewManager }
+    };
+}
+
+class ViewManager {
+    constructor(managedElement: HTMLElement, rootComponent: typeof Component) {
+        const rootFactory = React.createFactory(rootComponent);
+    }
+}
+</code></pre>
+
+<p>If I make one change, however, altering ""typeof Component"" to ""typeof RootComponent"" in the constructor of ViewManager, the compiler (and VS2015 Intellisense) complains:</p>
+
+<pre><code>import * as React from ""react"";
+
+interface ComponentProps {
+}
+
+class Component&lt;P extends ComponentProps&gt; extends React.Component&lt;P, any&gt; {
+}
+
+interface RootComponentProps extends ComponentProps {
+    viewManager?: ViewManager;
+}
+
+class RootComponent&lt;P extends RootComponentProps&gt; extends Component&lt;P&gt; {
+
+    static childContextTypes = {
+        viewManager: React.PropTypes.object
+    }
+
+    private _viewManager: ViewManager;
+
+    getChildContext(): RootComponentProps {
+        return { viewManager: this._viewManager }
+    };
+}
+
+class ViewManager {
+    constructor(managedElement: HTMLElement, rootComponent: typeof RootComponent) {
+        const rootFactory = React.createFactory(rootComponent);
+    }
+}
+</code></pre>
+
+<p>The error is in the argument to the React.createFactory method, and says:</p>
+
+<blockquote>
+  <p>error TS2345: Build:Argument of type 'typeof RootComponent' is not assignable to parameter of type 'ComponentClass&lt;any&gt; | StatelessComponent&lt;any&gt;'.</p>
+</blockquote>
+
+<p>VS 2015 Intellisense gives a bit more information when hovering over the argument to React.createFactory, namely:</p>
+
+<blockquote>
+  <p>Type 'typeof RootComponent'provides no match for the signature '(props?:any, context?:any):ReactElement&lt;any&gt;'</p>
+</blockquote>
+
+<p>Another odd quirk on all this.... if I remove or comment out the static ""childContextTypes"" in the RootComponent, then it all compiles fine, but when I run it in my working much longer application, I get runtime complaints about lack of childContextTypes.</p>
+
+<p>I know this isn't really magic, but it seems like black magic to me at the moment and any clarifying insight would be most appreciated.</p>
+","2092621","","","","","2016-09-18 16:14:10","Why does extending a typescript class cause a react factory method to fail on compilation when it works on the base class?","<inheritance><reactjs><typescript>","1","5","","",""
+"29320363","1","","","2015-03-28 17:36:00","","9","7596","<p>For the last week now I've been completely at a loss for how to set up server side rendering with React. This is a new project but it's an express server and I'm attempting to render just a super simple hello world react app which uses react-router-component..</p>
+
+<p>I think the best way for me to get some help is to share the code I have right now and I'm hoping somebody can please tell me what I'm doing wrong! I've followed tutorial after tutorial and tried all sorts of different things but I keep getting error after error!</p>
+
+<p>This is my app.js for the express server, the relevant code is the * route if you scroll down a bit:</p>
+
+<pre><code>require('node-jsx').install({extension: '.jsx'});
+var React = require('react');
+
+var App = require('./src/App.jsx');
+
+var request = require('superagent');
+var express = require('express');
+var path = require('path');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var url = require('url');
+
+//Database and Passport requires
+var mongoose = require('mongoose');
+var passport = require('passport');
+var LocalStrategy = require('passport-local');
+
+// var api = require('./routes/api');
+
+var app = express();
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+
+// uncomment after placing your favicon in /public
+//app.use(favicon(__dirname + '/public/favicon.ico'));
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(require('express-session')({
+  secret: 'secret',
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.static(path.join(__dirname, 'public')));
+
+//passport config
+var Account = require('./models/account');
+passport.use(new LocalStrategy(Account.authenticate()));
+passport.serializeUser(Account.serializeUser());
+passport.deserializeUser(Account.deserializeUser());
+
+//mongoose
+mongoose.connect('mongodb://localhost/database');
+
+//THIS is the relevant section that renders React and sends to client
+app.get('*', function(req, res, next){
+  var path = url.parse(req.url).pathname;
+  React.renderToString(
+    React.createFactory(App({path : path})),
+    function(err, markup) {
+      res.send('&lt;!DOCTYPE html&gt;' + markup);
+    }
+  );
+});
+
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
+// error handlers
+
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+  app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+      message: err.message,
+      error: err
+    });
+  });
+}
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+  res.status(err.status || 500);
+  res.render('error', {
+    message: err.message,
+    error: {}
+  });
+});
+
+
+module.exports = app;
+</code></pre>
+
+<p>the App.jsx file being required in the app.js file:</p>
+
+<pre><code>/**
+ * @jsx React.DOM
+ */
+
+var React = require('react');
+var Router = require('react-router-component');
+var Locations = Router.Locations;
+var Location = Router.Location;
+var Index = require('./components/Index.jsx');
+
+
+var App = React.createClass({
+    render: function() {
+        return (
+              &lt;html&gt;
+                &lt;head lang=""en""&gt;
+                    &lt;meta charSet=""UTF-8""/&gt;
+                    &lt;title&gt;React App&lt;/title&gt;
+                &lt;/head&gt;
+                &lt;body&gt;
+                    &lt;div id=""main""&gt;
+                        &lt;Locations path={this.props.path}&gt;
+                            &lt;Location path=""/"" handler={Index} /&gt;
+                        &lt;/Locations&gt;
+                    &lt;/div&gt;
+                    &lt;script type=""text/javascript"" src=""./javascripts/bundle.js""&gt;&lt;/script&gt;
+                &lt;/body&gt;
+               &lt;/html&gt;
+        )
+    }
+});
+
+module.exports = App;
+</code></pre>
+
+<p>and the Index.jsx file required in the App.jsx:</p>
+
+<pre><code>var React = require('react');
+
+ var Index = React.createClass({
+    render: function() {
+        return (
+        &lt;div className=""test""&gt;
+            &lt;span&gt;Whats going on&lt;/span&gt;
+        &lt;/div&gt;
+        )
+    }
+ });
+
+ module.exports = Index; 
+</code></pre>
+
+<p>I'm only showing you my most recent attempt at getting this to work here but rest assured I've tried all different methods to render a react component, such as renderComponentToString, I've also tried React.renderToString(React.createElement(App)) etc etc.. </p>
+
+<p>But now I keep getting this error ""Cannot read property '__reactAutoBindMap' of undefined"" </p>
+
+<p>Please Help!!! :) Thanks</p>
+","4103072","","","","","2015-06-09 00:57:39","Cannot read property '__reactAutoBindMap' of undefined","<javascript><node.js><express><reactjs><reactjs-flux>","2","3","1","",""
+"48526710","1","","","2018-01-30 16:57:41","","1","19","<p>Recently, I have integrated reactJS into our current backbone/requireJS application. the solution I am using is through JSXTransformer, so I can load reactJS component easily inside backbone like below:</p>
+
+<pre><code>var CreateQuoteMainComp = require('jsx!MyComp');
+ReactDOM.render(React.createFactory(MyComp)(),
+                document.getElementById('myComp'));
+</code></pre>
+
+<p>This solution is very good to make sure reactJS to be working with requireJS together. But I found one small issue, that is to minimization of the code:
+In minimized js (production env). I found this warning in the console:</p>
+
+<pre><code>Warning: It looks like you're using a minified copy of the development build of React
+You are currently using minified code outside of NODE_ENV === 'production'...
+</code></pre>
+
+<p>I am using grunt to minimize the code, this is the config part:</p>
+
+<pre><code>requirejs: {
+      desktopJS: {
+        options: {
+          baseUrl: 'public/js/app',
+          wrap: true,
+          name: '../libs/almond',
+          preserveLicenseComments: false,
+          optimize: 'uglify',
+          mainConfigFile: 'public/js/app/config/config.js',
+          insertRequire: ['init/DesktopInit'],
+          include: ['config/config', 'init/DesktopInit'],
+          out: 'public/build/desktop/main.min.js'
+        }
+      }
+    },
+</code></pre>
+
+<p>Can anyone help to point out in order to package reactJS part inside requireJS, how can I config uglify? I checked FB website, but there is NO mentioning for this solution, they only give using react cli to minimize</p>
+
+<p>Thanks in advance.</p>
+","3006967","","","","","2018-01-30 16:57:41","how to use uglifyjs to minimize reactJS+requireJS","<reactjs><requirejs><uglifyjs>","0","0","","",""
+"31813512","1","31816415","","2015-08-04 15:36:41","","8","6008","<p>I am using react-router in my application and I am looking for a way to stop the remount of components that are already in the DOM. For example, if I am at the URL <code>dashboard</code>, then I will have an associated <code>DashboardComponent</code> mounted. When I transition to <code>dashboard/settings</code> then my <code>DashboardComponent</code> as well as <code>SettingsComponent</code> get remounted into the DOM. I would like to find a clean way to mount only the children of the current URL. Is this posible?</p>
+
+<p>Router:</p>
+
+<pre><code>import { Component, createFactory, PropTypes } from 'react'
+import { Route, RouteHandler, DefaultRoute, NotFoundRoute } from 'react-router'
+
+import Home from '../components/Home'
+import Dashboard from '../components/Dashboard'
+import ViewPlayers from '../components/clubs/ViewPlayers'
+
+let route = createFactory(Route),
+    handler = createFactory(RouteHandler),
+    root = createFactory(DefaultRoute),
+    pageNotFound = createFactory(NotFoundRoute),
+    Transitions = createFactory(require('react/lib/ReactCSSTransitionGroup'));
+
+class App extends Component {
+
+    constructor() {
+
+        super();
+    }
+
+    render() {
+
+        return (
+            Transitions({transitionName: 'fade'},
+                handler({key: this.context.router.getCurrentPath()})
+            )
+        )
+    }
+}
+App.contextTypes = {
+    router: PropTypes.func
+};
+
+let Router = (
+    route({path: '/', name: 'home', handler: App},
+        root({handler: Home}),
+        route({path: 'dashboard', name: 'dashboard', handler: Dashboard},
+            route({path: 'players', name: 'players', handler: ViewPlayers}),
+        )
+    )
+);
+export { Router };
+</code></pre>
+
+<p>Dashboard (Parent component):</p>
+
+<pre><code>import React from 'react'
+import { RouteHandler, Link } from 'react-router'
+import { _, div } from './Html'
+
+export default
+class Dashboard extends React.Component {
+
+    constructor() {
+
+        super();
+
+        this.state = {}
+    }
+
+    componentWillMount() {
+
+        console.log('mounted')
+    }
+
+    componentWillUnmount() {
+
+    }
+
+    render() {
+
+        return (
+            div({},
+                _(Link)({to: 'players'}),
+                _(RouteHandler)({})
+            )
+        )
+    }
+}
+</code></pre>
+
+<p><strong>Note:</strong> <code>_</code> is just a wrapper for React.createFactory()</p>
+","3078552","","3078552","","2015-08-04 18:11:47","2015-08-04 18:16:29","Is it possible to only remount only the new child components on react-router transition","<reactjs><react-router>","1","4","3","",""
+"38489980","1","38573549","","2016-07-20 20:11:23","","1","104","<p>I get this error:</p>
+
+<pre><code>Invariant Violation: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object.
+</code></pre>
+
+<p>When trying to use <code>ReactDOMServer.renderToStaticMarkup</code>.</p>
+
+<p>This is my react app:</p>
+
+<pre><code>""use strict"";
+import React from 'react'
+
+module.exports = () =&gt; {
+    return (
+        &lt;div&gt;&lt;/div&gt;
+    );
+};
+</code></pre>
+
+<p>And this is my node server rendering code:</p>
+
+<pre><code>""use strict"";
+const path = require('path');
+const webpack = require('webpack');
+const React = require('react'), ReactDOMServer = require('react-dom/server'),
+DOM = React.DOM, body = DOM.body, div = DOM.div, script = DOM.script;
+webpack({
+    target: ""node"",
+    entry: [
+        path.resolve(__dirname, '../js', 'app.js'),
+    ],
+    module: {
+        loaders: [
+            {
+                exclude: /node_modules/,
+                loader: 'babel',
+                test: /\.js$/,
+            },
+        ]
+    },
+    output: {filename: 'app.bundle.js', path: __dirname},
+},() =&gt; {
+    const App = React.createFactory(require('./app.bundle.js'));
+    let html = ReactDOMServer.renderToStaticMarkup(body(null,
+        div({
+            id: 'root', dangerouslySetInnerHTML: {
+                __html: ReactDOMServer.renderToString(App())
+            }
+        })
+    ));
+});
+</code></pre>
+
+<p>Does anyone have an idea what cause this error and how to fix this?</p>
+
+<p>Thanks in advance.</p>
+","2413761","","2413761","","2016-07-21 07:28:17","2016-07-25 16:58:24","got ""Element type is invalid: expected a string"" when trying to server side rendering react","<node.js><reactjs><webpack><server-rendering>","1","0","","",""
+"39261851","1","39262248","","2016-09-01 02:34:41","","1","1455","<p>I am using node js to render my react component...</p>
+
+<pre><code>var express = require('express');
+var router = express.Router();
+
+var React = require('react');
+var reactDom = require('react-dom/server');
+var App = React.createFactory(require('../components/index'));
+
+router.get('/', function(req,res) {
+    var reactHtml = reactDom.renderToString(App({exists: false}));
+    res.render('../../tutorHub/views/index.jade', {reactOutput: reactHtml});
+});
+module.exports = router;
+</code></pre>
+
+<p>I am trying to pass a prop, <code>exists: false</code>, to the component.</p>
+
+<p>But in my actual component when I try to <code>console.log</code>...</p>
+
+<pre><code>render(){
+
+    console.log(this.props.exists);
+        return (
+            &lt;Register /&gt;
+        );
+}
+</code></pre>
+
+<p>I get <code>undefined</code> rather than <code>true</code>.</p>
+
+<p>How can I fix this? Is this because the browser is re-rendering the page?    </p>
+","4333347","","","","","2016-09-01 03:27:28","how to pass prop server side react","<javascript><node.js><reactjs>","2","0","1","",""
+"32787593","1","","","2015-09-25 17:27:31","","0","324","<p>I'm trying to use a 3rd party react component (<a href=""https://github.com/akiran/generator-react-slick"" rel=""nofollow"">react-slick</a>) within my JSX and running into a problem.  I'm attempting to use it very similarly to within <a href=""https://github.com/akiran/generator-react-slick/blob/master/app/templates/client/js/app.jsx"" rel=""nofollow"">this</a> example by the app creator (example1.jsx snippet below).</p>
+
+<p>Whenever I do this I get 2 warnings and an error:</p>
+
+<blockquote>
+  <p>Warning: This JSX uses a plain function. Only React components are valid in React's JSX transform.</p>
+  
+  <p>Warning: Something is calling a React component directly. Use a factory or JSX instead. See: <a href=""http://fb.me/react-legacyfactory"" rel=""nofollow"">http://fb.me/react-legacyfactory</a></p>
+  
+  <p>Uncaught TypeError: Cannot read property '__reactAutoBindMap' of null</p>
+</blockquote>
+
+<p>I have also tried something similar as example2.jsx, which was a solution found in another Stack Overflow question.  However, while no warnings or errors were thrown, in this case the code did not render at all.</p>
+
+<p>I have tried various methods of using React.createFactory (which shouldn't be used in JSX to begin with), and other finagling but with no results.</p>
+
+<p>This is probably a stupid question but how the hell do I use npm installed components in my JSX?</p>
+
+<p><strong>example1.jsx</strong></p>
+
+<pre><code>var React = require('react');
+var Slider = require('react-slick');
+
+var SingleItem = React.createClass({
+  render: function () {
+    var settings = {
+      dots: true,
+    }
+    return (
+      &lt;div&gt;
+        &lt;h3&gt; Image slider with one item at a time&lt;/h3&gt;
+        &lt;Slider dots={true}&gt;
+          &lt;div&gt;&lt;img src=""/img/autumn.jpg"" alt=""""/&gt;&lt;/div&gt;
+          &lt;div&gt;&lt;img src=""/img/sun.jpg"" alt=""""/&gt;&lt;/div&gt;
+        &lt;/Slider&gt;
+      &lt;/div&gt;
+    );
+  }
+});
+
+var App = React.createClass({
+  render: function () {
+    return (
+      &lt;div className='container'&gt;
+        &lt;SingleItem /&gt;
+      &lt;/div&gt;
+    );
+  }
+});
+</code></pre>
+
+<p><strong>example2.jsx</strong></p>
+
+<pre><code>var App = React.createClass({
+  render: function () {
+    return (
+      &lt;div className='container'&gt;
+        {SingleItem}
+      &lt;/div&gt;
+    );
+  }
+});
+</code></pre>
+","2438417","","","","","2016-01-19 09:54:25","How to use npm installed react component in JSX","<reactjs>","2","3","","",""
+"34231501","1","","","2015-12-11 19:53:57","","0","764","<p>I've been building an isomorphic react app using node-jsx, browserify, reactify, etc. My code runs fine on the server, and components are mounted and rendered correctly. However, the react function doesn't seem to work, for instance, the handleClick function does not recognize alert(), or console.log() never prints out expected result on neither the server nor the client side console. Can anyone identify what's going on here?</p>
+
+<p>UPDATE: Another thing I want to point out is, when I run the server and go to the browser, in the browser console(used chrome dev tool) I typed ""window.React"", it actually returned the React object. But console.log still doesn't do anything for click handler function.</p>
+
+<p><strong>views/index.ejs</strong></p>
+
+<pre><code>&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Shortened URL Generator&lt;/title&gt;
+    &lt;link href='/style.css' rel=""stylesheet""&gt;
+    &lt;link href=""css/griddle.css"" rel=""stylesheet"" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1 id=""main-title""&gt;Welcome to Shortened URL Generator&lt;/h1&gt;
+
+&lt;div id=""react-main-mount""&gt;
+    &lt;%- reactOutput %&gt;
+&lt;/div&gt;
+
+&lt;!-- comment out main.js to see server side only rendering --&gt;
+&lt;script src=""https://fb.me/react-with-addons-0.14.3.min.js""&gt;&lt;/script&gt;
+&lt;script src=""https://fb.me/react-dom-0.14.3.min.js""&gt;&lt;/script&gt;
+&lt;script src=""/main.js""&gt;&lt;/script&gt;
+&lt;script src=""//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js""&gt;&lt;/script&gt;
+&lt;script src=""//fb.me/JSXTransformer-0.12.0.js""&gt;&lt;/script&gt;
+&lt;script type=""text/javascript"" src=""scripts/griddle.js""&gt;&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p><strong>routes/routes.js</strong></p>
+
+<pre><code>    var React = require('react/addons'),
+    ReactApp = React.createFactory(require('../components/ReactApp'));
+
+    module.exports = function(app) {
+    var storeUrls = {
+        ""fb.com"": ""facebook.com""
+    };
+    app.get('/', function(req, res){
+        // React.renderToString takes your component
+        // and generates the markup
+        var reactHtml = React.renderToString(ReactApp({}));
+        // Output html rendered by react
+        // console.log(myAppHtml);
+        res.render('index.ejs', {reactOutput: reactHtml});
+    });
+    app.get('/:routeParam', function(req, res){
+
+    });
+
+};
+</code></pre>
+
+<p><strong>app/components/ReactApp.js</strong></p>
+
+<pre><code>var TableComponent = require('./TableComponent');
+var React = require('react/addons');
+var urls = require('./url');
+var Griddle = React.createFactory(require('griddle-react'));
+var ReactApp = React.createClass({
+
+componentDidMount: function () {
+    console.log(""yes"");
+
+},
+handleClick: function() {
+   // this.setState({liked: !this.state.liked});
+    var longUrl = this.refs.inputUrl;
+    urls.push({
+        ""original url"": longUrl,
+        ""shortened url"": ""/""
+    })
+    console.log(longurl);
+
+},
+render: function () {
+    return (
+        &lt;div&gt;
+        &lt;div id=""form""&gt;
+            &lt;form&gt;
+             &lt;section&gt;Paste your long url here&lt;/section&gt;
+             &lt;input ref=""inputUrl""  value={this.props.value} type=""text"" placeholder=""http://...."" /&gt;
+             &lt;button onclick={this.handleClick} type=""submit"" value=""Submit""&gt;Shorten URL&lt;/button&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
+            &lt;div id=""table-area""&gt;
+                &lt;TableComponent /&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    )
+}
+});
+
+module.exports = ReactApp;
+</code></pre>
+
+<p><strong>app/main.js</strong></p>
+
+<pre><code>var React = require('react/addons');
+var ReactApp = require('./components/ReactApp');
+var TableComponent = require('./components/TableComponent');
+
+var mountNode = document.getElementById('react-main-mount');
+var mountTable= document.getElementById('table-area');
+
+React.render(new ReactApp({}), mountNode);
+React.render(new TableComponent({}), mountTable);
+</code></pre>
+
+<p><strong>server.js</strong>
+<pre></p>
+
+<pre><code>var express = require('express'),
+path = require('path'),
+app = express(),
+port = 5000,
+bodyParser = require('body-parser');
+
+require('node-jsx').install();
+
+
+// Include static assets. Not advised for production
+app.use(express.static(path.join(__dirname, 'public')));
+// Set view path
+app.set('views', path.join(__dirname, 'views'));
+// set up ejs for templating. You can use whatever
+app.set('view engine', 'ejs');
+
+// Set up Routes for the application
+require('./app/routes/routes.js')(app);
+
+//Route not found -- Set 404
+app.get('*', function(req, res) {
+    res.json({
+    'route': 'Sorry this page does not exist!'
+});
+});
+
+app.listen(port);
+console.log('Server is Up and Running at Port : ' + port);
+</code></pre>
+
+<p><code></p>
+
+<p><strong>Gulpfile.js</strong></p>
+
+var gulp       = require('gulp');
+var source = require('vinyl-source-stream'),
+browserify = require('browserify');
+gulp.task('scripts', function(){
+return browserify({
+   transform: [ 'reactify' ],
+   entries: 'app/main.js'
+})
+.bundle()
+.pipe(source('main.js'))
+.pipe(gulp.dest('./public/'));
+});
+gulp.task('default', ['scripts']);
+</code></pre>
+","2146703","","2146703","","2015-12-11 20:37:44","2015-12-11 22:10:11","Isomorphic React - how to make react function as part of the window object","<javascript><gulp><browserify><isomorphic-javascript><reactify>","3","3","","",""
+"36746267","1","36751934","","2016-04-20 14:03:03","","-1","55","<p>I was writing an app with react and to perform server-side rendering I did the following:</p>
+
+<pre><code>var Component = require('myComponent');
+var ComponentFactory = React.createFactory(Component);
+
+/* GET home page. */
+router.get('/', function (req, res, next) {
+    res.render('index', {
+        react: ReactDom.renderToString(ComponentFactory()),
+    });
+});
+</code></pre>
+
+<p>Now I'm rewriting the app but switched most of the javascript to ES6, but when I tried to create a factory with the component, it would not show up in the browser, instead I had to do the following:</p>
+
+<pre><code>var router = express.Router();
+
+/* GET home page. */
+router.get('/', function(req, res, next) {
+    res.render('index', { 
+        reacthtml: ReactDom.renderToString(&lt;InfoBoxes /&gt;)***here***
+    });
+});
+</code></pre>
+
+<p>I had to just input the component in jsx syntax. Is this ES6 dependent or is there another reason why this may happen?</p>
+","2939522","","","","","2016-04-20 20:31:14","react es6 server side rendering doesn't require a factory?","<javascript><reactjs><ecmascript-6>","1","3","","",""
+"36405205","1","36405439","","2016-04-04 14:18:26","","1","143","<p>I've been working with react for a couple months now and I've been doing server side rendering successfully. Recently I started rewriting a personal app with ES6 + Babel. When I try to run <code>renderToString()</code> on a react component I get this error:</p>
+
+<blockquote>
+  <p>renderToString(): You must pass a valid ReactElement.</p>
+</blockquote>
+
+<p><strong>some code</strong></p>
+
+<p><em>the component</em></p>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+
+
+export class InfoBox extends React.Component {
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;div className='info-box'&gt;
+                    Hello
+                &lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+if(typeof window !== 'undefined') {
+    ReactDOM.render(&lt;InfoBox/&gt;, document.getElementById('info-box-mount-point'));
+}
+</code></pre>
+
+<p><em>express index route</em></p>
+
+<pre><code>import express from 'express';
+import React from 'react';
+import ReactDom from 'react-dom/server';
+import InfoBox from '../react-components/info-box/info-box.jsx';
+
+let router = express.Router();
+let InfoBoxFactory = React.createFactory(InfoBox);
+
+/* GET home page. */
+router.get('/', function(req, res, next) {
+    res.render('index', { 
+        reacthtml: ReactDom.renderToString(InfoBoxFactory)
+    });
+});
+
+module.exports = router;
+</code></pre>
+
+<p>another question: should I be saving my components as <code>.jsx</code> or <code>.js</code>? (I'm using <code>jsx</code> in the render method of the component for the html)</p>
+","2939522","","18846","","2016-04-04 23:25:12","2016-04-04 23:25:12","getting an error when converting react component to string","<reactjs><ecmascript-6><babeljs>","1","0","1","",""
+"39112673","1","39112706","","2016-08-24 00:31:21","","1","807","<p>I am rendering a react class using node js as so...</p>
+
+<pre><code>var express = require('express');
+var router = express.Router();
+
+var React = require('react');
+var reactDom = require('react-dom/server');
+var App = React.createFactory(require('../components/index'));
+
+router.get('/', function(req,res) {
+    var reactHtml = reactDom.renderToString(App({}));
+    res.render('../../tutorHub/views/index.jade', {reactOutput: reactHtml});
+});
+module.exports = router;
+</code></pre>
+
+<p>The page gets rendered fine, but no function that I add gets called. For example, in my <code>App</code> class...</p>
+
+<pre><code>class App extends React.Component {
+    constructor(props) {
+        super(props);    
+    }
+    getClass() {
+        return ""a_class"";
+    }
+
+    render() {
+        return (
+            &lt;div className={this.getClass}&gt;&lt;/div&gt;
+        );
+    }
+}
+
+module.exports = App;
+</code></pre>
+
+<p>The <code>getClass</code> function is not called. Instead the className becomes the code</p>
+
+<pre><code>class = getClass() {
+    return ""a_class"";
+}
+</code></pre>
+
+<p>instead of simply <code>a_class</code> when I check the html. For some reason, rather than the function being called, it is simply saved as a string and placed in to the className.</p>
+
+<p>Why is this happening? I am not able to call any functions I make. Can someone help me out?</p>
+","4333347","","5108418","","2016-08-24 00:38:50","2016-08-24 00:38:50","react function not being called","<javascript><node.js><reactjs>","1","0","","",""
+"41441181","1","","","2017-01-03 10:18:18","","0","344","<p>I get the following errors:</p>
+
+<pre><code>bundle.js:1079 Warning: render(): Rendering components directly into document.body is discouraged, since its children are often manipulated by third-party scripts and browser extensions. This may lead to subtle reconciliation issues. Try rendering into a container element created for your app.printWarning @ bundle.js:1079warning @ bundle.js:1103_renderSubtreeIntoContainer @ bundle.js:11201render @ bundle.js:11271181../components/LoginForm/index.jsx @ bundle.js:20603s @ bundle.js:1e @ bundle.js:1(anonymous function) @ bundle.js:1
+bundle.js:1079 Warning: render(): Target node has markup rendered by React, but there are unrelated nodes as well. This is most commonly caused by white-space inserted around server-rendered markup.printWarning @ bundle.js:1079warning @ bundle.js:1103_renderSubtreeIntoContainer @ bundle.js:11241render @ bundle.js:11271181../components/LoginForm/index.jsx @ bundle.js:20603s @ bundle.js:1e @ bundle.js:1(anonymous function) @ bundle.js:1
+bundle.js:1079 Warning: validateDOMNesting(...): &lt;html&gt; cannot appear as a child of &lt;body&gt;. See body &gt; App &gt; html.printWarning @ bundle.js:1079warning @ bundle.js:1103validateDOMNesting @ bundle.js:17187mountComponent @ bundle.js:7165mountComponent @ bundle.js:12249performInitialMount @ bundle.js:6038mountComponent @ bundle.js:5925mountComponent @ bundle.js:12249performInitialMount @ bundle.js:6038mountComponent @ bundle.js:5925mountComponent @ bundle.js:12249mountComponentIntoNode @ bundle.js:10953perform @ bundle.js:14898batchedMountComponentIntoNode @ bundle.js:10975perform @ bundle.js:14898batchedUpdates @ bundle.js:9984batchedUpdates @ bundle.js:13020_renderNewRootComponent @ bundle.js:11169_renderSubtreeIntoContainer @ bundle.js:11250render @ bundle.js:11271181../components/LoginForm/index.jsx @ bundle.js:20603s @ bundle.js:1e @ bundle.js:1(anonymous function) @ bundle.js:1
+bundle.js:1079 Warning: Unknown DOM property charset. Did you mean charSet?
+    in meta (created by App)
+    in head (created by App)
+    in html (created by App)
+    in AppprintWarning @ bundle.js:1079warning @ bundle.js:1103validateProperty @ bundle.js:9503warnUnknownProperties @ bundle.js:9521handleElement @ bundle.js:9545onBeforeMountComponent @ bundle.js:9550callHook @ bundle.js:9587emitEvent @ bundle.js:9599onBeforeMountComponent @ bundle.js:9876mountComponent @ bundle.js:12246mountChildren @ bundle.js:11627_createContentMarkup @ bundle.js:7337mountComponent @ bundle.js:7204mountComponent @ bundle.js:12249mountChildren @ bundle.js:11627_createContentMarkup @ bundle.js:7337mountComponent @ bundle.js:7204mountComponent @ bundle.js:12249performInitialMount @ bundle.js:6038mountComponent @ bundle.js:5925mountComponent @ bundle.js:12249performInitialMount @ bundle.js:6038mountComponent @ bundle.js:5925mountComponent @ bundle.js:12249mountComponentIntoNode @ bundle.js:10953perform @ bundle.js:14898batchedMountComponentIntoNode @ bundle.js:10975perform @ bundle.js:14898batchedUpdates @ bundle.js:9984batchedUpdates @ bundle.js:13020_renderNewRootComponent @ bundle.js:11169_renderSubtreeIntoContainer @ bundle.js:11250render @ bundle.js:11271181../components/LoginForm/index.jsx @ bundle.js:20603s @ bundle.js:1e @ bundle.js:1(anonymous function) @ bundle.js:1
+bundle.js:1079 Warning: React attempted to reuse markup in a container but the checksum was invalid. This generally means that you are using server rendering and the markup generated on the server was not what the client was expecting. React injected new markup to compensate which works but you have lost many of the benefits of server rendering. Instead, figure out why the markup being generated is different on the client or server:
+ (client) &lt;meta data-reactid=""3
+ (server) &lt;div data-reactid=""6""printWarning @ bundle.js:1079warning @ bundle.js:1103_mountImageIntoNode @ bundle.js:11356mountComponentIntoNode @ bundle.js:10961perform @ bundle.js:14898batchedMountComponentIntoNode @ bundle.js:10975perform @ bundle.js:14898batchedUpdates @ bundle.js:9984batchedUpdates @ bundle.js:13020_renderNewRootComponent @ bundle.js:11169_renderSubtreeIntoContainer @ bundle.js:11250render @ bundle.js:11271181../components/LoginForm/index.jsx @ bundle.js:20603s @ bundle.js:1e @ bundle.js:1(anonymous function) @ bundle.js:1
+bundle.js:826 Uncaught Error: Unable to find element with ID 2.(…)
+</code></pre>
+
+<p>I'm trying to follow the react tutorial <a href=""https://facebook.github.io/react/tutorial/tutorial.html"" rel=""nofollow noreferrer"">https://facebook.github.io/react/tutorial/tutorial.html</a> which I must say is pretty poor. Also the tutorials which exist on the net are a mix of the different versions which some using deprecated methods etc. it's a jungle!</p>
+
+<p>render method:</p>
+
+<pre><code>'use strict';
+
+import React from 'react';
+
+export default class LoginForm extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = { isToggleOn: true };
+
+    this.submitFormClick = this.submitFormClick.bind(this);
+  }
+
+  submitFormClick(e) {
+    e.preventDefault();
+
+    this.setState(prevState =&gt; ({
+      isToggleOn: !prevState.isToggleOn
+    }));
+  }
+
+  render() {
+    return (
+      &lt;div&gt;{this.state.isToggleOn ? 'TRUE TOGGLE' : 'FALSE TOGGLE'}
+        &lt;form role=""form"" onSubmit=""""&gt;
+          &lt;input type=""text"" name=""username"" /&gt;
+          &lt;br /&gt;
+          &lt;input type=""password"" name=""password"" /&gt;
+          &lt;br /&gt;
+          &lt;button onClick={this.submitFormClick}&gt;Login&lt;/button&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>entrance method in index.js file:</p>
+
+<pre><code>ReactDOM.render(&lt;App /&gt;, document.getElementById('root'));
+</code></pre>
+
+<p>main.html:</p>
+
+<pre><code>&lt;html&gt;
+
+&lt;head&gt;
+  &lt;meta charset=""utf-8"" /&gt;
+  &lt;title&gt;index.html&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+  &lt;div id=""root""&gt;&lt;/div&gt;
+  &lt;script src=""static/bundle.js""&gt;&lt;/script&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;
+</code></pre>
+
+<p>How I render it server side:</p>
+
+<pre><code>const App = React.createFactory(AppComponent);
+const html = ReactDOMServer.renderToString(App({}));
+
+res.setHeader('Content-Type', 'text/html; charset=utf-8');
+res.status(200)
+  .send(html);
+</code></pre>
+","1137669","","","","","2017-01-03 10:32:11","Multiple errors with reactjs example","<javascript><node.js><reactjs>","1","0","1","",""
+"34813080","1","","","2016-01-15 14:19:29","","1","231","<p>Hi is it possible to connect react dom nodes to store? I had few attempts like this:</p>
+
+<pre><code>import React, {DOM} from 'react';
+
+export default connect((state,props) =&gt; {
+  ...
+})(DOM.a)
+</code></pre>
+
+<p>or this:</p>
+
+<pre><code>import React, {createFactory} from 'react';
+
+export default connect((state,props) =&gt; {
+  ...
+})(createFactory('a'))
+</code></pre>
+
+<p>with no success. After while i currently solved this problem with this:</p>
+
+<pre><code>import React from 'react';
+
+const anchor = (props) =&gt; {
+  return &lt;a {...props}&gt;{props.children}&lt;/a&gt;
+}
+
+export default connect((state, props) =&gt; {
+  ...
+})(anchor)
+</code></pre>
+
+<p>but I don't think it is needed.
+Is there any simpler solution?</p>
+","2667885","","","","","2016-01-15 14:19:29","How to connect redux with react DOM nodes?","<reactjs><redux>","0","5","","",""
+"35765711","1","","","2016-03-03 07:26:10","","0","441","<p>I am trying to build an isomorphic React application using NodeJs.</p>
+
+<p>The node server.js file uses 'node-jsx-babel', to transpile the Jsx files of my react component.</p>
+
+<p>on server.js i got </p>
+
+<pre><code>require('node-jsx-babel').install({ extension: '.jsx'});
+</code></pre>
+
+<p>on my server route file, I call the react component like so.</p>
+
+<pre><code>var React = require('react');
+var ReactDOMServer = require('react-dom/server');
+var Catalog = React.createFactory(require('./js/src/Components/Catalog/Catalog'));
+
+app.get('/routename', function(req, res){
+
+
+var reactHtml = ReactDOMServer.renderToString(Catalog({
+    columns: 3,
+    ...
+
+    }));
+    // Output html rendered by react
+
+    res.render('reactSearch.ejs', {reactOutput: reactHtml});
+    });
+</code></pre>
+
+<p>The Catalog component upon mounting makes an api call to another node api, and obtains some data, which is successfully obtained in it's state variable this.state.data. The render block of this component looks like this.</p>
+
+<pre><code>render: function() {
+
+var MenuList = this.state.data.menu.map(function(menuItem,index){
+
+     return(
+       &lt;li key={index}&gt;
+           &lt;a className=""search_prevent"" href={menuItem.u}&gt; {menuItem.n} &lt;/a&gt;
+
+       &lt;/li&gt;
+     )
+   });
+
+return (
+&lt;ul className=""menu""&gt;
+   {MenuList}
+&lt;/ul&gt;
+
+)
+}
+</code></pre>
+
+<p>Upon reloading the browser at <code>localhost:&lt;port&gt;/routename</code>, The Node Application crashes with this error.</p>
+
+<pre><code>Warning: React can't find the root component node for data-reactid value `.3r0ietj75s.0.0.0.0.0.1`. If you're seeing this message, it probably means that you've loaded two copies of React on the page. At this time, only a single copy of React can be loaded at a time.
+/Users/nikil/Documents/ReactIsomorphicDemo/node_modules/react/lib/ReactMount.js:715
+    firstChildren[0] = deepestAncestor.firstChild;
+</code></pre>
+
+<p><strong>I can get the page to load fine without any errors if I remove the {MenuList} from inside the <code>&lt;ul&gt;</code> of the render block. If i replace {MenuList} with say Hello, the page renders with the ul and the word hello.
+The application crashes when I try mapping through the data I obtained and assign it to the ul.</strong></p>
+
+<p>I have ensured that the react component is not a sub dependency of any of my other components including React-DOM.</p>
+
+<p>Below is an output of <strong>npm ls</strong> to show my dependency graph.</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>─┬ algoliasearch@3.13.0
+│ ├── agentkeepalive@2.0.3
+│ ├─┬ debug@2.2.0
+│ │ └── ms@0.7.1
+│ ├─┬ debug-ms-fix-yui-compressor@2.2.2-future-reserved-word-fix-ms
+│ │ └── algolia-ms@0.7.1-fix-future-reserved-words
+│ ├─┬ envify@3.4.0
+│ │ ├─┬ jstransform@10.1.0
+│ │ │ ├── base62@0.1.1
+│ │ │ ├── esprima-fb@13001.1001.0-dev-harmony-fb
+│ │ │ └─┬ source-map@0.1.31
+│ │ │   └── amdefine@1.0.0
+│ │ └── through@2.3.8
+│ ├── es6-promise@3.1.2
+│ ├── events@1.1.0
+│ ├── inherits@2.0.1
+│ ├── load-script@1.0.0
+│ ├── lodash@3.10.1
+│ ├── lodash-compat@3.10.2
+│ ├── querystring@0.2.0
+│ ├── semver@5.1.0
+│ └── tunnel-agent@0.4.2
+├── ejs@2.4.1
+├─┬ express@3.1.0
+│ ├── buffer-crc32@0.1.1
+│ ├── commander@0.6.1
+│ ├─┬ connect@2.7.2
+│ │ ├── bytes@0.1.0
+│ │ ├── formidable@1.0.11
+│ │ ├── pause@0.0.1
+│ │ └── qs@0.5.1
+│ ├── cookie@0.0.5
+│ ├── cookie-signature@0.0.1
+│ ├─┬ debug@2.2.0
+│ │ └── ms@0.7.1
+│ ├── fresh@0.1.0
+│ ├── methods@0.0.1
+│ ├── mkdirp@0.3.3
+│ ├── range-parser@0.0.4
+│ └─┬ send@0.1.0
+│   └── mime@1.2.6
+├── mime@1.2.11
+├─┬ node-jsx-babel@0.14.2
+│ ├─┬ babel-core@6.6.4
+│ │ ├─┬ babel-code-frame@6.6.0
+│ │ │ ├─┬ chalk@1.1.1
+│ │ │ │ ├─┬ ansi-styles@2.2.0
+│ │ │ │ │ └── color-convert@1.0.0
+│ │ │ │ ├── escape-string-regexp@1.0.5
+│ │ │ │ ├─┬ has-ansi@2.0.0
+│ │ │ │ │ └── ansi-regex@2.0.0
+│ │ │ │ ├─┬ strip-ansi@3.0.1
+│ │ │ │ │ └── ansi-regex@2.0.0
+│ │ │ │ └── supports-color@2.0.0
+│ │ │ ├── esutils@2.0.2
+│ │ │ ├── js-tokens@1.0.2
+│ │ │ ├─┬ line-numbers@0.2.0
+│ │ │ │ └── left-pad@0.0.3
+│ │ │ └─┬ repeating@1.1.3
+│ │ │   └─┬ is-finite@1.0.1
+│ │ │     └── number-is-nan@1.0.0
+│ │ ├─┬ babel-generator@6.6.4
+│ │ │ ├─┬ detect-indent@3.0.1
+│ │ │ │ ├── get-stdin@4.0.1
+│ │ │ │ └── minimist@1.2.0
+│ │ │ ├─┬ is-integer@1.0.6
+│ │ │ │ └─┬ is-finite@1.0.1
+│ │ │ │   └── number-is-nan@1.0.0
+│ │ │ ├─┬ repeating@1.1.3
+│ │ │ │ └─┬ is-finite@1.0.1
+│ │ │ │   └── number-is-nan@1.0.0
+│ │ │ └── trim-right@1.0.1
+│ │ ├── babel-helpers@6.6.0
+│ │ ├── babel-messages@6.6.0
+│ │ ├─┬ babel-register@6.6.0
+│ │ │ ├── core-js@2.1.3
+│ │ │ ├─┬ home-or-tmp@1.0.0
+│ │ │ │ ├── os-tmpdir@1.0.1
+│ │ │ │ └── user-home@1.1.1
+│ │ │ ├─┬ mkdirp@0.5.1
+│ │ │ │ └── minimist@0.0.8
+│ │ │ └─┬ source-map-support@0.2.10
+│ │ │   └─┬ source-map@0.1.32
+│ │ │     └── amdefine@1.0.0
+│ │ ├─┬ babel-runtime@5.8.35
+│ │ │ └── core-js@1.2.6
+│ │ ├── babel-template@6.6.4
+│ │ ├─┬ babel-traverse@6.6.4
+│ │ │ ├── globals@8.18.0
+│ │ │ ├─┬ invariant@2.2.0
+│ │ │ │ └─┬ loose-envify@1.1.0
+│ │ │ │   └── js-tokens@1.0.2
+│ │ │ └─┬ repeating@1.1.3
+│ │ │   └─┬ is-finite@1.0.1
+│ │ │     └── number-is-nan@1.0.0
+│ │ ├─┬ babel-types@6.6.4
+│ │ │ ├── esutils@2.0.2
+│ │ │ └── to-fast-properties@1.0.1
+│ │ ├── babylon@6.6.4
+│ │ ├── convert-source-map@1.2.0
+│ │ ├─┬ debug@2.2.0
+│ │ │ └── ms@0.7.1
+│ │ ├── json5@0.4.0
+│ │ ├── lodash@3.10.1
+│ │ ├─┬ minimatch@2.0.10
+│ │ │ └─┬ brace-expansion@1.1.3
+│ │ │   ├── balanced-match@0.3.0
+│ │ │   └── concat-map@0.0.1
+│ │ ├── path-exists@1.0.0
+│ │ ├── path-is-absolute@1.0.0
+│ │ ├── private@0.1.6
+│ │ ├── shebang-regex@1.0.0
+│ │ ├── slash@1.0.0
+│ │ └── source-map@0.5.3
+│ └─┬ babel-preset-react@6.5.0
+│   ├─┬ babel-plugin-syntax-flow@6.5.0
+│   │ └─┬ babel-runtime@5.8.35
+│   │   └── core-js@1.2.6
+│   ├─┬ babel-plugin-syntax-jsx@6.5.0
+│   │ └─┬ babel-runtime@5.8.35
+│   │   └── core-js@1.2.6
+│   ├─┬ babel-plugin-transform-flow-strip-types@6.6.4
+│   │ └─┬ babel-runtime@5.8.35
+│   │   └── core-js@1.2.6
+│   ├─┬ babel-plugin-transform-react-display-name@6.5.0
+│   │ └─┬ babel-runtime@5.8.35
+│   │   └── core-js@1.2.6
+│   ├─┬ babel-plugin-transform-react-jsx@6.6.4
+│   │ ├─┬ babel-helper-builder-react-jsx@6.6.4
+│   │ │ ├─┬ babel-types@6.6.4
+│   │ │ │ ├─┬ babel-traverse@6.6.4
+│   │ │ │ │ ├─┬ babel-code-frame@6.6.0
+│   │ │ │ │ │ ├─┬ chalk@1.1.1
+│   │ │ │ │ │ │ ├─┬ ansi-styles@2.2.0
+│   │ │ │ │ │ │ │ └── color-convert@1.0.0
+│   │ │ │ │ │ │ ├── escape-string-regexp@1.0.5
+│   │ │ │ │ │ │ ├─┬ has-ansi@2.0.0
+│   │ │ │ │ │ │ │ └── ansi-regex@2.0.0
+│   │ │ │ │ │ │ ├─┬ strip-ansi@3.0.1
+│   │ │ │ │ │ │ │ └── ansi-regex@2.0.0
+│   │ │ │ │ │ │ └── supports-color@2.0.0
+│   │ │ │ │ │ ├── js-tokens@1.0.2
+│   │ │ │ │ │ └─┬ line-numbers@0.2.0
+│   │ │ │ │ │   └── left-pad@0.0.3
+│   │ │ │ │ ├── babel-messages@6.6.0
+│   │ │ │ │ ├── babylon@6.6.4
+│   │ │ │ │ ├─┬ debug@2.2.0
+│   │ │ │ │ │ └── ms@0.7.1
+│   │ │ │ │ ├── globals@8.18.0
+│   │ │ │ │ ├─┬ invariant@2.2.0
+│   │ │ │ │ │ └─┬ loose-envify@1.1.0
+│   │ │ │ │ │   └── js-tokens@1.0.2
+│   │ │ │ │ └─┬ repeating@1.1.3
+│   │ │ │ │   └─┬ is-finite@1.0.1
+│   │ │ │ │     └── number-is-nan@1.0.0
+│   │ │ │ └── to-fast-properties@1.0.1
+│   │ │ ├── esutils@2.0.2
+│   │ │ └── lodash@3.10.1
+│   │ └─┬ babel-runtime@5.8.35
+│   │   └── core-js@1.2.6
+│   └─┬ babel-plugin-transform-react-jsx-source@6.5.0
+│     └─┬ babel-runtime@5.8.35
+│       └── core-js@1.2.6
+├─┬ react@0.14.7
+│ ├─┬ envify@3.4.0
+│ │ ├─┬ jstransform@10.1.0
+│ │ │ ├── base62@0.1.1
+│ │ │ ├── esprima-fb@13001.1001.0-dev-harmony-fb
+│ │ │ └─┬ source-map@0.1.31
+│ │ │   └── amdefine@1.0.0
+│ │ └── through@2.3.8
+│ └─┬ fbjs@0.6.1
+│   ├── core-js@1.2.6
+│   ├─┬ loose-envify@1.1.0
+│   │ └── js-tokens@1.0.2
+│   ├─┬ promise@7.1.1
+│   │ └── asap@2.0.3
+│   ├── ua-parser-js@0.7.10
+│   └── whatwg-fetch@0.9.0
+├── react-addons-css-transition-group@0.14.7
+├── react-dom@0.14.7
+├── react-pager@1.1.2
+└─┬ rest-js@1.1.2
+  ├── es6-promise@2.3.0
+  └─┬ superagent@0.21.0
+    ├── component-emitter@1.1.2
+    ├── cookiejar@2.0.1
+    ├─┬ debug@2.2.0
+    │ └── ms@0.7.1
+    ├── extend@1.2.1
+    ├─┬ form-data@0.1.3
+    │ ├── async@0.9.2
+    │ └─┬ combined-stream@0.0.7
+    │   └── delayed-stream@0.0.5
+    ├── formidable@1.0.14
+    ├── methods@1.0.1
+    ├── qs@1.2.0
+    ├─┬ readable-stream@1.0.27-1
+    │ ├── core-util-is@1.0.2
+    │ ├── inherits@2.0.1
+    │ ├── isarray@0.0.1
+    │ └── string_decoder@0.10.31
+    └── reduce-component@1.0.1</code></pre>
+</div>
+</div>
+</p>
+
+<p>Not sure what is causing this problem. Would appreciate any thoughts that can help solve this problem. Thanks</p>
+","909774","","1016716","","2016-03-08 12:16:55","2016-03-08 12:16:55","React can't find the root component node for data-reactid value `.3r0ietj75s.0.0.0.0.0.1` during Server Side Rendering in NodeJS","<node.js><reactjs><server><rendering>","1","0","","",""
+"37206878","1","37207869","","2016-05-13 09:55:13","","2","49","<p>I am using <code>coffeescript</code> with <code>react-rails</code> gem. In the <code>measure.js.coffee</code>, there is no span present in the coffee code, but when the HTML is getting painted a mysterious ghost span is appearing. Below is a screenshot of code and HTML generated by it.<a href=""https://i.stack.imgur.com/nQ8tr.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/nQ8tr.png"" alt=""enter image description here""></a>
+<a href=""https://i.stack.imgur.com/jblS9.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/jblS9.png"" alt=""enter image description here""></a></p>
+
+<p>In my code, there is no span in between <code>carousel-mImages</code> and <code>mtag-images</code>. Is it because of the <code>reactCSSTransitionGroup = React.createFactory(React.addons.CSSTransitionGroup)</code></p>
+","1629932","","","","","2016-05-13 10:39:03","Mysterious span appearing in HTML for react code","<ruby-on-rails-4><reactjs><coffeescript><react-rails>","1","1","","",""
+"39721337","1","","","2016-09-27 09:43:16","","1","200","<p>My issue is also here:
+<a href=""https://gist.github.com/somanythings/8c3d34de754af311d7826ea837d160b4"" rel=""nofollow"">https://gist.github.com/somanythings/8c3d34de754af311d7826ea837d160b4</a></p>
+
+<p>In using scalajs with japgolly's  scalajs-react (<a href=""https://github.com/japgolly/scalajs-react"" rel=""nofollow"">https://github.com/japgolly/scalajs-react</a>)  library. I am trying to wrap the griddle grid <a href=""http://griddlegriddle.github.io/Griddle/customization.html"" rel=""nofollow"">http://griddlegriddle.github.io/Griddle/customization.html</a>
+I want a custom column, and to do that requires I pass a columnMetadata structure which includes a component. </p>
+
+<p>When I do, I can render a scalajs defined component that doesn't have properties, but if I try to access properties through renderP, or scope through renderS, they are both undefined in the scope of the render function. If I debug in the browser, they names are bound, and do have the expected values. </p>
+
+<p>When I break on </p>
+
+<pre><code>def renderP(f: (DuringCallbackU[P, S, B], P) =&gt; ReactElement): Out =
+  render($ =&gt; f($, $.props))
+</code></pre>
+
+<p>then <code>$.props</code> is undefined</p>
+
+<p>What am I missing? Is it a simple typing issue in the ReactComponentB dispatching.
+Is it somehow related to <a href=""https://github.com/japgolly/scalajs-react/issues/157"" rel=""nofollow"">https://github.com/japgolly/scalajs-react/issues/157</a>, and I just haven't seen how?</p>
+
+<pre><code>// Confusion over how to pass a scalajs defined component to a javascript defined component
+
+object GriddleComponentWrapper {
+  // for customComponent I've tried js.Any, ReactComponentU 
+  @ScalaJSDefined
+  class ColumnMeta(val columnName: String, val order: Int, val customComponent: ReactClass=null) extends js.Object
+}
+
+case class GriddleComponentWrapper(results: js.Any, //Seq[Map[String, Any]],
+                                   columns: Seq[String],
+                                   columnMeta: Option[Seq[ColumnMeta]] = None,
+                                   showSettings: Boolean = true,
+                                   showFilter: Boolean = true
+                                  ) {
+  def toJS = {
+    val p = js.Dynamic.literal()
+    p.updateDynamic(""results"")(results)
+    p.updateDynamic(""columns"")(columns)
+    p.updateDynamic(""showSettings"")(showSettings)
+    p.updateDynamic(""showFilter"")(showFilter)
+
+    (columnMeta).foreach { case cm =&gt; p.updateDynamic(""columnMetadata"")(cm.toJsArray) }
+
+    p
+  }
+
+  def apply(children: ReactNode*) = {
+    val f = React.asInstanceOf[js.Dynamic].createFactory(js.Dynamic.global.Bundle.griddle) // access real js component , make sure you wrap with createFactory (this is needed from 0.13 onwards)
+    f(toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
+  }
+
+}
+
+object MyTestGrid {
+
+  @js.native
+  class ColumnMetaProps(val data: js.Object, val rowData: js.Object, val metadata: js.Object) extends js.Object
+
+  // I've tried making the Props argument js.Dynamic, and also the ColumnMetaProps above
+  @JSExport
+  val testComp = ReactComponentB[js.Dynamic](""Mine"").renderP(
+    (sc, props: js.Dynamic) =&gt; {
+      //when debugging this in the browser, 'sc' and 'props' have inspectable object values with the expected members in the browser 
+      //dev tools, BUT, they're undefined 
+      log.info(s""what is ${sc.props}"")
+      log.info(s""what is $props"")
+      val string: Frag = if (!js.isUndefined(props)) props.data.toString() else ""nothing!""
+      &lt;.h1(string)
+    }).build
+
+   @JSExport 
+   val aCompletelyStaticComponentWithNoPropsWillWork = ReactComponentB[js.Dynamic](""MyStaticComponent"").renderP(
+    (sc, props: js.Dynamic) =&gt;  &lt;.h1(""this renders!!"") ).build
+
+
+// am I passing the right thing to columnmeta with testComp.reactClass? 
+ val columnMeta = (new ColumnMeta(""c1"", 1, testComp.reactClass) :: Nil).toJsArray
+
+  val results = Seq(
+    js.Dynamic.literal(""c1"" -&gt; ""row1c1"", ""c2"" -&gt; ""row1c2""),
+    ).toJsArray
+
+  val component = ReactComponentB[js.Dynamic](""MyTestGrid"")
+    .render_P {
+      props =&gt;
+        GriddleComponentWrapper(results, columns = ""c1"" :: ""c2"" :: Nil, columnMeta = Some(columnMeta))()
+    }.build
+
+  def apply() = component
+}
+</code></pre>
+","236158","","236158","","2016-09-27 09:51:08","2016-10-02 02:45:38","In scalajs with scalajs-react how do I pass a scalajs defined component to a javascript defined component?","<scala.js><scalajs-react>","1","4","","",""
+"40085482","1","","","2016-10-17 11:41:49","","0","460","<p>I have a react application. It has two pages - AddStatus and ViewStatus. Both are react components.</p>
+
+<p>My requirement is - I have to send an email daily at a particular time with details as seen in ViewStatus screen.</p>
+
+<p>I can set up node-mailer and node-scheduler to do that. But how do i render the ViewStatus component from backend. How do i get the HTML of viewStatus screen.</p>
+
+<p>I tried using renderToString method of ReactDOMServer like below in my server.js but getting error</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>var App = React.createFactory(require('../ViewStatus'))
+
+var p = ReactDOMServer.renderToString(App());</code></pre>
+</div>
+</div>
+</p>
+
+<pre><code>  Error: locals[0] does not appear to be a `module` object with Hot Module replace
+ment API enabled. You should disable react-transform-hmr in production by using
+  `env` section in Babel configuration. See the example in README: https://github.
+ com/gaearon/react-transform-hmr
+</code></pre>
+
+<p>Another approach I though of is using react-router but I am not sure how to trigger the route from backend.</p>
+
+<p>How do I get the HTML of my viewstatus component in my server.js</p>
+","2362960","","","","","2016-10-17 11:56:23","send html rendered by react as email body in node js","<javascript><node.js><reactjs><react-router><isomorphic-javascript>","1","0","","",""

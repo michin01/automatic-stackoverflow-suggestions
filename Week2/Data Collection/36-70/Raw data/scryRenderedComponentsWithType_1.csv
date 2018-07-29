@@ -1,0 +1,62 @@
+Title,Tags,Body
+"Shallow render component and scryRenderedComponentsWithType","<javascript><reactjs>","<p>I've been playing with <code>reactjs</code> <code>TestUtils</code>. It's been pretty frustrating. I'm not sure but after experimenting for hours. It seems to me that after shallow rendering a component, I can't use <code>findRenderedComponentWithType</code> or <code>scryRenderedComponentsWithType</code>. In fact, I'm not sure how to extract the object out by its type from the <code>ReactComponent tree</code>. I'm not sure why as I am pretty new to <code>reactjs</code> and I'm not sure what I can or cannot do.</p>
+
+<p>example:</p>
+
+<pre><code>var Layout = React.createClass({
+    render: function(){
+        console.log(this.props);
+        return (
+            &lt;div id=""data-trader""&gt;
+                &lt;header className=""header""&gt;
+                    &lt;LogoElement /&gt;
+                    &lt;UserMenu user={this.props.user} /&gt;
+                &lt;/header&gt;
+                &lt;div className=""container max""&gt;
+                    &lt;div className=""main""&gt;
+                        &lt;RouteHandler path={ this.props.path } query={ this.props.query } params={ this.props.params } user={this.props.user} /&gt;
+                    &lt;/div&gt;
+                    &lt;Footer /&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+});
+</code></pre>
+
+<p>Tests:</p>
+
+<pre><code>describe('Shallow Layout', function(){
+    beforeEach(function(){
+        fakeDOM = TestUtils.createRenderer();
+    });
+
+    // PASS    
+    it('should exist as a component', function(done){
+        expect(&lt;Layout/&gt;).to.exist;
+        done();
+    });
+
+    // PASS
+    it('should have id=data-trader', function(done){
+        fakeDOM.render(&lt;Layout /&gt;);
+        component = fakeDOM.getRenderOutput();
+
+        expect(component.props.id).to.eql('data-trader');
+        done();
+    });
+
+    it('get children', function(done) {
+        var StubbedComponent = TestHelpers.stubRouterContext(component);
+        var k = TestUtils.findRenderedComponentWithType(StubbedComponent, UserMenu);
+        console.log(k.length);
+        done();
+    })
+});
+</code></pre>
+
+<p>I get this error with <code>findRenderedComponentWithType</code></p>
+
+<pre><code>Error: Did not find exactly one match for componentType:function UserMenu()
+</code></pre>
+"

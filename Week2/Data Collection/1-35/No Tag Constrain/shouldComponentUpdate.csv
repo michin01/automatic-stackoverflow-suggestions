@@ -1,0 +1,4302 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"42490049","1","42492035","","2017-02-27 15:52:18","","0","456","<p>So I've been using ignite CLI which includes react-native-router-flux.</p>
+
+<p>My question is, I'm having a data from props which will be uploaded to the database when the user press 'apply' here's the code </p>
+
+<p><code>&lt;TouchableOpacity style={styles.button} onPress={this.onApply.bind(this)}&gt;
+              &lt;Text style={styles.buttonText}&gt;Apply&lt;/Text&gt;
+ &lt;/TouchableOpacity&gt;</code></p>
+
+<pre><code>async onApply(){
+
+var token = await AsyncStorage.getItem(STORAGE_KEY)
+var url = ""http://purwadhikaconnect.southeastasia.cloudapp.azure.com/api/applicants""
+var jobId = this.props.jobData.Id
+console.log('int?', jobId);
+var config = {
+  method: ""POST"",
+  headers:{
+    'Content-Type' : 'application/json',
+    'Accept' : 'application/json',
+    ""Authorization"" : 'Bearer ' + token
+  },
+  body: JSON.stringify({
+    JobId : parseInt(jobId)
+  })
+}
+
+return fetch(url, config).then((response) =&gt; response.json())
+.then(this.setState({
+  isApplied: true,
+})).then((response) =&gt;{Alert.alert('Job Applied Successfully')})
+.then(this.setState({currentApplicant: this.state.currentApplicant + 1})) //trying to manipulate the value
+.then(NavigationActions.Jobs({type: 'reset'}))
+.catch((exception) =&gt; {Alert.alert('You have applied for this job!')})
+</code></pre>
+
+<p>}</p>
+
+<p>now the data is successfully uploaded but it wont automatically refresh. I've been using component update lifecycle such as <code>shouldComponentUpdate()</code>
+and you could see that my Action type there is <code>reset</code>. Now the issue with using <code>Actionconst.replace</code> is that my menu button will be replaced with back button. And if I use
+<code>ActionConst.refresh()</code> it wont refresh as well. Please help me I've been dealing with this for months and I've tried almost everything to solve it but to no avail and its getting frustrating...;(</p>
+","7019723","","","","","2017-02-27 17:26:10","react-native-router-flux refreshing component with Replace, Reset, and Refresh","<javascript><reactjs><react-native><refresh><react-native-router-flux>","1","0","","",""
+"36339032","1","36339550","","2016-03-31 16:35:49","","0","291","<p>Please see the example here  <a href=""http://jsfiddle.net/8xzxkteu/1/"" rel=""nofollow"">http://jsfiddle.net/8xzxkteu/1/</a></p>
+
+<p>I'm trying to only render part of the data which is changed. In this example, state of component <code>Main</code>, <code>data</code>, is indexed by <code>id</code> and I am using react immutability helper to set only the changed one. But, if you click on the output, it renders all the children, as indicated by the counter. I though using immutability helper react can detect only part of the data changed hence only render it. I probably could use <code>shouldComponentUpdate</code> and compare object values for each child, but is there a better way doing this with immutability helper.</p>
+
+<pre><code> class Child extends React.Component {
+    constructor(props) {
+      super(props);
+      this.onClick = this.onClick.bind(this)
+      this.state = {
+            count: 0
+      };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        var count = this.state.count + 1;
+        this.setState({ count: count });
+    }
+
+    onClick() {
+        this.props.onClick(this.props.name);
+    }
+
+    render() {
+        return &lt;p onClick={this.onClick}&gt;{this.props.name}: {this.props.value} {this.state.count}&lt;/p&gt;;
+    }
+  }
+
+  class Main extends React.Component{
+    constructor(props) {
+      super(props);
+      this.handleChange = this.handleChange.bind(this)
+      this.state = {
+            data: {
+                ""a"" : ""a"",
+              ""b"" : ""b"",
+            }
+      };
+    }
+
+    handleChange(id) {
+      this.setState({
+        data: React.addons.update(this.state.data, { [id]: { $set: 'x' } })
+      });
+    }  
+
+    render() {
+      const keys = Object.keys(this.state.data);
+        const children = keys.map(k =&gt; {
+            return &lt;Child name={k} value={this.state.data[k]} onClick={this.handleChange}/&gt;
+        })
+        return &lt;div&gt;
+            {children}
+          &lt;/div&gt;;
+    }
+  }
+
+  React.render(&lt;Main /&gt;, document.getElementById('container'));
+</code></pre>
+","303477","","","","","2016-03-31 17:06:11","react immutability helper to render only changed subset of data","<reactjs>","1","1","","",""
+"34359251","1","","","2015-12-18 15:46:56","","0","211","<p>I have got a problem with rerendering the component, when I switch to a different route and then back to my component.
+I am using React 0.14.3, react-router 1.0.2 and Immutable.js.</p>
+
+<p>The reason is, that I compare props in my <code>shouldComponentUpdate</code> method.</p>
+
+<pre><code>shouldComponentUpdate(nextProps, nextState) {
+    return !Immutable.is(nextProps.articles, this.props.articles);
+}
+</code></pre>
+
+<p>If I change the route and go back, <code>props.articles</code> does not change, but I need to rerender the page anyways.</p>
+
+<p>The question is, what do I need to consider in my <code>shouldComponentUpdate</code> method, to track, if the route has just changed?</p>
+
+<p>Thanks in advance!
+Rico</p>
+","2116611","","","","","2015-12-18 15:46:56","React-Router Rerendering with Immutable shouldComponentUpdate","<javascript><reactjs><immutability><react-router>","0","4","","",""
+"34141207","1","34159803","","2015-12-07 19:04:48","","2","1667","<p>I still search for a tutorial which explains how to build a structure for the following scenario</p>
+
+<ul>
+<li>on app boot <code>/</code> I have all listed items</li>
+<li>click on specific item redirects to a new route /itemid and shows item details</li>
+</ul>
+
+<p>till now my structure</p>
+
+<pre><code>app
+-- dist
+-- src
+--- components
+---- Layout.js
+---- Items.js
+---- Item.js
+--- actions
+--- stores
+--- dispatchers
+--- services
+-- styles
+Root.js
+App.js
+index.js
+webpack.config.js
+package.json
+</code></pre>
+
+<p>index.js</p>
+
+<pre><code>import React from 'react';
+import { createHistory, createHashHistory } from 'history';
+import Root from './Root';
+
+const rootEl = document.getElementById('workshop-booker');
+// Use hash location for Workshop Pages
+// but switch to HTML5 history locally.
+const history = process.env.NODE_ENV === 'production' ?
+    createHashHistory() :
+    createHistory();
+
+React.render(&lt;Root history={history} /&gt;, rootEl);
+</code></pre>
+
+<p>Root.js</p>
+
+<pre><code>import React, { PropTypes, Component } from 'react';
+import { Router, Route } from 'react-router';
+
+import App from './App';
+import Workshops from './components/Workshops';
+import Workshop from './components/Workshop';
+
+export default class Root extends Component {
+    static propTypes = {
+        history: PropTypes.object.isRequired
+    }
+
+    render() {
+        const { history } = this.props;
+        return (
+            &lt;Router history={history}&gt;
+                &lt;Route name='workshops' path='/' component={App}&gt;
+                    &lt;Route name='workshop' path='/:slug' component={Workshop} /&gt;
+                &lt;/Route&gt;
+            &lt;/Router&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>App.js</p>
+
+<pre><code>import React, { PropTypes } from 'react';
+import Layout from './components/Layout';
+import DocumentTitle from 'react-document-title';
+
+export default class App {
+    static propTypes = {
+        children: PropTypes.object
+    };
+
+    render() {
+        return (
+            &lt;DocumentTitle title='Workshop Booker'&gt;
+                &lt;div className='App'&gt;
+                    &lt;Layout {...this.props} /&gt;
+                    &lt;hr /&gt;
+                    {this.props.children}
+                &lt;/div&gt;
+            &lt;/DocumentTitle&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>Layout component</p>
+
+<pre><code>import React, { Component, PropTypes, findDOMNode } from 'react';
+import shouldPureComponentUpdate from 'react-pure-render/function';
+import Workshops from './Workshops';
+
+export default class Layout extends Component {
+    static propTypes = {
+        params: PropTypes.shape({
+            login: PropTypes.string,
+            name: PropTypes.string
+        })
+    };
+
+    static contextTypes = {
+        history: PropTypes.object.isRequired
+    };
+
+    shouldComponentUpdate = shouldPureComponentUpdate;
+
+    constructor(props) {
+        super(props);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            loginOrRepo: parseFullName(nextProps.params)
+        });
+    }
+
+    render() {
+        return (
+            &lt;div className='Explore'&gt;
+                    &lt;Workshops /&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>I have been following this e<a href=""http://gaearon.github.io/flux-react-router-example"" rel=""nofollow"">xample</a> and mainly my structure follows the idea behind but the thing is that all inherited components are warpped as child. How do I generate the structure to open a new view?</p>
+
+<p>but</p>
+","1831740","","1831740","","2015-12-08 15:23:09","2015-12-08 15:31:58","react-router how to build app structure?","<reactjs><react-router>","1","4","","",""
+"43726814","1","43766651","","2017-05-01 21:30:32","","3","262","<p>I'm getting a warning on the following line on my react component</p>
+
+<pre><code>handleToggle: Function;
+</code></pre>
+
+<p>I'm using <a href=""https://github.com/yannickcr/eslint-plugin-react"" rel=""nofollow noreferrer"">eslint-plugin-react</a> and <a href=""https://flow.org/"" rel=""nofollow noreferrer"">Flow</a> and I'm getting a warning ""handleToggle should be placed after constructor"". This is related to rule react/sort-comp. I tried with the following on my .eslintrc.json</p>
+
+<pre><code> ""react/sort-comp"": [1, {
+  ""order"": [
+    ""static-methods"",
+    ""lifecycle"",
+    ""everything-else"",
+    ""render""
+  ],
+  ""groups"": {
+    ""lifecycle"": [
+      ""displayName"",
+      ""propTypes"",
+      ""contextTypes"",
+      ""childContextTypes"",
+      ""/^.*: Function$/"",
+      ""mixins"",
+      ""statics"",
+      ""defaultProps"",
+      ""state"",
+      ""constructor"",
+      ""getDefaultProps"",
+      ""getInitialState"",
+      ""getChildContext"",
+      ""componentWillMount"",
+      ""componentDidMount"",
+      ""componentWillReceiveProps"",
+      ""shouldComponentUpdate"",
+      ""componentWillUpdate"",
+      ""componentDidUpdate"",
+      ""componentWillUnmount""
+    ]
+  }
+}]
+</code></pre>
+
+<p>But I'm unable to fix the warning. I want the Function Types before constructor the same as the other Type Definition. How can I achieve this?</p>
+","5623087","","4076315","","2017-05-03 02:09:47","2017-05-03 17:44:15","How to fix warning caused by Flow Function Types using eslint-plugin-react?","<reactjs><eslint><flowtype>","1","1","","",""
+"43331655","1","","","2017-04-10 19:38:29","","0","1397","<p>I have a simple react redux application using react-router-redux. I have 2 routes, one is <code>feed</code> the other <code>add</code>. The add view provides a form. On form submission an <code>ADD_STORY</code> action is dispatched and my reducer properly sets a new state with the added story. Problem is I would like to redirect at that point to the <code>feed</code> view. My current approach below is not working. Any help would be greatly appreciated.</p>
+
+<p>my deps:</p>
+
+<pre><code>""react"": ""^15.4.1"",
+""react-dom"": ""^15.4.1"",
+""react-redux"": ""^4.4.6"",
+""react-router-dom"": ""^4.0.0"",
+""react-router-redux"": ""^5.0.0-alpha.4"",
+""redux"": ""^3.6.0""
+</code></pre>
+
+<p>index.js</p>
+
+<pre><code>//... other imports above
+import { HashRouter } from 'react-router-dom'
+import createHistory from 'history/createBrowserHistory'
+import { Route } from 'react-router'
+
+import { ConnectedRouter, routerReducer, routerMiddleware, push } from 'react-router-redux'
+
+// Create a history of your choosing (we're using a browser history in this case)
+const history = createHistory()
+
+// Build the middleware for intercepting and dispatching navigation actions
+const middleware = routerMiddleware(history)
+
+// Add the reducer to your store on the `router` key
+// Also apply our middleware for navigating
+const store = createStore(
+  reducers,
+  applyMiddleware(middleware)
+)
+
+const render = () =&gt; {
+  ReactDOM.render(
+    &lt;AppContainer&gt;
+      &lt;Provider store={store}&gt;
+        &lt;ConnectedRouter history={history}&gt;
+          &lt;HashRouter&gt;
+            &lt;div className={styles.app}&gt;
+          &lt;Header /&gt;
+                &lt;div&gt;
+                  &lt;Route exact path=""/"" component={Feed} /&gt;
+                  &lt;Route exact path=""/add"" component={AddStory} /&gt;
+                &lt;/div&gt;
+              &lt;Footer /&gt;
+            &lt;/div&gt;
+          &lt;/HashRouter&gt;
+     &lt;/ConnectedRouter&gt;
+      &lt;/Provider&gt;
+    &lt;/AppContainer&gt;,
+    document.getElementById('root')
+  );
+};
+</code></pre>
+
+<p>I then at another part of my code attempt to redirect from a container component</p>
+
+<pre><code>const mapDispatchToProps = (dispatch, ownProps) =&gt; {
+  console.log('ownProps', ownProps)
+
+  return {
+    submitStory: (story) =&gt; {
+      dispatch(createStory({
+        title: story.match(/^(.+)\n?/)[1],
+        body: story
+      }))
+    },
+    doAction: (action) =&gt; {
+      switch(action) {
+        case ""STORY_ADDED"":
+          console.log('PUSHING');
+          ownProps.history.push('/')
+          dispatch(push('/'))
+          break;
+        default: 
+          return null
+      }
+    }
+  }
+}
+</code></pre>
+
+<p>There are several issues I'm encountering. One is if I attempt <code>dispatch(ownProps.history.push('/')</code> I get an error in the middleware about the <code>action</code> being undefined. This is easy to understand since <code>ownProps.history.push('/')</code> returns undefined; though it will redirect; but only once. If I try to use the <code>push</code> that comes from <code>react-router-redux</code> I get a proper <code>action</code> object returned, but no redirect with <code>dispatch(push('/'))</code>.</p>
+
+<p>As you can see I attempted to remedy the situation by calling <code>ownProps.history.push('/')</code> then dispatching with react-router-redux push so I have proper action object but this only works once as well. My component's <code>shouldComponentUpdate</code> method never triggers on the state update; even though a new state is clearly produced; adding a new story in the view I'm attempting to redirect to.</p>
+
+<p>Thanks again.</p>
+","2694165","","2694165","","2017-04-10 20:24:17","2017-04-10 20:24:17","How do I redirect the url after a state update in a react redux application?","<reactjs><redux><react-router><react-redux><react-router-redux>","0","10","1","",""
+"42986196","1","42988840","","2017-03-23 20:18:19","","4","2206","<p>I'm trying to get the current path of the react router in a container so I can pass it to a child component that will change it's visibility filter. </p>
+
+<p>More specifically, I'm trying to make a navigation menu highlight the currently active page. </p>
+
+<p>I'm using react, redux, react-router, and react-router-redux so I can access the router state from the redux store. </p>
+
+<p>From the docs for <a href=""https://github.com/reactjs/react-router-redux"" rel=""nofollow noreferrer"">react-router-redux</a>, it says to do something like this: </p>
+
+<pre><code>function mapStateToProps(state, ownProps) {
+  return {
+    id: ownProps.params.id,
+    filter: ownProps.location.query.filter
+  };
+}
+</code></pre>
+
+<p>Here is my container component:</p>
+
+<pre><code>import React, { Component, PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { Link } from 'react-router'
+import {
+  Segment as UISegment,
+} from 'semantic-ui-react'
+import NavMenu from '../components/NavMenu'
+
+class MenuBar extends Component {
+  static propTypes = {
+    path: PropTypes.string.isRequired
+  }
+
+  render() {
+    const { path, } = this.props
+
+    return (
+      &lt;UISegment&gt;
+        &lt;NavMenu activePath={path} /&gt;
+      &lt;/UISegment&gt;
+    )
+  }
+}
+
+const mapStateToProps = (state, ownProps) =&gt; {   
+  return {
+    path: ownProps.route ? ownProps.route.path : ""/""
+  }
+}
+
+export default connect(mapStateToProps)(MenuBar)
+</code></pre>
+
+<p>Inside the NavMenu component, a semantic-ui menu component will compare <code>activePath</code> with its own path and highlight the active button.</p>
+
+<p>Everything seems to work in theory; when I click on the different parts of the menu, a <code>@@router/LOCATION_CHANGE</code> action is emitted. In the redux dev tools, I see the state changing. However, <code>mapStateToProps</code> is never called and this component is never re-rendered. </p>
+
+<p>Any ideas? I thought about using the react methods like <code>shouldComponentUpdate</code>, but it seems that react doesn't even realize the state or props are changing.</p>
+","4726722","","","","","2017-03-23 23:30:36","Get react router path in props with redux ownProps","<reactjs><redux><react-router><router><react-router-redux>","1","1","1","",""
+"36588059","1","36614209","","2016-04-13 03:34:01","","1","3670","<p>I a using webpack and reactjs in my project and now I want to integrate google map api. First I added ""react-google-maps"": ""^4.9.1"" on my package.json file. Below is my component class.</p>
+
+<pre><code>import React, {PropTypes, Component} from 'react';
+
+import { GoogleMap, Marker, SearchBox } from ""react-google-maps"";
+import shouldPureComponentUpdate from 'react-pure-render/function';
+
+const greatPlaceStyle = {
+  // initially any map object has left top corner at lat lng coordinates
+  // it's on you to set object origin to 0,0 coordinates
+  position: 'absolute',
+  width: 512,
+  height: 512,
+  left: 512 / 2,
+  top: 512 / 2,
+
+  border: '5px solid #f44336',
+  borderRadius: 512,
+  backgroundColor: 'white',
+  textAlign: 'center',
+  color: '#3f51b5',
+  fontSize: 16,
+  fontWeight: 'bold',
+  padding: 4
+};
+
+export default class SimpleMapPage extends Component {
+  static defaultProps = {
+    center: {lat: 59.938043, lng: 30.337157},
+    zoom: 1,
+    greatPlaceCoords: {lat: 59.724465, lng: 30.080121}
+  };
+
+  shouldComponentUpdate = shouldPureComponentUpdate;
+
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+       &lt;GoogleMap&gt;
+
+        defaultCenter={this.props.center}
+        defaultZoom={this.props.zoom}&gt;
+
+        &lt;MyGreatPlace lat={59.955413} lng={30.337844} text={'A'} /&gt;
+        &lt;MyGreatPlace {...this.props.greatPlaceCoords} text={'B'} /&gt;
+
+      &lt;/GoogleMap&gt;
+    );
+  }
+}
+
+export default class MyGreatPlace extends Component {
+  static propTypes = {
+    text: PropTypes.string
+  };
+
+  static defaultProps = {};
+
+  //shouldComponentUpdate = shouldPureComponentUpdate;
+
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+       &lt;div style={greatPlaceStyle}&gt;
+          {this.props.text}
+       &lt;/div&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>In my index.html file, I added below javascripts. The first one is goold map api dependency. The second one is the bundle.js which is packaged by webpack. When I access my application, the google map didn't show up. I think the problem would be failed to import google map api on my component class. What is the correct way to import googleapis? </p>
+
+<pre><code>&lt;script src=""https://maps.googleapis.com/maps/api/js?key=AIzaSyA2sDQZ-36NLlY4iMvoiuQ7mS1n-v8iq2M"" async defer&gt;&lt;/script&gt;
+    &lt;script type=""text/javascript"" src=""bundle.js"" charset=""utf-8""&gt;&lt;/script&gt;
+</code></pre>
+","5421539","","","","","2016-09-14 16:08:29","How to import google map in react project","<javascript><google-maps><reactjs><webpack>","2","0","1","",""
+"49671048","1","","","2018-04-05 11:17:44","","0","76","<p>I am trying to set the <code>color</code> of my <code>ActivityIndicator</code>:</p>
+
+<pre><code> &lt;View style={[{height: this.props.calendarHeight}, this.style.placeholder]}&gt;
+      &lt;ActivityIndicator size=""large"" color={this.style.loadingSpinner.color} /&gt;
+    &lt;/View&gt;
+</code></pre>
+
+<p>I am setting my style here:</p>
+
+<pre><code>   import React, {Component} from 'react';
+import {Text, View, ActivityIndicator} from 'react-native';
+import Calendar from '../calendar';
+import styleConstructor from './style';
+
+class CalendarListItem extends Component {
+  constructor(props) {
+    super(props);
+    this.style = styleConstructor(props.theme);
+  }
+
+  shouldComponentUpdate(nextProps) {
+    const r1 = this.props.item;
+    const r2 = nextProps.item;
+    return r1.toString('yyyy MM') !== r2.toString('yyyy MM') || !!(r2.propbump &amp;&amp; r2.propbump !== r1.propbump);
+  }
+
+  render() {
+    const row = this.props.item;
+    if (row.getTime) {
+      return (
+        &lt;Calendar
+          theme={this.props.theme}
+          style={[{height: this.props.calendarHeight}, this.style.calendar]}
+          current={row}
+          hideArrows
+          hideExtraDays={this.props.hideExtraDays === undefined ? true : this.props.hideExtraDays}
+          disableMonthChange
+          markedDates={this.props.markedDates}
+          markingType={this.props.markingType}
+          hideDayNames={this.props.hideDayNames}
+          onDayPress={this.props.onDayPress}
+          minDate={this.props.minDate}
+          maxDate={this.props.maxDate}
+          firstDay={this.props.firstDay}
+          monthFormat={this.props.monthFormat}
+          dayComponent={this.props.dayComponent}
+          disabledByDefault={this.props.disabledByDefault}
+          showWeekNumbers={this.props.showWeekNumbers}
+        /&gt;);
+    } else {
+      const text = row.toString();
+      return (
+
+        &lt;View style={[{height: this.props.calendarHeight}, this.style.placeholder]}&gt;
+          &lt;ActivityIndicator size=""large"" color={this.style.loadingSpinner} /&gt;
+        &lt;/View&gt;
+      );
+    }
+  }
+}
+
+export default CalendarListItem;
+</code></pre>
+
+<p>My <code>style.js</code> is:</p>
+
+<pre><code>import {StyleSheet} from 'react-native';
+import * as defaultStyle from '../style';
+
+const STYLESHEET_ID = 'stylesheet.calendar-list.main';
+
+export default function getStyle(theme={}) {
+  const appStyle = {...defaultStyle, ...theme};
+  return StyleSheet.create({
+    container: {
+      backgroundColor: appStyle.calendarBackground
+    },
+    placeholder: {
+      backgroundColor: appStyle.calendarBackground,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    placeholderText: {
+      fontSize: 30,
+      fontWeight: '200',
+      color: appStyle.dayTextColor
+    },
+    loadingSpinner: {
+      color: '#fff'
+    },
+    calendar: {
+      paddingLeft: 15,
+      paddingRight: 15
+    },
+    ...(theme[STYLESHEET_ID] || {})
+  });
+}
+</code></pre>
+
+<p>However, <code>this.style.loadingSpinner.color</code> is undefined.</p>
+
+<p>How can set the color?</p>
+","1901521","","1901521","","2018-04-05 12:09:53","2018-05-19 09:19:35","style activityIndicator in react-native","<react-native>","2","4","","",""
+"49060982","1","","","2018-03-02 00:33:48","","0","62","<p>I have a array and I want to render the this array into a few redux forms. I found out that all the forms are rerendered. the code looks like the following:</p>
+
+<p>Form.jsx</p>
+
+<pre><code>import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { Link, Events, scrollSpy } from 'react-scroll';
+import styles from './Form.css';
+import MultipleForm from './MultipleForm';
+
+class Form extends Component {
+  constructor(props) {
+    super(props);
+    const {
+      workflows,
+    } = this.props;
+    this.state = {
+      curTab: workflows.length &gt; 0 ? workflows[0] : '',
+      curForm: '',
+    };
+  }
+
+  componentDidMount() {
+    Events.scrollEvent.register('begin');
+    Events.scrollEvent.register('end');
+    scrollSpy.update();
+  }
+  componentWillReceiveProps(nextProps) {
+    const {
+      workflows,
+    } = nextProps;
+    if (workflows &amp;&amp; workflows.length &gt; this.props.workflows) {
+      this.setState({
+        curTab: workflows[0],
+      });
+    }
+  }
+  componentWillUnmount() {
+    Events.scrollEvent.remove('begin');
+    Events.scrollEvent.remove('end');
+  }
+  handleChangeTab = (value) =&gt; {
+    this.setState({
+      curTab: value,
+    });
+  }
+
+  handleActiveTab = (workflow) =&gt; {
+    console.log(workflow);
+  }
+
+
+  render() {
+    const {
+      workflows,
+      schemaNames,
+      ...rest
+    } = this.props;
+    return (
+      &lt;div className={styles.container}&gt;
+        &lt;header&gt;
+          &lt;PerspectiveBar
+            value={this.state.curTab}
+            onChange={this.handleChangeTab}
+            style={{
+              position: 'fixed',
+              left: '0',
+              top: '48px',
+              width: '100vw',
+              zIndex: '1380',
+            }}
+          &gt;
+            {workflows.map(wf =&gt; (
+              &lt;PerspectiveTab
+                key={wf}
+                label={wf}
+                value={wf}
+                onActive={() =&gt; this.handleActiveTab(wf)}
+              /&gt;
+          ))}
+          &lt;/PerspectiveBar&gt;
+        &lt;/header&gt;
+        &lt;div className={styles.formContainer}&gt;
+          &lt;Paper className={styles.paperContainer}&gt;
+            &lt;MultipleForm
+              workflow={this.state.curTab}
+              schemaNames={schemaNames}
+              {...rest}
+            /&gt;
+          &lt;/Paper&gt;
+        &lt;/div&gt;
+        &lt;Drawer className={styles.drawer} containerStyle={{ height: 'calc(100% - 104px)', top: '104px' }}&gt;
+          &lt;div className={styles.drawerContainer}&gt;
+            {schemaNames.map(schemaName =&gt; (
+              &lt;Link
+                onSetActive={(to) =&gt; {
+                  this.setState({
+                    curForm: to,
+                  });
+                }}
+                to={schemaName}
+                duration={500}
+                offset={-104}
+                spy
+                smooth
+              &gt;
+                &lt;MenuItem
+                  checked={this.state.curForm === schemaName}
+                &gt;
+                  {schemaName}
+                &lt;/MenuItem&gt;
+              &lt;/Link&gt;
+            ))}
+          &lt;/div&gt;
+        &lt;/Drawer&gt;
+      &lt;/div&gt;
+
+    );
+  }
+}
+
+Form.propTypes = {
+  schemaNames: PropTypes.arrayOf(PropTypes.string),
+  workflows: PropTypes.arrayOf(PropTypes.string),
+  fetchSchemaNames: PropTypes.func.isRequired,
+};
+
+Form.defaultProps = {
+  schemaNames: [],
+  workflows: [],
+};
+
+export default Form;
+</code></pre>
+
+<p>MultipleForm.jsx</p>
+
+<pre><code>import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import FlatButton from 'material-ui/FlatButton';
+import { Element } from 'react-scroll';
+import SchemaForm from './SchemaForm';
+
+class MultipleForm extends Component {
+  componentDidMount() {
+    console.log('MultipleForm Mounted');
+    const {
+      workflow,
+      fetchSchemaNames,
+    } = this.props;
+    if (workflow) fetchSchemaNames(workflow);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const {
+      workflow,
+      fetchSchemaNames,
+    } = nextProps;
+    if (workflow &amp;&amp; this.props.workflow !== workflow) fetchSchemaNames(workflow);
+  }
+
+  componentDidUpdate() {
+    const {
+      schemaNames,
+      schemas,
+      initialValues,
+      fetchSchemas,
+      fetchInitialValues,
+    } = this.props;
+    const schemasNeedToFetch = this.remainingSchemas(schemaNames, schemas);
+    if (schemasNeedToFetch.length !== 0) fetchSchemas(schemasNeedToFetch);
+    const initialValuesNeedToFetch = this.remainingInitialValues(schemaNames, initialValues);
+    if (initialValuesNeedToFetch.lenght !== 0) fetchInitialValues(initialValuesNeedToFetch, 1);
+  }
+
+  remainingSchemas = (schemaNames, schemas) =&gt;
+    schemaNames.filter(schemaName =&gt; schemaName in schemas === false).sort();
+
+  remainingInitialValues = (schemaNames, initialValues) =&gt;
+    schemaNames.filter(schemaName =&gt; schemaName in initialValues === false).sort();
+
+  handleSubmitAll = (event) =&gt; {
+    event.preventDefault();
+    const {
+      submit,
+      schemas,
+      schemaNames,
+    } = this.props;
+    schemaNames
+      .map(schemaName =&gt; schemas[schemaName].title)
+      .forEach((title) =&gt; {
+        submit(title);
+      });
+  }
+
+  render() {
+    const {
+      schemaNames,
+      schemas,
+      initialValues,
+      postForm,
+    } = this.props;
+    schemaNames.sort((a, b) =&gt; a.localeCompare(b));
+    return (
+      &lt;div&gt;
+        {schemaNames.map(schemaName =&gt; (
+          &lt;Element name={schemaName}&gt;
+            &lt;SchemaForm
+              key={schemaName}
+              schema={schemas[schemaName]}
+              initialValue={initialValues[schemaName]}
+              schemaName={schemaName}
+              postForm={postForm}
+            /&gt;
+          &lt;/Element&gt;
+        ))}
+        &lt;div&gt;
+          &lt;FlatButton
+            label=""Submit""
+          /&gt;
+          &lt;FlatButton label=""Deploy"" /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;);
+  }
+}
+
+MultipleForm.propTypes = {
+  workflow: PropTypes.string.isRequired,
+  submit: PropTypes.func.isRequired,
+  fetchSchemaNames: PropTypes.func.isRequired,
+  schemas: PropTypes.object,
+  schemaNames: PropTypes.arrayOf(PropTypes.string),
+  initialValues: PropTypes.object,
+  fetchSchemas: PropTypes.func.isRequired,
+  fetchInitialValues: PropTypes.func.isRequired,
+  postForm: PropTypes.func.isRequired,
+};
+
+MultipleForm.defaultProps = {
+  schemaNames: [],
+};
+
+export default MultipleForm;
+</code></pre>
+
+<p>SchemaForm</p>
+
+<pre><code>import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import Liform from 'liform-react';
+import theme from './NokiaTheme';
+import styles from './Form.css';
+
+class SchemaForm extends Component {
+  componentDidMount() {
+    console.log('schema mounted');
+  }
+
+  shouldComponentUpdate() {
+    return false;
+  }
+  handleSubmit = (value) =&gt; {
+    const {
+      postForm,
+      schemaName,
+    } = this.props;
+    postForm(value, schemaName, 1);
+  }
+
+
+  render() {
+    const {
+      schema,
+      initialValue,
+    } = this.props;
+    console.log('props', this.props);
+    return (
+      &lt;div&gt;
+        &lt;h3 id={schema.$id} className={styles.formTitle}&gt;
+          {schema.title}
+        &lt;/h3&gt;
+        &lt;Liform
+          schema={schema}
+          onSubmit={value =&gt; this.handleSubmit(value)}
+          destroyOnUnmount={false}
+          theme={theme}
+          initialValues={initialValue}
+        /&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+SchemaForm.propTypes = {
+  schema: PropTypes.shape({
+    $id: PropTypes.string,
+  }),
+  initialValue: PropTypes.object,
+  schemaName: PropTypes.string,
+  postForm: PropTypes.func.isRequired,
+};
+
+SchemaForm.defaultProps = {
+  schema: {},
+  initialValue: null,
+  schemaName: '',
+};
+
+export default SchemaForm;
+</code></pre>
+
+<p>the schemaNames will be changed only by adding or deleting some element. for example: the schemaNames will change from <code>['A', 'B', 'C']</code> to <code>['A', 'B', 'D']</code>.  I get the schemaNames from the redux. which I fetch online.</p>
+
+<p>But when I check the ConnectedReduxForm, when I change the schemaNames, the SchemaForm will be unmounted and the react will mount the form again. I have tried with setting the ConnectedReduxForm to be PureComponent. It is not helpful.</p>
+
+<p>Could someone help me with that? I have spent a lot of time of this and nothing helps.</p>
+
+<p><strong>Update</strong>: I have found the problem, the reason of it is that for each time that I for each time I update the workflow, I need to fetch the schemaNames from the server. But I still do not know why this happended. Could someone explain that?</p>
+","4812854","","4812854","","2018-03-02 22:05:39","2018-03-02 22:05:39","How to avoid rerendering element in the array in react?","<javascript><reactjs><redux-form>","0","11","","",""
+"44612624","1","","","2017-06-18 07:19:19","","1","365","<p>I've built a <strong>React</strong> project using <strong>CRA</strong>. I need to use a plugin that is built using <strong>jquery</strong>. It's a datepicker but the calendar it's using is Bikram Sambat. The link to the datepicker code is <a href=""https://github.com/leapfrogtechnology/Nepali-Date-Picker"" rel=""nofollow noreferrer"">Nepali Date Picker</a> . I've done the following:</p>
+
+<p><strong>public/index.html</strong></p>
+
+<pre><code>&lt;link href=""%PUBLIC_URL%/assets/nepaliDatePicker.min.css"" rel=""stylesheet""&gt;
+&lt;script src=""https://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js""&gt;&lt;/script&gt;
+&lt;script src=""%PUBLIC_URL%/assets/nepaliDatePicker.min.js""&gt;&lt;/script&gt;
+</code></pre>
+
+<p><strong>NepaliDate Component</strong></p>
+
+<pre><code>import React, { Component } from 'react';
+
+const $ = window.$;
+
+export default class NepaliDate extends Component {
+    shouldComponentUpdate() {
+        return false;
+    }
+    componentDidMount() {
+        $('.date-picker').nepaliDatePicker({
+            dateFormat: '%D, %M %d, %y',
+            closeOnDateSelect: true
+        });
+    }
+    showDatePicker = () =&gt; {
+        $('.date-picker').nepaliDatePicker();
+    };
+    render() {
+        return (
+            &lt;input
+                type=""text""
+                value=""""
+                name=""date""
+                className=""date-picker""
+                onFocus={this.showDatePicker}
+            /&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>The datepicker isn't showing up.</p>
+","2649897","","","","","2017-06-18 07:19:19","how to use external jquery plugin in react","<javascript><jquery><reactjs>","0","5","","",""
+"34941646","1","34942231","","2016-01-22 07:54:12","","0","275","<p>I render server and client side with same jsx. I need some element only have html, and do not need data-reactid. (e.g. A pure html jsx layout has some dynamic variable but do not need data-reactid).</p>
+
+<p>And i except i can reuse the server side render dom which contains data-reactid, and do not need rerender the view.</p>
+
+<p>The other element has data-reactid which can do not need rerender by reactjs. 
+Cannot use <code>shouldComponentUpdate</code> because 'renderToString' method do not call <code>shouldComponentUpdate</code>.</p>
+
+<p>I don't except i should render two element with different function( e.g. renderToStaticMarkup, renderToString) and combine it because the element could be include by many element. Render split and combine could cause mistake when element is much more.</p>
+
+<p>Here is my fantasy:</p>
+
+<p>In this case, i want {this.props.children} have data-reactid but the outside html and budy (DefaultLayout) do not.</p>
+
+<pre><code>class DefaultLayout extends  React.Component{   
+        if (typeof window !== 'undefined') {
+            return (
+                &lt;div&gt;{this.props.children}&lt;/div&gt;
+            );
+        } 
+        return (
+        &lt;html&gt;
+            &lt;head&gt;
+            &lt;/head&gt;
+            &lt;body&gt;
+                &lt;div id=""container"" className='container'&gt;
+                    &lt;div&gt;{this.props.children}&lt;/div&gt;
+                &lt;/div&gt;
+                &lt;script src='/js/index.js'type='text/javascript'&gt;&lt;/script&gt;
+            &lt;/body&gt;
+        &lt;/html&gt;
+        );
+    }
+};
+DefaultLayout.noNeedDiffCompoment = true;
+export default DefaultLayout;
+</code></pre>
+
+<p>or a new pure html Compoment</p>
+
+<pre><code>class DefaultLayout extends  React.PureHtmlComponent{    
+
+        if (typeof window !== 'undefined') {
+            return (
+                &lt;div&gt;{this.props.children}&lt;/div&gt;
+            );
+        }
+        return (
+        &lt;html&gt;
+            &lt;head&gt;
+            &lt;/head&gt;
+            &lt;body&gt;
+                &lt;div id=""container"" className='container'&gt;
+                    &lt;div&gt;{this.props.children}&lt;/div&gt;
+                &lt;/div&gt;
+                &lt;script src='/js/index.js'type='text/javascript'&gt;&lt;/script&gt;
+            &lt;/body&gt;
+        &lt;/html&gt;
+        );
+    }
+};
+export default DefaultLayout;
+</code></pre>
+
+<p>and i can use this layout easly and not error in client side and server side.</p>
+
+<pre><code>class Somepage extends  React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render(){
+        return (
+            &lt;DefaultLayout&gt;
+                &lt;h1&gt;Hello world&lt;/h1&gt;
+            &lt;/DefaultLayout&gt;
+        );
+    }
+};
+</code></pre>
+
+<p>If i write as above, the render function can auto swap render function to render elements.</p>
+
+<p>Is there any graceful solution like this?</p>
+","5824846","","5824846","","2016-01-22 09:26:08","2017-01-24 08:54:14","Is there reactjs have auto switch render? (renderToStaticMarkup, renderToString)","<javascript><reactjs>","1","0","1","",""
+"42419772","1","45528759","","2017-02-23 15:23:29","","9","503","<p>That game developed with react and redux.I am not react-redux developer(I am .net developer) but I must continue that project so I am new in react and redux
+    That game performance is too bad in some android phones.So I analyze project.I see that components render method works every second.My component contain more than 30 other components.So every secon it re render and this is cause bad performance in some old android phones </p>
+
+<p>Why React component re render every second?Can I block this?
+I search for that problem I see that solution is shouldComponentUpdate function</p>
+
+<pre><code>shouldComponentUpdate(nextProps,nextState) {
+
+        console.log(nextProps.gameStore.get('state'));//waiting
+        console.log(this.props.gameStore.get('state'));//waiting
+
+        console.log(this.state);
+        console.log(nextState);
+        if (nextProps.gameStore.get('state')==this.props.gameStore.get('state')) {
+            return false;
+        }
+        else {
+            return true;
+        }
+        }
+</code></pre>
+
+<p>but in this function nextstate and this state is same,
+nextProps.gameStore.get('state') and this.props.gameStore.get('state') is the same.Why next state and current state is same?What should I do?I use constructor but it is still same here is all my component code</p>
+
+<pre><code>    import React from 'react';
+import { DragDropContext } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+//import { default as HTML5Backend } from 'react-dnd-touch-backend';
+
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { bindFirstArguments } from 'utils/bindFirstArgument';
+import * as OkeyGameActions from 'actions/OkeyGameActions';
+import * as OkeyNetActions from 'actions/OkeyNetActions';
+
+import * as OkeyChatActions from 'actions/Chatactions';
+
+import { SeatDirection } from 'constants/AppConstants';
+
+import { OkeyScoreboardDialog }
+from 'components/OkeyScoreboardDialog/OkeyScoreboardDialog';
+import OkeyMatchResultDialog
+from 'components/OkeyMatchResultDialog/OkeyMatchResultDialog';
+
+import OkeyRackWrapper from 'components/OkeyRackWrapper/OkeyRackWrapper';
+import OkeyTopToolbar from 'components/OkeyTopToolbar/OkeyTopToolbar';
+import OkeyTableToolbar from 'components/OkeyTableToolbar/OkeyTableToolbar';
+import OkeyTableCenter from 'components/OkeyTableCenter/OkeyTableCenter';
+
+import CustomDragLayer from 'components/CustomDragLayer/CustomDragLayer';
+import MessageList from 'components/chat/MessageList';
+import PrivateEastMessageList from 'components/chat/PrivateEastMessageList';
+import PrivateNorthMessageList from 'components/chat/PrivateNorthMessageList';
+import PrivateWestMessageList from 'components/chat/PrivateWestMessageList';
+import PrivateSouthMessageList from 'components/chat/PrivateSouthMessageList';
+
+import './_OkeyGame.scss';
+
+function toJS(item) {
+  if (item === null) {
+    return null;
+  }
+  //var item1=item.toJS();
+  //if (item1.color==='BLACK') {
+  //    var a='a';
+    //}
+
+  if (item == undefined) {
+      return;
+  }
+
+  return item.toJS();
+}
+
+function getRelativeDirection(selfSeat, direction) {
+  let relativeDirection = direction;
+
+  if (selfSeat &gt;= 0) {
+    relativeDirection = (selfSeat - direction + 4) % 4;
+  }
+  return relativeDirection;
+}
+
+class OkeyGame extends React.Component {
+
+    constructor(props) {
+  super(props);
+    }
+
+
+
+
+
+    shouldComponentUpdate(nextProps,nextState) {
+
+        console.log(nextProps.gameStore.get('state'));//waiting
+        console.log(this.props.gameStore.get('state'));//waiting
+
+        console.log(this.state);
+        console.log(nextState);
+        if (nextProps.gameStore.get('state')==this.props.gameStore.get('state')) {
+            return false;
+        }
+        else {
+            return true;
+        }
+        }
+    render() {
+
+    const { dispatch, gameStore, gamePlay, playRules } = this.props;
+
+    let actions = bindActionCreators(OkeyGameActions, dispatch);
+
+    let netActions = bindActionCreators(OkeyNetActions, dispatch);
+    const currentTurn = gameStore.get('currentTurn');
+
+    const playState = {
+      selectedStone: gamePlay.get('selectedStone'),
+      gosterge: gamePlay.get('gosterge'),
+      middleStoneCount: gamePlay.get('middleStoneCount'),
+      currentTurn: currentTurn
+    };
+
+
+    if (playState.gosterge != undefined) {
+        window.localStorage.setItem('gostergeNumber', playState.gosterge._root.entries[0][1]);
+        window.localStorage.setItem('gostergeColor', playState.gosterge._root.entries[1][1]);
+    }
+
+
+    const hasOpenedStonesThisTurn = {
+      hasOpenedSequenceThisTurn: playRules.get('hasOpenedSequenceThisTurn'),
+      hasOpenedPairsThisTurn: playRules.get('hasOpenedPairsThisTurn')
+    };
+
+    const rules = {
+      canOpenSequence: playRules.get('canOpenSequence'),
+      canOpenPairs: playRules.get('canOpenPairs'),
+      canWithdraw: playRules.get('canWithdraw'),
+      canDiscard: playRules.get('canDiscard'),
+      canCollectOpen: playRules.get('canCollectOpen'),
+      canLeaveTaken: playRules.get('canLeaveTaken'),
+      canProcessStone: playRules.get('canProcessStone')
+    };
+
+    const discardMiniBoxes = {
+      discardMiniBoxPairs: gamePlay.get('pairs'),
+      discardMiniBoxSequence: gamePlay.get('sequence')
+    };
+
+    const selfSeat = gameStore.get('selfSeat');
+
+    const { westSeat, eastSeat, northSeat, southSeat } =
+    {
+      westSeat: getRelativeDirection(selfSeat, SeatDirection.WEST),
+      eastSeat: getRelativeDirection(selfSeat, SeatDirection.EAST),
+      northSeat: getRelativeDirection(selfSeat, SeatDirection.NORTH),
+      southSeat: getRelativeDirection(selfSeat, SeatDirection.SOUTH)
+};
+
+    const players = {
+      selfSeat: selfSeat,
+      pSouth: {
+        seatId: southSeat,
+        discardStones: gamePlay.getIn(['discardStones', southSeat]),
+        profile: toJS(gameStore.getIn(['players', southSeat])),
+        dispatch: dispatch
+      },
+      pNorth: {
+        seatId: northSeat,
+        discardStones: gamePlay.getIn(['discardStones', northSeat]),
+        profile: toJS(gameStore.getIn(['players', northSeat])),
+        dispatch: dispatch
+      },
+      pEast: {
+        seatId: eastSeat,
+        discardStones: gamePlay.getIn(['discardStones', eastSeat]),
+        profile: toJS(gameStore.getIn(['players', eastSeat])),
+        dispatch: dispatch
+      },
+      pWest: {
+        seatId: westSeat,
+        discardStones: gamePlay.getIn(['discardStones', westSeat]),
+        profile: toJS(gameStore.getIn(['players', westSeat])),
+        dispatch: dispatch
+      }
+    };
+
+
+    let profiles = [
+              players.pSouth.profile,
+              players.pEast.profile,
+              players.pNorth.profile,
+              players.pWest.profile
+    ];
+
+    localStorage.setItem(""selfSeat"", selfSeat);
+    localStorage.setItem(""roomID"", gameStore.get('id'));
+
+    if (selfSeat == 0) 
+        profiles = [players.pSouth.profile,players.pEast.profile,players.pNorth.profile,players.pWest.profile];
+
+    else if (selfSeat == 1) 
+        profiles = [players.pWest.profile,players.pSouth.profile,players.pEast.profile,players.pNorth.profile];
+
+    else if (selfSeat == 2) 
+        profiles = [players.pNorth.profile,players.pWest.profile,players.pSouth.profile,players.pEast.profile];
+
+    else if (selfSeat == 3) 
+        profiles = [players.pEast.profile,players.pNorth.profile,players.pWest.profile,players.pSouth.profile];
+
+
+    const matchState = {
+      name: gameStore.getIn(['options', 'name']),
+      maxRounds: gameStore.getIn(['options', 'rounds']),
+      stake: gameStore.getIn(['options', 'stakes']),
+      round: gameStore.get('round')
+    };
+
+
+
+    const owner = gamePlay.get('ownerID');
+
+    const scoreboard = gameStore.get('scoreboard');
+
+    const matchResult = gameStore.get('matchResult');
+
+    const restCountdown = gameStore.get('restCountdown');
+
+    const roomState = gameStore.get('roomState');
+
+
+
+const { messageList } = this.props;
+const { privateEastMessageList } = this.props;
+const { privateNorthMessageList } = this.props;
+const { privateWestMessageList } = this.props;
+const { privateSouthMessageList } = this.props;
+
+let chatActions = bindActionCreators(OkeyChatActions, dispatch);
+// const  dispatch1  = this.props
+
+    // each action has a first argument of room id
+netActions = bindFirstArguments(netActions, gameStore.get('id'));
+
+    let from = gameStore.get('from');
+    let to = gameStore.get('to');
+    let gift = gameStore.get('gift');
+
+    let from1 = gameStore.get('from1');
+    let to1 = gameStore.get('to1');
+    let gift1 = gameStore.get('gift1');
+
+    let from2 = gameStore.get('from2');
+    let to2 = gameStore.get('to2');
+    let gift2 = gameStore.get('gift2');
+
+    let from3 = gameStore.get('from3');
+    let to3 = gameStore.get('to3');
+    let gift3 = gameStore.get('gift3');
+
+    let arayan = gameStore.get('arayan');
+    let aranan = gameStore.get('aranan');
+
+    return (
+        &lt;div className=""game-background"" style={{background: 'url(http://okey101.xyz/staticImg/background.png)',backgroundSize:'cover'}}&gt;
+      &lt;div className=""okey-game flex-centered-column""&gt;
+       &lt;CustomDragLayer isMini={gamePlay.get('isOver') &gt; 0}&gt;&lt;/CustomDragLayer&gt;
+
+
+        &lt;MessageList {...chatActions} {...netActions} messageList={messageList} /&gt;
+
+             &lt;OkeyScoreboardDialog profiles={profiles}
+      scoreboard={scoreboard} /&gt;
+
+
+        &lt;OkeyMatchResultDialog matchResult={matchResult}
+        {...netActions}
+        {...actions}
+        roomState={roomState}/&gt;
+
+
+        &lt;OkeyTopToolbar {...netActions}
+                        {...matchState}
+                        profiles={profiles}/&gt;
+
+        &lt;OkeyTableCenter {...actions}
+                         {...netActions}
+                         {...playState}
+                         {...rules}
+                         {...discardMiniBoxes}
+                         {...players}
+                         owner={owner}
+                         messageList={messageList}
+                         privateEastMessageList={privateEastMessageList}
+                         privateNorthMessageList={privateNorthMessageList}
+                         privateWestMessageList={privateWestMessageList}
+                         privateSouthMessageList={privateSouthMessageList}
+                         from={from} 
+                         to={to}
+                         gift={gift}
+                         from1={from1} 
+                         to1={to1}
+                         gift1={gift1}
+                         from2={from2} 
+                         to2={to2}
+                         gift2={gift2}
+                         from3={from3} 
+                         to3={to3}
+                         gift3={gift3}
+                         arayan={arayan}
+                         aranan={aranan}
+                         stones={gamePlay.get('stones')}/&gt;
+
+        &lt;OkeyRackWrapper {...actions}
+                         {...netActions}
+                         {...playState}
+                         stones={gamePlay.get('stones')}
+                         stoneGroups={gamePlay.get('stoneGroups')}/&gt;
+        &lt;OkeyTableToolbar {...actions}
+                          {...netActions}
+                          {...rules}
+                          restCountdown={restCountdown}
+                          currentTurn={currentTurn}
+                          {...hasOpenedStonesThisTurn}
+                          roomState={roomState}
+                          stones={gamePlay.get('stones')}
+                          {...discardMiniBoxes}
+                          okeyStone={gamePlay.get('okeyStone')}/&gt;
+
+      &lt;/div&gt;
+
+&lt;/div&gt;
+    );
+  }
+}
+
+const mapStateToProps = (state =&gt; ({
+  gameStore: state.gameStore,
+  gamePlay: state.gamePlay,
+  playRules: state.playRules,
+  messageList: state.MessageList,
+  privateEastMessageList: state.PrivateEastMessageList,
+  privateNorthMessageList: state.PrivateNorthMessageList,
+  privateWestMessageList: state.PrivateWestMessageList,
+  privateSouthMessageList: state.PrivateSouthMessageList
+}));
+
+const OkeyGameWithDnD = DragDropContext(HTML5Backend)(OkeyGame);
+
+export default connect(mapStateToProps)(OkeyGameWithDnD);
+</code></pre>
+
+<p>Edit:With  Aftab Khan directives I change component to PureComponent but the page does not open and there is not error in console</p>
+
+<p>I change this to</p>
+
+<pre><code>const mapStateToProps = (state =&gt; ({
+    gameStore: toJS(state.gameStore),
+    gamePlay: toJS(state.gamePlay),
+    playRules: toJS(state.playRules),
+    messageList: toJS(state.MessageList),
+    privateEastMessageList: toJS(state.PrivateEastMessageList),
+    privateNorthMessageList: toJS(state.PrivateNorthMessageList),
+    privateWestMessageList: toJS(state.PrivateWestMessageList),
+    privateSouthMessageList: toJS(state.PrivateSouthMessageList)
+}));
+</code></pre>
+
+<p>but it still does not work
+then I change it to this</p>
+
+<pre><code>const mapStateToProps = (state =&gt; ({
+    gameStore: state.gameStore.toJS(),
+    gamePlay: state.gamePlay.toJS(),
+    playRules: state.playRules.toJS(),
+    messageList: state.MessageList.toJS(),
+    privateEastMessageList: state.PrivateEastMessageList.toJS(),
+    privateNorthMessageList: state.PrivateNorthMessageList.toJS(),
+    privateWestMessageList: state.PrivateWestMessageList.toJS(),
+    privateSouthMessageList: state.PrivateSouthMessageList.toJS()
+}));
+</code></pre>
+
+<p>but it still does not open in browser </p>
+","1688401","","1688401","","2017-03-04 13:58:53","2017-08-06 05:12:53","Using shouldComponentUpdate for block component re-render every second","<reactjs><redux><react-redux><react-dnd>","2","0","2","",""
+"36630140","1","36657557","","2016-04-14 17:34:08","","9","831","<p>I'm new to <a href=""https://facebook.github.io/immutable-js/"">ImmutableJS</a>. My app implements large Redux Store &amp; multiple react components.</p>
+
+<p>Correct me if I'm wrong:</p>
+
+<ul>
+<li>I understand that the benefits of Immutable is to protect Flux Store and to avoid unnecessary vDom rendering on component getting unchanged props.</li>
+<li>To benefit from better rendering performance with ImmutableJS, <code>shouldComponentUpdate()</code> must be implemented.</li>
+</ul>
+
+<p>What is the best implementation of this function?</p>
+
+<p>I already found several implementations of it, all using shallowEqual() with some modifications:</p>
+
+<ul>
+<li>Facebook implements <a href=""https://github.com/facebook/fbjs/blob/master/src/core/shallowEqual.js"">shallowEqual</a> for React and more I imagine.</li>
+<li>Jurassix offers <a href=""https://github.com/jurassix/react-immutable-render-mixin"">an implementation</a> that implements <a href=""https://github.com/jurassix/react-immutable-render-mixin/blob/master/src/shallowEqualImmutable.js"">shallowEqualImmutable</a>. It the function from Facebook except that the <code>is()</code> function is replaced by the one given by ImmutableJS. The first equality is different too.</li>
+<li>Dan does the same thing with a <a href=""https://github.com/gaearon/react-dnd/blob/master/src/utils/shallowEqual.js"">different shalllowEqual function</a> that implement parts of the two previous implementation.</li>
+</ul>
+
+<p>Someone knows which implementation I should use in my case? or none and implement specific <code>shouldComponentUpdate()</code>? I am slightly at a loss on this point</p>
+
+<p>Thank you a lot for any help!!</p>
+","1346701","","","","","2016-06-25 00:48:28","What is the best implememtation of react shouldComponentUpdate with immutable.js","<reactjs><redux><immutable.js>","2","2","2","",""
+"38641018","1","","","2016-07-28 15:42:48","","2","1001","<p>I am using the react-virtualized library to create efficient news feed. The library is awesome. I combined WindowScroller, AutoSizer and VirtualScroll components to have inifinite scrolling behavior. The problem is that when I set the VirtualScroll height manually and don't use WindowScroller the performance is great in all browsers. However when I add the WindowScroller component, performance reduces significantly, especially in Firefox (v47.0). How can I optimize this so that it is feasible to use window scrolling?</p>
+
+<p>This is the News component, where the react-virtualized is used,
+I have 2 types of list items - header item and simple item, header item contains a date of a group of news, thus it is a little bit longer.</p>
+
+<pre class=""lang-js prettyprint-override""><code>import React, { PropTypes, Component } from 'react';
+import Divider from 'material-ui/Divider';
+import Subheader from 'material-ui/Subheader';
+import { Grid, Row, Col } from 'react-flexbox-grid';
+import NewsItem from '../NewsItem';
+import styles from './styles.css';
+import CircularProgress from 'material-ui/CircularProgress';
+import Paper from 'material-ui/Paper';
+import classNames from 'classnames';
+import { InfiniteLoader, WindowScroller, AutoSizer, VirtualScroll } from 'react-virtualized';
+import shallowCompare from 'react-addons-shallow-compare';
+
+class News extends Component {
+
+  componentDidMount() {
+    this.props.onFetchPage(0);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return shallowCompare(this, nextProps, nextState);
+  }
+
+  getRowHeight({ index }) {
+    const elementHeight = 200;
+    const headerHeight = 78;
+    if (!this.isRowLoaded(index)) {
+      return elementHeight;
+    }
+    return this.props.articles[index].isHeader ?
+      headerHeight + elementHeight : elementHeight;
+  }
+
+  displayElement(article, isScrolling) {
+    return (
+      &lt;Paper
+        key={article.id}
+        className={classNames(styles.newsItemContainer, {
+          [styles.scrolling]: isScrolling
+        })}
+      &gt;
+        &lt;NewsItem {...article} /&gt;
+        &lt;Divider /&gt;
+      &lt;/Paper&gt;
+    );
+  }
+
+  isRowLoaded(index) {
+    return !this.props.hasNextPage || index &lt; this.props.articles.length;
+  }
+
+  renderRow(index, isScrolling) {
+    if (!this.isRowLoaded(index)) {
+      return (
+        &lt;div className={styles.spinnerContainer}&gt;
+          {this.props.isFetching ? &lt;CircularProgress /&gt; : null}
+        &lt;/div&gt;
+      );
+    }
+    const { isHeader, date, article } = this.props.articles[index];
+    if (isHeader) {
+      return (
+        &lt;div&gt;
+          &lt;Subheader
+            key={date}
+            className={styles.groupHeader}
+          &gt;
+            {date}
+          &lt;/Subheader&gt;
+          {this.displayElement(article, isScrolling)}
+        &lt;/div&gt;
+      );
+    }
+    return this.displayElement(article, isScrolling);
+  }
+
+  noRowsRenderer() {
+    return (&lt;p&gt;No articles found&lt;/p&gt;);
+  }
+
+  render() {
+    const {
+      articles,
+      onFetchPage,
+      pageNumber,
+      isFetching,
+      hasNextPage
+    } = this.props;
+
+    const loadMoreRows = isFetching ?
+      () =&gt; {} :
+      () =&gt; onFetchPage(pageNumber + 1);
+
+    const rowCount = hasNextPage ? articles.length + 1 : articles.length;
+
+    return (
+      &lt;Grid&gt;
+        &lt;Row&gt;
+          &lt;Col xs={12} sm={8} smOffset={2}&gt;
+            &lt;InfiniteLoader
+              isRowLoaded={({ index }) =&gt; this.isRowLoaded(index)}
+              loadMoreRows={loadMoreRows}
+              rowCount={rowCount}
+            &gt;
+              {({ onRowsRendered, registerChild, isScrolling }) =&gt; (
+                &lt;WindowScroller&gt;
+                  {({ height, scrollTop }) =&gt; (
+                    &lt;AutoSizer disableHeight&gt;
+                      {({ width }) =&gt; (
+                        &lt;VirtualScroll
+                          autoHeight
+                          ref={registerChild}
+                          height={height}
+                          rowCount={rowCount}
+                          rowHeight={(...args) =&gt; this.getRowHeight(...args)}
+                          rowRenderer={({ index }) =&gt; this.renderRow(index, isScrolling)}
+                          width={width}
+                          noRowsRenderer={this.noRowsRenderer}
+                          onRowsRendered={onRowsRendered}
+                          overscanRowCount={10}
+                          scrollTop={scrollTop}
+                        /&gt;
+                      )}
+                    &lt;/AutoSizer&gt;
+                  )}
+                &lt;/WindowScroller&gt;
+              )}
+            &lt;/InfiniteLoader&gt;
+          &lt;/Col&gt;
+        &lt;/Row&gt;
+      &lt;/Grid&gt;
+    );
+  }
+}
+
+News.propTypes = {
+  articles: PropTypes.array.isRequired,
+  onFetchPage: PropTypes.func.isRequired,
+  isFetching: PropTypes.bool.isRequired,
+  pageNumber: PropTypes.number.isRequired,
+  hasNextPage: PropTypes.bool.isRequired
+};
+
+export default News;
+</code></pre>
+
+<p>And the list item is the following component:</p>
+
+<pre class=""lang-js prettyprint-override""><code>import React, { PropTypes } from 'react';
+import styles from './styles.css';
+import { Row, Col } from 'react-flexbox-grid';
+import shallowCompare from 'react-addons-shallow-compare';
+import pick from 'lodash/pick';
+import NewsItemContent from '../NewsItemContent';
+
+class NewsItem extends React.Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return shallowCompare(this, nextProps, nextState);
+  }
+
+  render() {
+    const contentProps = pick(this.props, [
+      'title', 'description', 'seedUrl', 'seedCode', 'date'
+    ]);
+    return (
+      &lt;div
+        onClick={() =&gt; window.open(this.props.url, '_blank')}
+        className={styles.newsItem}
+      &gt;
+        {this.props.imageUrl ?
+          &lt;Row&gt;
+            &lt;Col xs={3}&gt;
+              &lt;div
+                role=""presentation""
+                style={{ backgroundImage: `url(${this.props.imageUrl})` }}
+                className={styles.previewImage}
+              /&gt;
+            &lt;/Col&gt;
+            &lt;Col xs={9}&gt;
+              &lt;NewsItemContent {...contentProps} /&gt;
+            &lt;/Col&gt;
+          &lt;/Row&gt; :
+          &lt;Row&gt;
+            &lt;Col xs={12}&gt;
+              &lt;NewsItemContent {...contentProps} /&gt;
+            &lt;/Col&gt;
+          &lt;/Row&gt;
+        }
+      &lt;/div&gt;
+    );
+  }
+}
+
+NewsItem.propTypes = {
+  imageUrl: PropTypes.string,
+  description: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  url: PropTypes.string.isRequired,
+  date: PropTypes.object.isRequired,
+  seedUrl: PropTypes.string.isRequired,
+  seedCode: PropTypes.string.isRequired
+};
+
+export default NewsItem;
+</code></pre>
+
+<p>NewsItemContent here is a simple pure component without any logic, so I won't put it here.</p>
+
+<p>Thank you!</p>
+
+<p>Update:
+I've recorded performance timelines in firefox both in case of window scrolling and block scrolling:</p>
+
+<ul>
+<li><a href=""https://www.dropbox.com/s/19fctwllgwvxgct/blocked.json?dl=0"" rel=""nofollow"">Block scrolling</a></li>
+<li><a href=""https://www.dropbox.com/s/p66xe22miu884dk/windowed.json?dl=0"" rel=""nofollow"">Window scrolling</a></li>
+</ul>
+","6123494","","6123494","","2016-07-29 11:03:02","2016-07-29 17:41:41","react-virtualized WindowScroller performance issues","<javascript><reactjs><infinite-scroll><smooth-scrolling><react-virtualized>","1","4","2","",""
+"42517672","1","42518106","","2017-02-28 19:58:48","","0","249","<p>I upgraded from react-virtualized 8.11 --> 9.1, and receiving the above error. Accounting for the docs breaking changes:</p>
+
+<p>1- I'm using React version 0.15.X</p>
+
+<p>2- I'm not using the CellMeasurer component.  </p>
+
+<p>Have any of you experienced a breaking change upgrading to react-virtualized 9 outside of the above mentioned?  I have made no other changes when upgrading.</p>
+
+<p>VirtualizedTable.js</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>import React, { Component, PropTypes }        from 'react';
+import { AutoSizer, Table, Column, defaultTableRowRenderer }       from 'react-virtualized';
+import classnames                             from 'classnames';
+import { Input } from 'react-bootstrap';
+import 'react-virtualized/styles.css';
+// import '../sass/components/virtualized-table.scss';
+
+export default class VirtualizedTable extends Component {
+  static propTypes = {
+    schema: PropTypes.shape({
+      instanceType: PropTypes.string,
+      searchable: PropTypes.bool,
+      skeleton: PropTypes.arrayOf(PropTypes.shape({
+        key: PropTypes.string,
+        label: PropTypes.string,
+        display: PropTypes.string,
+        sortable: PropTypes.bool
+      }))
+    }).isRequired,
+    data: PropTypes.arrayOf(PropTypes.object).isRequired,
+    onRowClick: PropTypes.func,
+    rowClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    rowRenderFn: PropTypes.func,
+    statusRenderFn: PropTypes.func,
+    actionsRenderFn: PropTypes.func,
+    sortBy: PropTypes.string,
+    sortDirection: PropTypes.oneOf(['ASC', 'DESC']),
+    maxHeight: PropTypes.number
+  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      sortBy: 'name',
+      sortDirection: 'ASC',
+      tableFilter: ''
+    };
+    this.sort = this.sort.bind(this);
+    this.onFilterChange = this.onFilterChange.bind(this);
+  }
+  componentDidMount() {
+    if (this.props.sortBy) {
+      this.setState({
+        sortBy: this.props.sortBy
+      });
+    }
+    if (this.props.sortDirection) {
+      this.setState({
+        sortDirection: this.props.sortDirection
+      });
+    }
+  }
+  sort({ sortBy, sortDirection }) {
+    if (this.state.sortBy !== sortBy) {
+      this.setState({ sortBy });
+    } else {
+      this.setState({ sortBy, sortDirection });
+    }
+  }
+  onFilterChange (e) {
+    this.setState({ tableFilter: e.target.value });
+  }
+  escapeRegex (str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&amp;');
+  }
+  render() {
+    const { showFilter } = this.props;
+    let sortedList = this.props.data;
+    if (this.state.tableFilter) {
+      let regex = new RegExp(this.escapeRegex(this.state.tableFilter), 'i');
+      sortedList = this.props.data.filter(
+        item =&gt; {
+          let bool = false;
+          for (let key in item) {
+            bool = (regex.test(item[key]));
+            if (bool) break;
+          }
+          if (bool) return item;
+        }
+      );
+    }
+    if (this.state.sortBy) {
+      sortedList = sortedList.sort(
+        (a, b) =&gt; typeof a[this.state.sortBy] === 'string' ?
+          a[this.state.sortBy] &lt; b[this.state.sortBy]
+        :
+          a[this.state.sortBy] - b[this.state.sortBy]
+      );
+      if (this.state.sortDirection === 'DESC') {
+        sortedList.reverse();
+      }
+    }
+    let columns = this.props.schema.skeleton.filter(item =&gt; item.display !== 'hidden');
+    const rowHeight = this.props.rowHeight || 40;
+    const headerHeight = this.props.headerHight || 40;
+    return (
+      &lt;div className='table-container'&gt;
+        {
+          (showFilter) ?
+            &lt;div className='ac-filter-container' style={{ width: '15%' }}&gt;
+              &lt;Input
+                type='text'
+                onChange={this.onFilterChange.bind(this)}
+                value={this.state.tableFilter}
+                placeholder={this.props.filterText || 'Filter results...'}
+              /&gt;
+            &lt;/div&gt;
+          :
+            null
+        }
+        &lt;AutoSizer disableHeight&gt;
+          {({ width: autoWidth }) =&gt; {
+            // Use Static width if provided - NOTE: For Testing Purposes
+            const width = this.props.width || autoWidth;
+            return (
+              &lt;Table
+                className={classnames('table', {'collapsed': width &lt; 1000})}
+                width={width}
+                height={(sortedList.length + 1) * rowHeight &gt; this.props.maxHeight ? this.props.maxHeight : (sortedList.length + 1) * rowHeight}
+                headerHeight={headerHeight}
+                rowHeight={rowHeight}
+                rowClassName={this.props.rowClassName}
+                rowRenderer={this.props.rowRenderFn || defaultTableRowRenderer}
+                rowCount={sortedList.length}
+                rowGetter={({ index }) =&gt; sortedList[index]}
+                sort={this.sort}
+                sortBy={this.state.sortBy}
+                sortDirection={this.state.sortDirection}
+                onRowClick={({index}) =&gt; this.props.onRowClick(this.props.data[index])}
+              &gt;
+                {
+                  columns.map((column, i) =&gt; {
+                    return (
+                      &lt;Column
+                        key={i}
+                        label={column.label}
+                        dataKey={column.key}
+                        disableSort={column.sortable}
+                        width={width / columns.length}
+                      /&gt;
+                    );
+                  })
+                }
+              &lt;/Table&gt;
+            );
+          }}
+        &lt;/AutoSizer&gt;
+      &lt;/div&gt;
+    );
+  }
+}</code></pre>
+</div>
+</div>
+</p>
+
+<p>TablContainer.js</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>import React, {Component} from 'react';
+
+// Components
+import VirtualizedTable from '../../components/VirtualizedTable3';
+import {objects} from '../objects';
+import shouldComponentUpdate from '../../utils/shouldComponentUpdate';
+
+
+export default class TableContainer extends Component {
+
+  constructor(props) {
+    super(props);
+    this.shouldComponentUpdate = shouldComponentUpdate.bind(this);
+  }
+
+  render() {
+    let schema = {
+      instanceType: 'integer',
+      searchable: true,
+      skeleton: [{
+        key: 'id',
+        label: 'id',
+        display: 'true',
+        sotrable: true
+      }, {
+        key: 'name',
+        label: 'name',
+        display: 'true',
+        sotrable: true
+      }]
+    };
+
+    return (
+      &lt;div className='container'&gt;
+        &lt;h1&gt;React Virtualized Table&lt;/h1&gt;
+
+        {
+          &lt;VirtualizedTable
+            schema={schema}
+            data={objects}
+            onRowClick={() =&gt; console.log('U did it!')}
+            sortByDefault='id'
+            sortDirection='DESC'
+          /&gt;
+        }
+
+      &lt;/div&gt;
+    );
+  }
+}</code></pre>
+</div>
+</div>
+</p>
+","5374113","","","","","2017-02-28 20:27:12","Upgrading react-virtualized gives error: Super expression must either be null or a function, not undefined","<reactjs><react-virtualized>","1","1","","",""
+"42048462","1","","","2017-02-05 04:11:39","","0","95","<p>I spent a while toying around with <a href=""https://github.com/react-boilerplate/react-boilerplate"" rel=""nofollow noreferrer"">react-boilerplate</a>, reading the docs, searching the web etc. I built up some simple components and containers no problem. </p>
+
+<p>I have a large amount of code that creates DOM nodes and returns them using javascript. For a simple example </p>
+
+<pre><code>  function makeSomething(){    
+        let div = document.createElement('div');
+        div.innerHTML = 'where would this go in reactjs boilerplate';
+        return div
+  }
+</code></pre>
+
+<p>My code does a ton of DOM manipulation, adding table rows, deleting rows and columns, moving rows, fetching data from remote sources. It is all written in javascript except for ajax calls which use jquery.</p>
+
+<p>My question is how do I call and place the returned nodes into a container? </p>
+
+<p>here is a simplified example of trying to add a js created node in a container:</p>
+
+<pre><code>export default class VendorsPage extends React.Component { // eslint-disable-line react/prefer-stateless-function
+
+  // Since state and props are static,
+  // there's no need to re-render this component
+  shouldComponentUpdate() {
+    return false;
+  }
+  renderdiv(){
+    let div = document.createElement('div');
+    div.innerHTML = 'hi there'
+      return div
+  }
+  render() {
+    return (
+        //how do I put renderdiv in here
+    );
+  }
+}
+</code></pre>
+","1303144","","1303144","","2017-02-05 09:27:33","2017-02-05 09:27:33","Where would I add existing JS Code to react-boilerplate","<javascript><reactjs><react-boilerplate>","1","0","","",""
+"45052656","1","45078441","","2017-07-12 08:42:35","","0","350","<p>I am passing a property from my ""Root"" to my a react-route, ""Home"".</p>
+
+<p>When the ""state"" (state.loggedIn) of my app changes, ""Home"" is updated (the appearance changes as expected) but ""shouldComponentUpdate"" is not called.</p>
+
+<p>I want to use ""shouldComponentUpdate"" to detect if a property (""loggedIn"") changed in the Root, and do some extra work.</p>
+
+<pre><code>// Root.js
+import {Provider} from 'react-redux';
+import {
+  BrowserRouter as Router,
+  Redirect,
+  Route,
+  Switch} from 'react-router-dom';
+
+...
+
+render() {
+  const store = this.props.store;
+  const loggedIn = this.state.loggedIn;
+  const handleLogin = this.handleLogin;
+  const handleLogout = this.handleLogout;
+
+  return (
+    &lt;Provider store={store}&gt;
+      &lt;Router history={browserHistory}&gt;
+        &lt;Switch&gt;
+          &lt;Route exact path=""/"" component={
+            (props) =&gt; (
+              &lt;Home
+                history={props.history}
+                loggedIn={loggedIn}
+                handleLogout={handleLogout}/&gt;)} /&gt;
+          &lt;Route path=""/login"" component={
+            (props) =&gt; (
+              &lt;Login
+                history={props.history}
+                handleLogin={handleLogin}/&gt;)} /&gt;
+         &lt;Route path=""/workflow"" component={
+            loggedIn ?
+            ((props) =&gt; (
+              &lt;Workflows
+                history={props.history}
+                match={props.match}/&gt;)) :
+            ((props) =&gt; (
+              &lt;Redirect to={
+                {
+                  pathname: '/',
+                  state: {from: props.location},
+               }
+              }/&gt;)) }/&gt;
+        &lt;/Switch&gt;
+      &lt;/Router&gt;
+    &lt;/Provider&gt;
+);
+</code></pre>
+
+<p>}</p>
+
+<pre><code>// Home.js
+shouldComponentUpdate(nextProps, nextState) {
+  console.log(nextProps);
+  console.log(nextState);
+  if(nextProps.loggedIn !== nextState.loggedIn) {
+    if(nextState.loggedIn) {
+      this.socket.connect();
+    } else {
+      this.socket.disconnect();
+    }
+  }
+
+  return true;
+}
+</code></pre>
+","2568650","","","","","2017-07-13 10:47:55","Should component update in redux/react-router v4","<reactjs><react-redux><react-router-v4>","1","4","1","",""
+"45478329","1","","","2017-08-03 08:05:34","","0","469","<p>I stuck in bit weird situation, I am using ReactJS. I have header container, title bar, title container. Header container has navigation bar. On click of that it effects title bar. I am using react router for that navigation. I am using <code>componentDidMount</code> lifecycle method for that.</p>
+
+<p>Problem with that it triggers only once when title container loads. So I used <code>componentDidUpdate</code>. But in that problem occured when I added title bar component to title container. So now my <code>componentDidUpdate</code> runing in infinite loop. I tried to use <code>shouldComponentUpdate(nextProps, nextState)</code> but I don't know what condition put to return it false.</p>
+
+<pre><code>export class TitleContainer extends React.Component {
+    componentDidMount() {
+        this.props.dispatch(fetchDetail(this.props.match.params.program_id))
+    }
+    componentDidUpdate(prevProps, prevState) {
+
+        this.props.dispatch(fetchDetail(this.props.match.params.id))
+    }
+
+    shouldComponentUpdate(nextProps, nextState){
+        console.log(""current props"",this.props)
+        console.log(""next props"",nextProps)
+        // if(this.props.name == nextProps.name)
+        //     return false;
+        return true;
+    }
+    render() {
+
+        console.log(""data in contaner"", this.props)
+        return (
+        &lt;div&gt;
+         &lt;Title name = { this.props.name }
+
+            /&gt;
+            &lt;/div&gt;
+        )
+    }
+}
+const mapStateToProps = (state) =&gt; {
+    console.log(""update state"", state)
+
+    return {
+        programProfileData: state.DetailReducer.Details,
+
+        name: state.DetailReducer.name
+    }
+}
+export default connect(mapStateToProps)(TitleContainer)
+</code></pre>
+","5913407","","472495","","2017-08-04 07:58:47","2017-08-04 07:58:47","how to stop update in reactjs","<reactjs><react-redux><react-router-v4>","1","0","1","",""
+"37627648","1","37632765","","2016-06-04 07:30:55","","0","103","<p>What is the correct way to fetch data when switching route on same level?
+Because, according to <a href=""https://github.com/reactjs/react-router/blob/master/docs/guides/ComponentLifecycle.md"" rel=""nofollow"">this</a>, switching route on same level will
+only call <code>componentWillReceiveProps</code> and <code>componentDidUpdate</code>.
+And <code>componentDidMount</code> is only called the first time route is entered.</p>
+
+<p>With route configuration like this:</p>
+
+<pre><code>render((
+  &lt;Provider store={store}&gt;
+    &lt;Router&gt;
+      &lt;Route path=""/"" component={App}&gt;
+        &lt;Route path=""/:userId"" component={Profile}/&gt;
+      &lt;/Route&gt;
+    &lt;/Router&gt;
+  &lt;/Provider&gt;
+), document.getElementById('root'));
+</code></pre>
+
+<p>The Profile component is:</p>
+
+<pre><code>class Profile extends React.Component {
+  componentDidMount() {
+    // initial data
+    this.fetchUserData();
+  }
+  componentWillReceiveProps(nextProps) {
+    if (this.props.params.userId !== nextProps.params.userId) {
+      this.fetchUserData();
+    }
+  }
+  shouldComponentUpdate(nextProps) {
+    return this.props.params.userId !== nextProps.params.userId;
+  }
+  render() {
+    return (
+      &lt;div className=""profile""&gt;&lt;/div&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>The data will be stored in application state field (<code>props.userData</code>). But,
+that's obviously will mess up with rendering cycle because route is
+switched before fetch data is finished.</p>
+
+<p>But, if I change to this:</p>
+
+<pre><code>// deepEqual is function to check object equality recursively
+componentWillReceiveProps(nextProps) {
+  if (!deepEqual(this.props.userData, nextProps.userData)) {
+    this.fetchUserData();
+  }
+}
+shouldComponentUpdate(nextProps) {
+  return !deepEqual(this.props.userData, nextProps.userData);
+}
+</code></pre>
+
+<p>This won't work because before <code>userData</code> is fetched, those props is
+deeply equal.</p>
+
+<p>So, how to fetch data when switching route on same route level?</p>
+","4019871","","4019871","","2016-06-04 07:40:03","2016-06-04 16:53:48","Correct way to fetch data when switching route on same level in react-router?","<javascript><reactjs>","1","0","","",""
+"50061200","1","","","2018-04-27 11:14:30","","2","47","<p>In console I see this warning:</p>
+
+<blockquote>
+  <p>index.js:2178 Warning: Body has a method called
+  shouldComponentUpdate(). shouldComponentUpdate should not be used when
+  extending React.PureComponent. Please extend React.Component if
+  shouldComponentUpdate is used.</p>
+</blockquote>
+
+<p><code>Body</code> component is using</p>
+
+<pre><code>...
+import { observer, inject } from 'mobx-react';
+...
+@inject('store')
+@observer
+class Body extends React.PureComponent&lt;BodyProps&gt; {
+...
+</code></pre>
+
+<p>but doesn't have this <code>shouldComponentUpdate</code> method anywhere.</p>
+
+<p><strong>Is this coming from <code>mobx-react</code>? Can I use <code>PureComponent</code> in components decorated by <code>@observable</code> or <code>@inject</code> ?</strong></p>
+","2730688","","","","","2018-04-27 12:31:05","PureComponent decorated by mobx-react throws error about `shouldComponentUpdate` presence","<reactjs><mobx><mobx-react><react-16>","1","0","","",""
+"33747060","1","","","2015-11-17 00:19:56","","0","326","<p>I have a couple wrapper components which dynamically calculate the size and position they need to be. Normally this works and performs great with <code>shouldComponentUpdate</code>, but as soon as I add children inside these components I can no longer use this method. Why? Because if i return 'false' for the wrapper needing an update... the children never get updated themselves :(</p>
+
+<p>Example JSX:</p>
+
+<p><code>&lt;ReactWrapper&gt;
+  &lt;ChildElement/&gt;
+&lt;/ReactWrapper&gt;
+</code></p>
+
+<p>Is there any good way around this? Only idea I have is to add a new method shouldUpdateChildren like this other question detailed: <a href=""https://discuss.reactjs.org/t/shouldcomponentupdate-and-children/2055"" rel=""nofollow"">https://discuss.reactjs.org/t/shouldcomponentupdate-and-children/2055</a></p>
+","420028","","","","","2018-02-19 08:48:23","shouldComponentUpdate and child components","<javascript><reactjs>","1","2","","",""
+"37804199","1","37804409","","2016-06-14 06:12:23","","2","102","<p>I am writing a reactjs chat client and came across <a href=""https://facebook.github.io/react/docs/component-api.html"" rel=""nofollow"">this</a> in the documentation, which says  </p>
+
+<blockquote>
+  <p>NEVER mutate this.state directly, as calling setState() afterwards may
+  replace the mutation you made. Treat this.state as if it were
+  immutable.</p>
+  
+  <p>setState() does not immediately mutate this.state but creates a
+  pending state transition. Accessing this.state after calling this
+  method can potentially return the existing value.</p>
+  
+  <p>There is no guarantee of synchronous operation of calls to setState
+  and calls may be batched for performance gains.</p>
+  
+  <p>setState() will always trigger a re-render unless conditional
+  rendering logic is implemented in shouldComponentUpdate(). If mutable
+  objects are being used and the logic cannot be implemented in
+  shouldComponentUpdate(), calling setState() only when the new state
+  differs from the previous state will avoid unnecessary re-renders.</p>
+</blockquote>
+
+<p>When a message is sent this function is called:</p>
+
+<pre><code>sendMessage: function(msg) {
+    //Update the state of the app
+    var message = {username:'User', message:msg};
+    console.log(message.toString());
+    this.state.datas.push(message);
+    this.setState({datas: this.state.datas});
+  },
+</code></pre>
+
+<p>What I am trying to do is append the new message to the list of messages then reset the state so the components rerender. This works fine but based on the documentation quoted above this isn't how this should be done. How should I go about updating the list of messages and updating the state without directly calling <code>this.state.datas.push(message)</code>?</p>
+","3282276","","","","","2016-06-14 06:26:24","How to update state of reactjs app by building on existing state?","<javascript><reactjs><state>","1","0","","",""
+"37841434","1","","","2016-06-15 16:56:20","","2","500","<p>I am attempting to abstract the process of creating and rendering a google map in React - so far I have been mostly successful, but I am facing a problem. Because of the way I have set this up, there is a flash when I update the content of the map (the pins). <strong>Is there a way to update a property (and pass it to the component's children) without forcing a re-render?</strong></p>
+
+<p>Notice that I am looking for a way to be able to pass in the the thing I am creating markers for as a prop - does that mean I'm always going to need to re-render?</p>
+
+<p><strong>stores-map.tsx</strong></p>
+
+<pre><code>import * as React from 'react';
+import { MapComponent, Markable } from '../google';
+import { Store } from './store.model';
+
+export interface StoresMapProps {
+    stores: Store[];
+}
+
+function mapStoreToMarker(store: Store): Markable {
+    return {
+        title: store.id,
+        position: store.geoLoc
+    };
+}
+
+export class StoresMapComponent extends React.Component&lt;StoresMapProps, void&gt; {
+    shouldComponentUpdate(nextProps: StoresMapProps): boolean {
+        return nextProps.stores !== this.props.stores;
+    }
+
+    render(): JSX.Element {
+        const markers = this.props.stores.map(mapStoreToMarker);
+        return (&lt;MapComponent center={{ lat: 39.709396, lng: -105.145465 }} zoom={8} markers={markers} /&gt;);
+    }
+}
+</code></pre>
+
+<p><strong>map.tsx</strong></p>
+
+<pre><code>import * as React from 'react';
+import configuration from '../../configuration';
+import { GoogleSDK } from './sdk';
+
+export interface Markable {
+    position: { lat: number; lon: number; };
+    title: string;
+}
+
+export interface MapComponentProps extends google.maps.MapOptions {
+    markers?: Markable[];
+}
+
+export class MapComponent extends React.Component&lt;MapComponentProps, void&gt; {
+    private _map: google.maps.Map;
+    private _loadTheMap(id: string): void {
+        GoogleSDK.load()
+            .then(() =&gt; this._reallyLoadTheMap(id))
+            .then(() =&gt; this._reallySetMarkers(this.props.markers));
+    }
+
+    private _setMarkers(markers: Markable[]): void {
+        GoogleSDK.load().then(() =&gt; this._reallySetMarkers(markers));
+    }
+
+    private _reallyLoadTheMap(id: string): void {
+        const options = Object.assign({}, this.props, {
+            mapTypeId: this.props.mapTypeId || google.maps.MapTypeId.ROADMAP,
+            center: this.props.center || configuration.google.maps.defaults.center,
+            zoom: this.props.zoom || configuration.google.maps.defaults.zoom,
+            mapTypeControl: this.props.mapTypeControl || false
+        });
+
+        this._map = new google.maps.Map(document.getElementById(id), options);
+    }
+
+    private _reallySetMarkers(markers: Markable[]): void {
+        markers.forEach(marker =&gt; new google.maps.Marker({
+            map: this._map,
+            title: marker.title,
+            position: new google.maps.LatLng(marker.position.lat, marker.position.lon)
+        }));
+    }
+
+    render(): JSX.Element {
+        const id = `MapComponent${new Date().getMilliseconds()}`;
+        const style = {
+            width: '100%',
+            height: '200px',
+            lineHeight: '200px',
+            textAlign: 'center',
+            color: 'white'
+        };
+        this._loadTheMap(id);
+        return (&lt;div id={id} style={style}&gt;&lt;/div&gt;);
+    }
+}
+</code></pre>
+","967405","","","","","2016-06-15 17:34:51","How can I update a google map without triggering a re-render of the react component?","<javascript><google-maps><reactjs><typescript>","0","0","","",""
+"38044989","1","38045429","","2016-06-27 02:11:23","","0","439","<p>I'm trying to hand build a react/flux app, roughly following:
+<a href=""https://scotch.io/tutorials/getting-to-know-flux-the-react-js-architecture"" rel=""nofollow"">https://scotch.io/tutorials/getting-to-know-flux-the-react-js-architecture</a></p>
+
+<p>I've got most of it working but when I update the state the component doesn't re-render. Can anyone help?</p>
+
+<p>Thanks. :)</p>
+
+<hr>
+
+<p>Repo is <a href=""https://github.com/jmsherry/flux_hand"" rel=""nofollow"">https://github.com/jmsherry/flux_hand</a></p>
+
+<p><strong>CounterStore.js</strong></p>
+
+<pre><code>import Dispatcher from 'Flux';
+import AppDispatcher from './../dispatcher/AppDispatcher';
+import CounterConstants from '../constants/constants';
+import { EventEmitter } from 'events';
+import assign from 'object-assign';
+
+
+let _count = 5;
+
+function increment() {
+  _count +=1;
+}
+
+function decrement() {
+  _count -=1;
+}
+
+let CounterStore = assign({}, EventEmitter.prototype, {
+
+  getCount() {
+    return _count;
+  },
+
+  emitChange() {
+    this.emit(CounterConstants.CHANGE_EVENT);
+  },
+
+  /**
+   * @param {function} callback
+   */
+  addChangeListener(callback) {
+    this.on(CounterConstants.CHANGE_EVENT, callback);
+  },
+
+  /**
+   * @param {function} callback
+   */
+  removeChangeListener(callback) {
+    this.removeListener(CounterConstants.CHANGE_EVENT, callback);
+  },
+
+  dispatcherIndex: AppDispatcher.register(function(payload) {
+    console.log('blah', arguments);
+    var action = payload.action;
+    var text;
+
+    switch(action.actionType) {
+      case CounterConstants.INCREMENT:
+          console.log('inc', _count);
+          increment();
+          console.log(_count);
+          CounterStore.emitChange();
+        break;
+
+      case CounterConstants.DECREMENT:
+      console.log('dec', _count);
+        decrement();
+        console.log(_count);
+        CounterStore.emitChange();
+        break;
+    }
+
+    return true; // No errors. Needed by promise in Dispatcher.
+  })
+
+});
+
+export default CounterStore;
+</code></pre>
+
+<p><strong>AppDispatcher.js</strong></p>
+
+<pre><code>import { Dispatcher } from 'Flux';
+
+const AppDispatcher = new Dispatcher();
+
+AppDispatcher.handleViewAction = function(action) {
+  console.log('in', arguments);
+  this.dispatch({
+    source: 'VIEW_ACTION',
+    action
+  });
+}
+
+export default AppDispatcher;
+</code></pre>
+
+<p><strong>constants.js</strong></p>
+
+<pre><code>import keyMirror from 'keymirror';
+
+const CounterConstants = keyMirror({
+  INCREMENT: null,
+  DECREMENT: null
+});
+
+CounterConstants.CHANGE_EVENT = 'change';
+
+export default CounterConstants;
+</code></pre>
+
+<p><strong>actions.js</strong></p>
+
+<pre><code>import AppDispatcher from '../dispatcher/AppDispatcher';
+var CounterConstants = require('../constants/constants');
+
+const CounterActions = {
+
+  /**
+   * @param  {string} text
+   */
+  increment() {
+    AppDispatcher.handleViewAction({
+      actionType: CounterConstants.INCREMENT
+    });
+  },
+
+  decrement() {
+    AppDispatcher.handleViewAction({
+      actionType: TodoConstants.DECREMENT
+    });
+  }
+
+};
+
+export default CounterActions;
+</code></pre>
+
+<p><strong>counter.js &lt;-- parent view</strong></p>
+
+<pre><code>import React,{Component} from 'react';
+import ReactDOM from 'react-dom';
+import CounterConstants from './../constants/constants';
+import AppDispatcher from './../Dispatcher/AppDispatcher.js';
+import Controls from './Controls';
+import Display from './Display';
+
+class Counter extends Component {
+  render(){
+    return (
+      &lt;div className=""counter""&gt;
+        &lt;h1&gt;My counter&lt;/h1&gt;
+        &lt;Display /&gt;
+        &lt;Controls /&gt;
+      &lt;/div&gt;
+    )
+  }
+}
+
+export default Counter;
+</code></pre>
+
+<p><strong>controls.js</strong></p>
+
+<pre><code>import React,{Component} from 'react';
+import ReactDOM from 'react-dom';
+import CounterConstants from './../constants/constants';
+import AppDispatcher from './../dispatcher/AppDispatcher';
+import CounterActions from './../actions/actions';
+
+class Controls extends Component {
+  render(){
+    console.log('here', AppDispatcher);
+    return (
+      &lt;div className=""controls""&gt;
+        &lt;button onClick={CounterActions.increment}&gt;+&lt;/button&gt;
+        &lt;button onClick={CounterActions.decrement}&gt;-&lt;/button&gt;
+      &lt;/div&gt;
+    )
+  }
+}
+
+export default Controls;
+</code></pre>
+
+<p><strong>display.js</strong></p>
+
+<pre><code>import React,{Component} from 'react';
+import ReactDOM from 'react-dom';
+import CounterConstants from './../constants/constants';
+import CounterStore from './../stores/CounterStore';
+
+// Method to retrieve application state from store
+function getAppState() {
+  console.log('getting app state...');
+  return {
+    count: CounterStore.getCount()
+  };
+}
+
+class Display extends Component {
+  constructor(props) {
+    super(props);
+    this.state = getAppState();
+  }
+
+  // Update view state when change event is received
+  _onChange() {
+    console.log('prechange', this.state);
+    const newState = getAppState();
+    console.log('newState', newState);
+    (newState) =&gt; this.setState;
+  }
+
+  // Listen for changes
+  componentDidMount() {
+    CounterStore.addChangeListener(this._onChange.bind(this));
+  }
+
+  // Unbind change listener
+  componentWillUnmount() {
+    CounterStore.removeChangeListener(this._onChange.bind(this));
+  }
+
+  shouldComponentUpdate( newProps, newState ) {
+    console.log('shouldComponentUpdate', arguments);
+  }
+
+  render() {
+    let count = getAppState().count;
+    console.log('rendering', count, this.state);
+    return (
+      &lt;div className = ""display"" &gt;
+        &lt;p&gt;State: { this.state.count }&lt;/p&gt;
+        &lt;p&gt;count: { count }&lt;/p&gt;
+      &lt;/div&gt;
+    )
+  }
+}
+
+export default Display;
+</code></pre>
+","1775718","","1775718","","2016-06-27 03:07:16","2016-06-27 03:48:09","react component state not updating (FLUX App)","<reactjs><reactjs-flux>","3","0","","",""
+"46197241","1","","","2017-09-13 12:11:45","","7","1259","<p>Basically, I've got this pretty simple react component. What it does is, is wrap around 'react-intercom' and only render it if there is a change in the state. To simplify the question, I've hardwired the <code>shouldCompoenentUpdate()</code> method to always return false.</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>    import React from 'react';
+    import Intercom from 'react-intercom';
+    
+    class IntercomWrapper extends React.Component {
+        shouldComponentUpdate(nextProps, nextState) {
+            // console.log(!!nextProps.user &amp;&amp; nextProps.user.userId !== this.props.user.userId);
+            // return !!nextProps.user &amp;&amp; nextProps.user.userId !== this.props.user.userId;
+            return false;
+        }
+    
+        render() {
+            console.log('rendering');
+            return &lt;Intercom {...this.props} /&gt;;
+        }
+    };
+    
+    export default IntercomWrapper;</code></pre>
+</div>
+</div>
+</p>
+
+<p>What happens is that it always rerenders, whish should not happen.</p>
+
+<p>Anyone has any idea why would that happen?</p>
+","1750338","","5561293","","2017-09-13 13:41:18","2017-09-14 13:25:07","React shouldComponentUpdate() = false not stopping re-render","<javascript><reactjs>","3","1","1","",""
+"38687981","1","38688759","","2016-07-31 20:08:24","","2","1299","<p>I need to use the shallowCompare function within the shouldComponentUpdate function of a custom react component. I get the following error:</p>
+
+<blockquote>
+  <p>app.js:95084 Uncaught TypeError: Cannot read property 'shallowCompare' of undefined</p>
+</blockquote>
+
+<p>I have installed react-addons-shallow-compare version 15.3.0 and I found it in the node_modules. It looks like this:</p>
+
+<pre><code>module.exports = require('react/lib/shallowCompare');
+</code></pre>
+
+<p>And this is the shallowCompare.js referenced.</p>
+
+<pre><code>/**
+ * Copyright 2013-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+* @providesModule shallowCompare
+*/
+
+'use strict';
+
+var shallowEqual = require('fbjs/lib/shallowEqual');
+
+/**
+ * Does a shallow comparison for props and state.
+ * See ReactComponentWithPureRenderMixin
+ * See also https://facebook.github.io/react/docs/shallow-compare.html
+ */
+function shallowCompare(instance, nextProps, nextState) {
+  return !shallowEqual(instance.props, nextProps) || !shallowEqual(instance.state, nextState);
+}
+
+module.exports = shallowCompare;
+</code></pre>
+
+<p>I have also installed the typings. I have this version:</p>
+
+<pre><code>// Generated by typings
+// Source: https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/6a36f6d5b61602b6c4ad932599097135e80abaf4/react/react-addons-shallow-compare.d.ts
+declare namespace __React {
+    namespace __Addons {
+        export function shallowCompare&lt;P, S&gt;(
+            component: __React.Component&lt;P, S&gt;,
+            nextProps: P,
+            nextState: S): boolean;
+    }
+}
+
+declare module ""react-addons-shallow-compare"" {
+    var shallowCompare: typeof __React.__Addons.shallowCompare;
+    export = shallowCompare;
+}
+</code></pre>
+
+<p>And now I am trying to import it and use it in one of my files. I have tried every strategy for importing it.</p>
+
+<pre><code>import { __Addons as ReactAddons } from ""react"";
+
+/* ... other stuff ... */
+
+ReactAddons.shallowCompare(this, nextProps, nextState);
+</code></pre>
+
+<p>Or</p>
+
+<pre><code>import shallowCompare = require(""react-addons-shallow-compare"");
+
+/* ... other stuff ... */
+
+shallowCompare(this, nextProps, nextState);
+</code></pre>
+
+<p>Or</p>
+
+<pre><code>import shallowCompare = __React.__Addons.shallowCompare;
+
+/* ... other stuff ... */
+
+shallowCompare(this, nextProps, nextState);
+</code></pre>
+
+<p>In the last case, the error I get is not the one mentioned above, but</p>
+
+<blockquote>
+  <p>Uncaught ReferenceError: __React is not defined</p>
+</blockquote>
+
+<p>As a mention, I am using Typescript 1.8.10.</p>
+
+<p>For what it's worth, I am also getting the following error:</p>
+
+<blockquote>
+  <p>Failed to parse SourceMap</p>
+</blockquote>
+
+<p>I am quite stuck on this for a while now. Some help would be greatly appreciated.</p>
+
+<p>Thanks!</p>
+","1526766","","1526766","","2016-07-31 21:10:14","2016-07-31 22:03:13","Cannot import react-addons-shallow-compare, Typescript","<reactjs><typescript><import><webpack><source-maps>","1","13","0","",""
+"44441794","1","","","2017-06-08 17:07:46","","0","456","<p>Hi everyone: I'm using react-native-router-flux (v.3.39.2) in a react-native project, but today its showing this warning:</p>
+
+<p>Warning: SceneView has a method called shouldComponentUpdate().
+shouldComponentUpdate should nt be used when extending React.PureComponent. Please extend React.Component if shouldComponentUpdate is used.</p>
+
+<p>This is my Entry Point:</p>
+
+<p>import React from 'react';
+import { AppRegistry, StyleSheet, Platform } from 'react-native';</p>
+
+<p>import {Scene, Router} from 'react-native-router-flux';</p>
+
+<p>import HomeView from './src/components/HomeView'
+import ArtistDetailView from './src/components/ArtistDetailView'</p>
+
+<p>export default class platzimusic extends React.Component {
+  render() {</p>
+
+<pre><code>const isAndroid = Platform.OS === 'android'
+return (
+  &lt;Router&gt;
+    &lt;Scene key=""root""&gt;
+      &lt;Scene key=""home"" component={HomeView} hideNavBar/&gt;
+      &lt;Scene key=""artistDetail"" component={ArtistDetailView} hideNavBar={isAndroid}/&gt;
+    &lt;/Scene&gt;
+  &lt;/Router&gt;
+)
+</code></pre>
+
+<p>}
+}</p>
+
+<p>AppRegistry.registerComponent('platzimusic', () => platzimusic);</p>
+
+<p>and this is my package.json:</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>{
+  ""name"": ""platzimusic"",
+  ""version"": ""0.0.1"",
+  ""private"": true,
+  ""scripts"": {
+    ""start"": ""node node_modules/react-native/local-cli/cli.js start"",
+    ""test"": ""jest""
+  },
+  ""dependencies"": {
+    ""react"": ""16.0.0-alpha.12"",
+    ""react-native"": ""^0.45.0"",
+    ""react-native-router-flux"": ""^3.39.2"",
+    ""react-native-vector-icons"": ""^4.2.0""
+  },
+  ""devDependencies"": {
+    ""babel-jest"": ""20.0.3"",
+    ""babel-preset-react-native"": ""1.9.2"",
+    ""jest"": ""20.0.4"",
+    ""react-test-renderer"": ""16.0.0-alpha.12""
+  },
+  ""jest"": {
+    ""preset"": ""react-native""
+  }
+}</code></pre>
+</div>
+</div>
+</p>
+
+<p>What's wrong?</p>
+
+<p>Thanks</p>
+","5382942","","","","","2017-06-10 06:09:13","Warning: SceneView has a method called shouldComponentUpdate()","<react-native><react-native-router-flux>","1","0","","",""
+"45657321","1","","","2017-08-13 05:14:49","","0","568","<p>Okay so I've gotten pretty far in creating the React Component for ChartJS, however when testing I get the following error:</p>
+
+<pre><code>FAIL  lib\chart\chart.test.tsx
+  ● renders without crashing
+
+    TypeError: Cannot read property 'length' of null
+
+      at Object.acquireContext (node_modules/chart.js/src/platforms/platform.dom.js:189:19)
+      at Chart.construct (node_modules/chart.js/src/core/core.controller.js:72:27)
+      at new Chart (node_modules/chart.js/src/core/core.js:7:8)
+      at Chart.Object.&lt;anonymous&gt;.Chart.renderChart (lib/chart/chart.tsx:233:26)
+      at Chart.Object.&lt;anonymous&gt;.Chart.componentDidMount (lib/chart/chart.tsx:42:10)
+      at node_modules/react-dom/lib/ReactCompositeComponent.js:264:25
+      at measureLifeCyclePerf (node_modules/react-dom/lib/ReactCompositeComponent.js:75:12)
+      at node_modules/react-dom/lib/ReactCompositeComponent.js:263:11
+      at CallbackQueue.notifyAll (node_modules/react-dom/lib/CallbackQueue.js:76:22)
+      at ReactReconcileTransaction.close (node_modules/react-dom/lib/ReactReconcileTransaction.js:80:26)
+      at ReactReconcileTransaction.closeAll (node_modules/react-dom/lib/Transaction.js:209:25)
+      at ReactReconcileTransaction.perform (node_modules/react-dom/lib/Transaction.js:156:16)
+      at batchedMountComponentIntoNode (node_modules/react-dom/lib/ReactMount.js:126:15)
+      at ReactDefaultBatchingStrategyTransaction.perform (node_modules/react-dom/lib/Transaction.js:143:20)
+      at Object.batchedUpdates (node_modules/react-dom/lib/ReactDefaultBatchingStrategy.js:62:26)
+      at Object.batchedUpdates (node_modules/react-dom/lib/ReactUpdates.js:97:27)
+      at Object._renderNewRootComponent (node_modules/react-dom/lib/ReactMount.js:319:18)
+      at Object._renderSubtreeIntoContainer (node_modules/react-dom/lib/ReactMount.js:401:32)
+      at Object.render (node_modules/react-dom/lib/ReactMount.js:422:23)
+      at Object.&lt;anonymous&gt; (lib/chart/chart.test.tsx:7:12)
+          at Promise (&lt;anonymous&gt;)
+      at Promise.resolve.then.el (node_modules/p-map/index.js:42:16)
+          at &lt;anonymous&gt;
+      at process._tickCallback (internal/process/next_tick.js:169:7)
+
+  × renders without crashing (275ms)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 total
+Snapshots:   0 total
+Time:        1.314s, estimated 3s
+Ran all test suites related to changed files.
+</code></pre>
+
+<p>However, I've spent a long time looking over the code and haven't been able to figure out why it refuses to work properly. The error starts at the <code>renderChart()</code> function at creating a new chart instance. My first guess would be the for some reason it's not registering the canvas element despite being called by its id.  But when the content of renderChart is moved into the render() function it still gives the same error. Here's the code being tested:</p>
+
+<pre><code>import * as React from 'react'
+import * as ClassNames from 'classnames'
+import * as ChartJS from 'chart.js'
+const IsEqual = require('lodash.isequal')
+const Find = require('lodash.find')
+const subChart = require('chart.js')
+
+interface IChartProps {
+  /** The user-defined classes */
+  readonly className?: string
+  readonly width?: number
+  readonly height?: number
+  readonly reRender?: boolean
+
+  readonly type: ChartJS.ChartType
+  readonly data: ChartJS.ChartData
+  readonly options: ChartJS.ChartOptions
+  readonly getDatasetAtEvent?: Function
+  readonly getElementAtEvent?: Function
+  readonly getElementsAtEvent?: Function
+  readonly onElementsClick?: Function
+  readonly datasetKeyProvider?: Function
+}
+
+interface IChartState {
+  /** Add your states here */
+}
+
+export class Chart extends React.Component&lt;IChartProps, IChartState&gt; {
+  // tslint:disable-next-line
+  private chartInstance: any
+  private shadowData: {}
+  constructor(props: IChartProps) {
+    super(props)
+  }
+
+  public componentWillMount() {
+    // this.chartInstance = undefined
+  }
+
+  public componentDidMount() {
+    this.renderChart()
+  }
+
+  // public componentWillReceiveProps(nextProps: IChartProps) {}
+
+  public shouldComponentUpdate(nextProps: IChartProps, nextState: IChartState) {
+    const props = this.props
+    if (nextProps.reRender === true) {
+      return true
+    }
+
+    if (props.height !== nextProps.height || props.width !== nextProps.width) {
+      return true
+    }
+
+    if (props.type !== nextProps.type) {
+      return true
+    }
+
+    if (!IsEqual(props.options, nextProps.options)) {
+      return true
+    }
+
+    const nextData = this.transformDataProp(nextProps)
+
+    if (!IsEqual(this.shadowData, nextData)) {
+      return true
+    }
+
+    return false
+  }
+
+  // public componentWillUpdate(nextProps: IChartProps, nextState: IChartState) {}
+
+  public componentDidUpdate(prevProps: IChartProps, prevState: IChartState) {
+    if (this.props.reRender) {
+      this.chartInstance.destroy()
+      this.renderChart()
+      return
+    }
+    this.updateChart()
+  }
+
+  public transformDataProp(props: IChartProps) {
+    const data = props.data
+    if (typeof data === 'function') {
+      const node = document.getElementById('bar-chart') as HTMLCanvasElement
+      return data(node)
+    } else {
+      return data
+    }
+  }
+
+  public memoizeDataProps(props?: IChartProps) {
+    if (!this.props.data) {
+      return
+    }
+    const data = this.transformDataProp(this.props)
+
+    this.shadowData = {
+      ...data,
+      datasets:
+        data.datasets &amp;&amp;
+        data.datasets.map((set: string[]) =&gt; {
+          return { ...set }
+        })
+    }
+    return data
+  }
+
+  public updateChart() {
+    const options = this.props.options
+
+    const data = this.memoizeDataProps(this.props)
+
+    if (!this.chartInstance) {
+      return
+    }
+
+    if (options) {
+      this.chartInstance.options = subChart.helpers.configMerge(
+        this.chartInstance.options,
+        options
+      )
+    }
+
+    let currentDatasets =
+      (this.chartInstance.config.data &amp;&amp;
+        this.chartInstance.config.data.datasets) ||
+      []
+    const nextDatasets = data.datasets || []
+
+    const currentDatasetKeys = currentDatasets.map(
+      this.props.datasetKeyProvider
+    )
+    const nextDatasetKeys = nextDatasets.map(this.props.datasetKeyProvider)
+    const newDatasets = nextDatasets.filter(
+      (d: object) =&gt;
+        currentDatasetKeys.indexOf(this.props.datasetKeyProvider(d)) === -1
+    )
+
+    for (let idx = currentDatasets.length - 1; idx &gt;= 0; idx -= 1) {
+      const currentDatasetKey = this.props.datasetKeyProvider(
+        currentDatasets[idx]
+      )
+      if (nextDatasetKeys.indexOf(currentDatasetKey) === -1) {
+        // deleted series
+        currentDatasets.splice(idx, 1)
+      } else {
+        const retainedDataset = Find(
+          nextDatasets,
+          (d: object) =&gt; this.props.datasetKeyProvider(d) === currentDatasetKey
+        )
+        if (retainedDataset) {
+          // update it in place if it is a retained dataset
+          currentDatasets[idx].data.splice(retainedDataset.data.length)
+          retainedDataset.data.forEach((point: number, pid: number) =&gt; {
+            currentDatasets[idx].data[pid] = retainedDataset.data[pid]
+          })
+          // const { data, ...otherProps } = retainedDataset
+          currentDatasets[idx] = {
+            data: currentDatasets[idx].data,
+            ...currentDatasets[idx],
+            ...retainedDataset.otherProps
+          }
+        }
+      }
+    }
+    // finally add any new series
+    newDatasets.forEach((d: object) =&gt; currentDatasets.push(d))
+    const { datasets, ...rest } = data
+
+    this.chartInstance.config.data = {
+      ...this.chartInstance.config.data,
+      ...rest
+    }
+
+    this.chartInstance.update()
+  }
+
+  public componentWillUnmount() {
+    this.chartInstance.destroy()
+  }
+
+  public onClickEvent = (event: React.MouseEvent&lt;HTMLCanvasElement&gt;) =&gt; {
+    // this.props.getDatasetAtEvent &amp;&amp;
+    this.props.getDatasetAtEvent(
+      this.chartInstance.getDatasetAtEvent(event),
+      event
+    )
+
+    // this.props.getElementAtEvent &amp;&amp;
+    this.props.getElementAtEvent(
+      this.chartInstance.getElementAtEvent(event),
+      event
+    )
+
+    // this.props.getElementsAtEvent &amp;&amp;
+    this.props.getElementsAtEvent(
+      this.chartInstance.getElementsAtEvent(event),
+      event
+    )
+
+    // this.props.onElementsClick &amp;&amp;
+    this.props.onElementsClick(
+      this.chartInstance.getElementsAtEvent(event),
+      event
+    )
+  }
+
+  public render() {
+    const className = ClassNames('chart', this.props.className)
+
+    // bar.update()
+    return (
+      &lt;div className={className}&gt;
+        &lt;canvas
+          id=""chart-instance""
+          width={this.props.width ? this.props.width : '400'}
+          height={this.props.height ? this.props.height : '400'}
+          onClick={this.onClickEvent}
+        /&gt;
+      &lt;/div&gt;
+    )
+  }
+
+  public renderChart() {
+    const { options, type, data } = this.props
+    const node = document.getElementById('chart-instance') as HTMLCanvasElement
+    // const data = this.memoizeDataProps()
+
+    this.chartInstance = new ChartJS(node, {
+      type,
+      data,
+      options
+    })
+  }
+}
+</code></pre>
+
+<p>can someone help me figure out why this won't work properly?</p>
+","5198972","","","","","2017-08-13 08:27:07","TypeError: Cannot read property 'length' of null in react component","<reactjs><typescript><chart.js><jest>","1","2","","",""
+"38284074","1","38285198","","2016-07-09 16:49:03","","2","748","<p>Can react-redux still make use of shouldComponentUpdate if i'm using Immutable.js? The connect() method uses shallowEqual in shouldComponentUpdate() but from the Immutable.js docs i see that we have to use Immutable's own equals() method to check equality rather than the === operator (which shallowEqual uses)</p>
+
+<p>Consider this:</p>
+
+<pre><code>const map1 = Immutable.Map({a:1, b:2, c:3});
+const map2 = Immutable.Map({a:1, b:2, c:3});
+
+map1 === map2 // returns false
+map1.equals(map2) // returns true
+</code></pre>
+","3582937","","","","","2016-07-09 18:50:40","Immutablejs and shouldComponentUpdate","<reactjs><redux><react-redux><immutable.js>","1","0","1","",""
+"40198780","1","","","2016-10-23 01:46:51","","1","99","<p>In my React app build on estejs (devstack), which uses react-router, I ran into the following problem:</p>
+
+<p><code>&lt;Match pattern=""/cards/:sub?"" component={Cards}/&gt;</code></p>
+
+<p>Matches <code>localhost:3000/cards</code> and <code>localhost:3000/cards/test</code> perfectly,
+but does not call <code>shouldComponentUpdate()</code> as expected from the 
+<a href=""https://facebook.github.io/react/docs/react-component.html#shouldcomponentupdate"" rel=""nofollow"">documentation</a>. Since <code>:sub</code> is a parameter, it should just change the prop <code>this.props.params.sub</code> of the <code>card</code> component and because of that also call <code>shouldComponentUpdate()</code> where I then want to <code>return false</code> to denie the <code>render()</code>-call.</p>
+
+<p>Why does the Match component not just update the prop but trigger a not denieable rerender of my component?
+Any suggestions?</p>
+
+<p>Thanks!</p>
+","1781595","","","","","2016-10-23 01:46:51","React-Router Match-component does not trigger shouldComponentUpdate()","<reactjs><react-router>","0","2","","",""
+"30226313","1","","","2015-05-13 22:32:09","","1","567","<p>So I have lots of components and each of them has own <code>shouldComponentUpdate()</code> function. Most of them simply compare states based on immutable.js datasets. Some of them compares props. Some of them work with <a href=""https://facebook.github.io/react/docs/pure-render-mixin.html"" rel=""nofollow"">PureRenderMixin</a>. But with app's growth new states are added, new props are added, stores change their API and so on. So, at the moment I need something to check what actually going on while developing. I can use Chrome DevTools to review  and visualize where DOM is changed but have no idea how to check if react virtual DOM is changed.</p>
+
+<p>I have an idea to cover <code>shouldComponentUpdate()</code>-s with tests but it seems to be a testing overhead as I test each possible state twice: its behavior in my app and its behaviour in <code>shouldComponentUpdate()</code>.</p>
+","1950327","","","","","2015-06-14 05:20:23","How to check if react shouldComponentUpdate works correctly","<javascript><dom><reactjs><google-chrome-devtools><state>","1","1","1","",""
+"38440629","1","","","2016-07-18 15:29:05","","1","420","<p>I already checked similar existing issues on stack-overflow or gihub, like: 
+<a href=""https://github.com/facebook/react-native/issues/7720"" rel=""nofollow"">NavigationCard will only re-render when the route changes</a>, <a href=""https://github.com/jlyman/RN-NavigationExperimental-Redux-Example/issues/20"" rel=""nofollow"">Help: renderScene is executed just once and does not refresh updated props</a>, etc. But my case is different. </p>
+
+<p><strong>Page list:</strong></p>
+
+<ol>
+<li>sign in page</li>
+<li>home page: user can only see this page after sign in;</li>
+</ol>
+
+<p><strong>Transition logic:</strong></p>
+
+<ol>
+<li>In ""sign in page"", after sign in, it shall go to ""home page""</li>
+<li>In ""home page"", there is a sign out button, after user click, it shall go back to ""sign in"" page. </li>
+</ol>
+
+<p><strong>My implementation</strong></p>
+
+<p>I created a top level component called App, and the code looks like the below:</p>
+
+<pre><code>// app.js
+class App extends Component {
+    componentWillMount() {
+        const {doNavigateReplaceAtIndex} = this.props;
+        let {isSignedIn} = this.props;
+        doNavigateReplaceAtIndex(isSignedIn? 'home': 'sign-in');
+    }
+
+    render() {
+        const {globalNavigationState} = this.props;
+        return (
+            &lt;NavigationCardStack
+                navigationState={globalNavigationState}
+                style={styles.container}
+                onNavigate={()=&gt;{}}
+                renderScene={this._renderScene}
+            /&gt;
+        );
+    }
+
+    _renderScene({scene}) {
+        const { route } = scene;
+        switch(route.key) {
+            case 'home':
+                return &lt;Home /&gt;
+            case 'sign-in':
+                return &lt;SignIn /&gt;
+        }
+    }
+}
+
+export default connect (
+    state =&gt;({
+        isSignedIn: !! state.auth.token,
+        token: state.auth.token,
+        globalNavigationState: state.globalNavigation
+    }),
+    dispatch =&gt; ({
+        doNavigateReplaceAtIndex: (key) =&gt; dispatch(navigateReplaceAtIndex(0, key))
+    })
+)(App);
+
+// sign in page
+// after signin, it will doNavigateReplaceAtIndex(0, 'home');
+
+// home page
+// after clicking ""sign out"", it will doNavigateReplaceAtIndex(0, 'sign-in');
+
+// doNavigateReplaceAtIndex basically is just call NavigationStateUtils.replaceAtIndex
+</code></pre>
+
+<p><strong>Symptoms</strong>
+At beginning, it shows sign in page, after signing in, it goes to home page, it is good. In home page, when click the sign out button, it didn't move anywhere, but when refresh, it shows sign in page. </p>
+
+<p><strong>What I got so far</strong></p>
+
+<ul>
+<li>It is not because of this issue: <a href=""https://github.com/facebook/react-native/issues/7720"" rel=""nofollow"">NavigationCard will only re-render
+when the route
+changes</a>,
+because I debugged into rn source code, the shouldComponentUpdate didn't block;</li>
+<li>I am not sure if I didn't right for doNavigateReplaceAtIndex, usually we use push or pop, but my case I cannot use push/pop, because after sign in, we should not allow use to go back sign in page by clicking ""BACK"" button on Android. </li>
+<li>I think the issue may because of NavigationScenesReducer(which is called by NavigationAnimatedView used in NavigationCardStack), it will mark all previous routes as stale, and will not show it them.</li>
+</ul>
+
+<p>Any help will be welcome, thanks.  </p>
+
+<p><strong>My environment</strong></p>
+
+<p>react native: 0.29.1
+react native cli: 1.0.0
+node: 5.6.0
+OS: ios 9.3</p>
+","1241464","","","","","2016-07-18 15:29:05","react native navigationExperimental NavigationCardStack renderScene didn't re-render for previous routes","<react-native>","0","0","","",""
+"46563235","1","46565967","","2017-10-04 11:02:42","","1","319","<p>As per documentation(<a href=""https://reactjs.org/docs/react-api.html#react.purecomponent"" rel=""nofollow noreferrer"">https://reactjs.org/docs/react-api.html#react.purecomponent</a>)</p>
+
+<blockquote>
+  <p>""React.PureComponent is exactly like React.Component but implements
+  shouldComponentUpdate() with a shallow prop and state comparison.""</p>
+</blockquote>
+
+<p>So if I define something like following,</p>
+
+<pre><code>const MyView = () =&gt; {
+  return (
+    &lt;div&gt;Hello Stateless Component&lt;/div&gt;
+  )
+};
+</code></pre>
+
+<p>is it a React.PureComponent? Does it do a shallow prop and state comparison?</p>
+","4371114","","","","","2017-10-04 13:19:35","Are react stateless components equal to ReacDOM.PureComponents","<javascript><reactjs><react-redux><web-component>","2","1","","",""
+"30232219","1","30355712","","2015-05-14 07:58:20","","5","2921","<p>I'm having trouble figuring out how to short circuit rendering a branch
+of a tree of React components using Immutable.js cursors.</p>
+
+<p>Take the following example:</p>
+
+<pre><code>import React from 'react';
+import Immutable from 'immutable';
+import Cursor from 'immutable/contrib/cursor';
+
+let data = Immutable.fromJS({
+  things: [
+    {title: '', key: 1},
+    {title: '', key: 2}
+  ]
+});
+
+class Thing extends React.Component {
+  shouldComponentUpdate(nextProps) {
+    return this.props.thing.deref() !== nextProps.thing.deref();
+  }
+
+  handleChangeTitle(e) {
+    this.props.thing.set('title', e.target.value);
+  }    
+
+  render() {
+    return &lt;div&gt;
+      &lt;input value={this.props.thing.get('title')} 
+        onChange={this.handleChangeTitle.bind(this)} /&gt;
+    &lt;/div&gt;;
+  }
+}
+
+class Container extends React.Component {
+  render() {
+    const cursor = Cursor.from(this.props.data, 'things', newThings =&gt; {
+      data.set('things', newThings);
+      renderContainer();
+    });
+
+    const things = cursor.map(thing =&gt; (
+      &lt;Thing thing={thing} key={thing.get('key')} /&gt;
+    ));
+
+    return &lt;div&gt;
+      {things}
+    &lt;/div&gt;;
+  }
+}
+
+const renderContainer = () =&gt; {
+  React.render(&lt;Container data={data} /&gt;, document.getElementById('someDiv'));
+};
+</code></pre>
+
+<p>Say I change the first <code>Thing</code>'s title. Only the first <code>Thing</code> will render with
+the new title and the second <code>Thing</code> will not re-render due to
+<code>shouldComponentUpdate</code>. However, if I change the second <code>Thing</code>'s title, the
+  first <code>Thing</code>'s title will go back to <code>''</code> since the second <code>Thing</code>'s cursor
+is still pointing at an older version of the root data.</p>
+
+<p>We update the cursors on each render of <code>Container</code> but the ones that don't
+render due to <code>shouldComponentUpdate</code> also don't get the new cursor with the updated
+root data. The only way I can see keeping the cursors up to date is to remove
+<code>shouldComponentUpdate</code> in the <code>Thing</code> component in this example.</p>
+
+<p>Is there a way to change this example to use <code>shouldComponentUpdate</code> using fast referential
+equality checks but also keep the cursors updated?</p>
+
+<p>Or, if that's not possible, could you provide an overview of how you would generally work with cursors + React components and rendering only components with updated data?</p>
+","4278451","","4278451","","2015-05-18 03:32:11","2015-05-20 16:43:50","Using React's shouldComponentUpdate with Immutable.js cursors","<javascript><reactjs><immutable.js>","1","8","1","",""
+"38561660","1","","","2016-07-25 07:10:55","","2","407","<p>One of my components has a <code>div</code> element into which I would like to spill and handle/mutate my own DOM - without React interfering. </p>
+
+<p>I am using d3.js for that manual DOM manipulation, and no I am not looking for react-d3 solutions, I need plain d3 in there. </p>
+
+<p>All works well for me, except the reacts console warnings:</p>
+
+<p><code>
+warning.js:44Warning: Unknown prop `xmlns` on &lt;svg&gt; tag. Remove this prop from the element. For details, see
+</code></p>
+
+<p>and</p>
+
+<p><code>
+warning.js:44 Warning: Unknown DOM property class. Did you mean className?
+</code></p>
+
+<p>So It complains about me using <code>class</code> instead of <code>className</code> or about having some html attributes which are not react style etc.. </p>
+
+<p>I'd like to tell React that from this component and below, it shouldn’t interfere, I will manage the DOM below this component manually.</p>
+
+<p>Code looks something like this:</p>
+
+<pre><code>import React, { Component } from 'react';
+import { findDOMNode } from 'react-dom';
+import SomeD3CustomComp from '../some-d3-custom-comp.js';
+
+export default class MyComponent extends Component {
+
+  componentDidMount() {
+   this.injectChart();
+  }
+
+  componentDidUpdate() {
+   this.injectChart();
+  }
+
+  injectChart() {
+    const comp = findDOMNode(this.refs.nonReactContainer);
+    const { chart } = this.props;
+    const { shouldRender, data } = chart;
+    if (shouldRender) {
+      SomeD3CustomComp.render(comp, data);
+    }
+  }
+
+  render() {
+    const { chart, someOtherData } = this.props;
+    const { shouldRender } = chart;
+    return(
+      &lt;article&gt;
+        {
+          shouldRender &amp;&amp;
+          &lt;div className=""non-react-element"" ref=""nonReactContainer""&gt;&lt;/div&gt;
+        }
+        &lt;div className=""react-element""&gt;{someOtherData}&lt;/div&gt;
+      &lt;/article&gt;
+    );
+  }
+}
+</code></pre>
+
+<hr>
+
+<h2>Update:</h2>
+
+<p>The suggestion of returning <code>false</code> on <code>shouldComponentUpdate</code> doesnt take away the error messages I have stated above, maybe because of the fact that <code>shouldComponentUpdate</code> happens only when there is an update - after the first inject on <code>componentDidMount</code>. </p>
+
+<p>Another problem with that approach is that if return <code>false</code> code never gets to the render method where more logic is implemented such as in the example above where I check if to render the container non react element. This is the way I simply remove all previously injected elements, in the previous state. </p>
+
+<p>So I am still looking for help with that...</p>
+
+<hr>
+
+<h2>Solved!</h2>
+
+<p>false alarm :/ just found out that those warning messages were related to a different part of the code. Was a strange coincidence from the time this new feature was developed and some older problem. Conclusion: look harder at the warning messages! 
+So this integration with d3 actually works nice.</p>
+","2373504","","2373504","","2016-07-26 05:32:39","2016-07-26 05:32:39","How to tell react.js NOT to reconcile or interfere from a certain element?","<dom><d3.js><svg><reactjs>","0","1","1","",""
+"45516188","1","45516775","","2017-08-04 22:13:23","","2","89","<p>The redux docs state that when using redux with react, so using the <code>connect</code> from the <code>react-redux</code> package. That there should be no need for <code>shouldComponentUpdate</code> - <a href=""http://redux.js.org/docs/basics/UsageWithReact.html#implementing-container-components"" rel=""nofollow noreferrer"">http://redux.js.org/docs/basics/UsageWithReact.html#implementing-container-components</a></p>
+
+<blockquote>
+  <p>Redux library's connect() function, which provides many useful optimizations to prevent unnecessary re-renders. (One result of this is that you shouldn't have to worry about the React performance suggestion of implementing shouldComponentUpdate yourself.)</p>
+</blockquote>
+
+<p>However my component is unnecesarily updated because I am returing a new array every time even though the contents of the array is the same. Here is my code:</p>
+
+<pre><code>const AssetManagerSmart = connect(
+    function(state) {
+        const { assets } = state;
+        return {
+            assetIds: assets.map( asset =&gt; asset.id )
+        }
+    }
+)
+</code></pre>
+
+<p>See this <code>assetIds</code>, it is a map of an array from the redux state. This is causing my component to re-render. To simplify the code above, we can imagine <code>assetIds</code> is assigned to a new shallowly equal array everytime, like this:</p>
+
+<pre><code>const AssetManagerSmart = connect(
+    function(state) {
+        const { assets } = state;
+        return {
+            assetIds: ['hi']
+        }
+    }
+)
+</code></pre>
+
+<p>How come the docs say I should not need <code>shouldComponentUpdate</code> when I am encountering the above? The above I see everyone doing, even in the ""usage with react"" section on official redux docs.</p>
+","3791822","","","","","2017-08-05 08:23:35","Avoid re-rendering not possible - but docs say should be no need of shouldComponentUpdate","<redux><react-redux>","1","0","","",""
+"39424061","1","","","2016-09-10 08:15:03","","0","150","<p>so I'm using react and I'm taking the approach of using Immutable data in my project with facebook's immutable.js library.</p>
+
+<p>I know that React is way faster than every other library because it updates only the neccesarry DOM, I knew that it does a reconciliation process before updating and that in the process it creates Virtual DOM and compares them, but I never really knew how it knows what to update.
+So I did some research and its true, the reconciling algorithm of react is really awesome and saves time, but then something hit me, where does the shouldComponentUpdate method enters?
+So react invokes the shouldComponentUpdate for each component and if it returns true, the react does the reconciling process which includes creating virtual doms and comparing them.
+So why shouldn't we implement the SCU method for every component? Well react also gives you an answer that includes comparing mutable object and that the equality in this cases should be a deep one, and that would take too long, so you might as well not implement it.</p>
+
+<p>And here is the part where I ask my question, if my entire data on my project is in fact immutable, why shouldn't I implements the SCU with a simple shallow equality on all of my components? This way we spare the reconcile process and our app will be much faster.</p>
+","3674127","","","","","2016-09-12 13:31:34","React + Immutable - Implementing shouldComponentUpdate with shallow equality","<reactjs><immutable.js>","1","0","1","",""
+"47415413","1","47415509","","2017-11-21 14:22:35","","0","224","<p>I have the following scenario: </p>
+
+<p>1) There is a parent component ""ModuleListContainer"".</p>
+
+<p>2) A module (in the module list, also a child component, but not interesting in this context) gets selected when hovering over it a module item in the list.</p>
+
+<p>3) When hovering over a module, a menu should be shown in the corner of the module.</p>
+
+<p>4) The whole parent component should NOT be updated when a module is selected, since it can be quite a long list of modules, that is why I set <code>shouldComponentUpdate = false</code> when updating which module should be selected.</p>
+
+<p>5) The menu is loaded when the parent component loads, and only its position is updated when hovering over a module.</p>
+
+<p>This is the parent component (simplified)...</p>
+
+<pre><code>class ModuleListContainer extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            selectingModule: false,
+            currentlySelectedModule: nextProps.currentModule
+        }
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (nextState.selectingModule === true) {
+            this.setState({
+                selectingModule: false,
+                currentlySelectedModule: null
+            })
+            return false;
+        }
+        return true;
+    }
+
+    mouseEnterModule = (e, moduleItem) =&gt; {
+        const menu = document.getElementById('StickyMenu');
+        const menuPosition = calculateModuleMenuPosition(e.currentTarget);
+
+        if (moduleItem.ModuleId !== this.props.currentModuleId) {
+            this.props.actions.selectModule(moduleItem);
+            this.setState({
+               selectingModule: true
+            });
+        }
+
+        menu.style.top = menuPosition.topPos + 'px';
+        menu.style.left = menuPosition.leftPos + 'px';
+    }
+
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;section id=""module-listing""&gt;
+                    {/* ... list of mapped modules with mouseEnterModule event */}
+                &lt;/section&gt;
+
+                &lt;ModuleMenu {... this.props} currentlySelectedModule={this.state.currentlySelectedModule} /&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>This is the menu component (simplified)...</p>
+
+<pre><code>class ModuleMenu extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            currentModule: this.props.currentlySelectedModule
+        };
+    }
+
+    clickMenuButton = () =&gt; {
+        console.log('CURRENT MODULE', this.state.currentModule);
+    }
+
+    render() {
+        return (
+            &lt;div id=""StickyMenu""&gt;
+                &lt;button type=""button"" onClick={this.clickMenuButton}&gt;
+                    &lt;span className=""fa fa-pencil""&gt;&lt;/span&gt;
+                &lt;/button&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>When, in my menu component, I try to <code>console.log</code> the current module from the state, I keep getting <code>null</code>.</p>
+
+<p>My question is if this is because...</p>
+
+<ol>
+<li><p>I have set the shouldComponentUpdate to false and the menu's state does not get updated?</p></li>
+<li><p>Or could it be because I do not re-render the whole component?</p></li>
+<li><p>Or is it because I load the menu together with the parent component
+    and it does not get re-rendered when a module is selected?</p></li>
+<li><p>Or is it possibly a combination of some of the above?</p></li>
+</ol>
+
+<p>The react docs (<a href=""https://reactjs.org/docs/react-component.html"" rel=""nofollow noreferrer"">https://reactjs.org/docs/react-component.html</a>) says:</p>
+
+<blockquote>
+  <p>Returning false does not prevent child components from re-rendering
+  when their state changes.</p>
+</blockquote>
+
+<p>Therefore, I am hoping that it is none of the above since I really don't want to have to re-render the entire component when selecting a module.</p>
+","4203964","","","","","2017-11-21 15:03:28","In react, if I set shouldComponentUpdate to false, will any state I send to children be updated?","<javascript><reactjs>","2","0","","",""
+"30078260","1","","","2015-05-06 13:29:03","","4","1799","<p>I currently have a doubt about the correct combined implementation of <strong>react-router Link navigation</strong> and <strong>shouldComponentUpdate()</strong> on the root application level.</p>
+
+<p>That is, I have a root component called <strong>App.jsx</strong> which contains a global component with a <em>header, footer, sidebar</em> etc and this same component has an <em>ajax long-poll</em> which retrieves new registrations in the system and updates the state when new users register.</p>
+
+<p>Since I don't want to push a re-render to the component <em>(and therefore all it's children)</em> on ajax responses that don't have updates I decided to make use of the lovely <strong>shouldComponentUpdate()</strong> method.</p>
+
+<p>So, I came up with something like this - noting that I'm making use of lo-dash:</p>
+
+<pre><code>shouldComponentUpdate (/*prevProps*/, prevState) {
+  return !_.isEqual(this.state,prevState);
+}
+</code></pre>
+
+<p>With this the component correctly ignores irrelevant responses about the latest registrations.</p>
+
+<p>Now, the problem appears when I have to make the routing. To clarify before, this is the kind of structure of the <strong>render()</strong>:</p>
+
+<p><em>Note: the _routerTransitionKey is just a helper I have to not make transitions when I'm navigating internal views state and it's working correctly.</em></p>
+
+<pre><code>&lt;Grid key='app' id=""wrapper"" className=""no-padding""&gt;
+  &lt;Header user={this.state.user} allRegistrations={this.state.allRegistrations}/&gt;
+  &lt;section id=""page-wrapper""&gt;
+    &lt;NotificationArea key='internalNotification' /&gt;
+    &lt;RouteHandler key={_routerTransitionKey} user={this.state.user} allRegistrations={this.state.allRegistrations}/&gt;
+  &lt;/section&gt;
+&lt;/Grid&gt;
+</code></pre>
+
+<p>Because I have the RouteHandler inside this global component, I have the issue that a change in the route is completely ignored by it, <strong>since the application state itself didn't change</strong>. That causes the component to never trigger the <strong>render()</strong> on navigation and therefore <em>never update the RouteHandler</em>.</p>
+
+<p>What I needed would be something like:</p>
+
+<pre><code> shouldComponentUpdate (/*prevProps*/, prevState) {
+   return !_.isEqual(this.state,prevState) || ROUTE_CHANGED ;
+ }
+</code></pre>
+
+<p>My question is: does anybody out there knows of a clever approach to this issue? I'm trying to avoid having to create yet another wrapping component to handle the Routes before they reach this App component I currently have...</p>
+","2156928","","","","","2015-05-06 14:34:08","React.js shouldComponentUpdate() and react-router Link","<reactjs><react-router>","1","2","","",""
+"46942476","1","46942580","","2017-10-25 21:39:20","","1","992","<p>Currently in react js, when I want to bind a text area or an input with a ""state"", I will need to set the onChange method and setState() everytime user type in a single letter</p>
+
+<p>I heard if you setState react js refresh and re-render everything in this component</p>
+
+<p>Is there any more efficient way to do so? using ""shouldComponentUpdate"" will be improper in this case since if I don't make ""state"" update, all user input will be stuck..</p>
+","3718395","","","","","2017-12-14 16:15:59","avoid constant re-render from ""input"" or ""textarea"" in react js","<reactjs>","2","0","","",""
+"39607174","1","39607526","","2016-09-21 03:42:59","","1","415","<p>Imagine the following React structure:</p>
+
+<p>SmartComponentA -> DumbComponentB -> SmartComponentC</p>
+
+<p>Also imagine that SmartComponentA and SmartComponentC each get connected to different slices of the state in their <code>mapStateToProps</code> functions.</p>
+
+<p>Lastly, imagine that we put a <code>console.log</code> in the render method of each of these components.</p>
+
+<p>When I actually try this, on the first render, I see that all components log as expected. But then if I change the data for SmartComponentC, I only see a single log message (C's log message), and I don't see SmartComponentA or DumbComponentB logging anything. How is that possible? <strong>How is react-redux getting React to update a child without updating its parents?</strong></p>
+
+<p>I would have assumed that <a href=""https://github.com/reactjs/react-redux/blob/master/src/components/connect.js#L76-L78"" rel=""nofollow"">the overriding</a> of <code>shouldComponentUpdate</code> inside of the <code>connect</code> method would mean SmartComponentA would not get re-rendered (since its slice of the state didn't change), and therefore would cause a short-circuiting that would prevent SmartComponentC from getting re-rendered. While <code>connect</code>'s implementation is not the same as the pure render mixin, both work by changing <code>shouldComponentUpdate</code>, but the pure render docs clearly state that React will ""bail out"" (as they put it) if a parent doesn't need to re-render:</p>
+
+<blockquote>
+  <p>for C2's subtree and C7, it didn't even have to compute the virtual DOM as we bailed out on <code>shouldComponentUpdate</code>.</p>
+</blockquote>
+
+<p><a href=""https://facebook.github.io/react/docs/advanced-performance.html#shouldcomponentupdate-in-action"" rel=""nofollow"">source</a></p>
+
+<p>If my question still isn't clear, here is sort of pseudo-code for the setup, and <strong>I'm asking why I can keep typing in C's input and it only log's C's messages to the console and not A's and B's (why is it not short-circuiting)</strong>?</p>
+
+<pre><code>//////////////////////////////////////////////
+
+const SmartComponentA = (props) =&gt; {
+  console.log('rendering SmartComponentA');
+
+  return &lt;DumbComponentB bData={props.bData} /&gt;;
+};
+
+const mapStateToProps = (state) =&gt; { bData: state.bData };
+
+export default connect(mapStateToProps)(SmartComponentA);
+
+//////////////////////////////////////////////
+
+const DumbComponentB = (props) =&gt; {
+  console.log('rendering DumbComponentB');
+
+  return (
+    &lt;div&gt;
+      {props.bData}
+      &lt;SmartComponentC /&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default DumbComponentB;
+
+//////////////////////////////////////////////
+
+const SmartComponentC = (props) =&gt; {
+  console.log('rendering SmartComponentC');
+
+  return (
+    &lt;div&gt;
+      &lt;input value={props.cValue} onChange={props.changeCValue} /&gt;
+    &lt;/div&gt;
+  );
+}
+
+const mapStateToProps = (state) =&gt; { cValue: state.cValue };
+
+export default connect(mapStateToProps, { changeCValue })(SmartComponentC);
+//////////////////////////////////////////////
+</code></pre>
+
+<p>On the first render I see all log messages, then if I keep typing in the input, I only see C's log message each time I press a key.</p>
+","3259320","","","","","2016-09-21 04:23:48","react-redux can update child smart components without updating parents?","<react-redux>","1","0","","",""
+"24094973","1","24099807","","2014-06-07 07:40:39","","4","5477","<p>I am trying to create a form using reactjs , I am trying out twoway binding .
+I am not able to use props in the valueLink because it is can only take state .</p>
+
+<p>Problem 1 : I am passing in properties when creating a component and in getInitial state I am setting it into state , as I cannot use props in valueLink . What is the better approach ?</p>
+
+<p>I want to send every change in a text box to do some computation in server and get the computed values to state.</p>
+
+<p>Problem 2 : I am unable to use method componentWillReceiveProps because , I use state .I am also unable use shouldComponentUpdate as I cannot do setState. What can I use here ?</p>
+","1622256","","","","","2014-06-07 17:26:10","What to use for two way binding in react js , props or state?","<javascript><reactjs><react-jsx>","1","0","","",""
+"47389495","1","","","2017-11-20 10:09:02","","0","71","<p>I'm using the <code>ThreeDisplay</code> React component shown below for holding a WebGL/Three.js canvas (the canvas itself is not part of the component, it gets appended to the container <code>div</code> by an initialization script).</p>
+
+<p>I want the component only to update after every <code>RUN</code> and <code>UPDATE</code> action. Those actions get dispatched by the parent component of <code>ThreeDisplay</code>.</p>
+
+<p>Now for some reason, the component also gets updated/re-rendered if the last action was <code>FADE_COLOR</code> or <code>SWITCH_COLOR</code>. Those actions get dispatched by ThreeDisplay, they are triggered by mouse events, as shown in the code below.</p>
+
+<p>I'm trying to use <code>shouldComponentUpdate()</code> to update only after the aforementioned actions. But for some reason, this does not prevent the component to re-render on every mouse event.</p>
+
+<p>The full code of my application/prototype can be found in <a href=""https://github.com/lysigk/react-redux-three"" rel=""nofollow noreferrer"">this repository</a></p>
+
+<pre><code>    import React from 'react'
+    import {connect} from 'react-redux'
+
+    import {fadeColor, switchColor} from '../actions'
+
+    class ThreeDisplay extends React.Component {
+        shouldComponentUpdate(nextProps) {
+            const shouldUpdate =
+                nextProps.lastAction === 'RUN' || nextProps.lastAction === 'UPDATE'
+
+            if (!shouldUpdate) {
+                console.log('ThreeDisplay will not update on ' + nextProps.lastAction)
+            }
+
+            return shouldUpdate
+        }
+
+        componentWillUpdate() {
+            // This gets logged even if lastAction ist not 'RUN' or 'UPDATE'
+            console.log('ThreeDisplay will update on ' + this.props.lastAction)
+        }
+
+        render() {
+            return (
+                &lt;div
+                    id=""container""
+                    className={
+                        this.props.running
+                            ? 'three-display'
+                            : 'three-display hidden'
+                    }
+                    onClick={this.props.switchColor}
+                    onMouseMove={this.props.fadeColor}
+                /&gt;
+            )
+        }
+    }
+
+    const mapStateToProps = state =&gt; {
+        return {
+            running: state.running,
+            lastAction: state.lastAction
+        }
+    }
+
+    const mapDispatchTopProps = dispatch =&gt; {
+        return {
+            fadeColor: e =&gt; dispatch(fadeColor(e)),
+            switchColor: () =&gt; dispatch(switchColor())
+        }
+    }
+
+    export default connect(mapStateToProps, mapDispatchTopProps)(ThreeDisplay)
+</code></pre>
+","6382532","","6382532","","2017-11-20 10:25:02","2017-11-20 10:25:02","React shouldComponentUpdate() does not prevent re-render","<javascript><reactjs>","1","0","","",""
+"48614499","1","48614681","","2018-02-05 00:48:06","","1","293","<p>In the React lifecycle function <a href=""https://reactjs.org/docs/react-component.html#shouldcomponentupdate"" rel=""nofollow noreferrer"">shouldComponentUpdate(nextProps, nextState)</a>, nextProps is self explanatory.</p>
+
+<p>But what does nextState do?</p>
+
+<p>It doesn't sound right that I can evaluate upcoming state before even deciding if the component should be rendered/modified or not.</p>
+","1417223","","","","","2018-02-05 01:17:40","What does nextState do in shouldComponentUpdate?","<reactjs><react-lifecycle>","2","0","1","",""
+"40111642","1","42260448","","2016-10-18 14:56:52","","0","301","<p>I'm trying to show a confirm modal (using react-confirm) to warn the user when he's trying to move to another section that the information completed in the form will be lost.</p>
+
+<p>The confirm of js does block the code so I can do this:</p>
+
+<pre><code>shouldComponentUpdate(nextProps, nextState) {
+        if (confirm('Hay cambios sin guardar, si continua se perderán. ¿Desea continuar?')) {
+            return true;
+        } else {
+            return false;
+        }
+}
+</code></pre>
+
+<p>But when I replace the confirm method by the one of the library react-confirm I can't wait for the result of this asynchronous operation.</p>
+
+<pre><code>async shouldComponentUpdate(nextProps, nextState) {
+    const response = await confirm('Hay cambios sin guardar, si continua se perderán. ¿Desea continuar?', { title: ""Cambios sin guardar"", okLabbel: ""Sí"", cancelLabel: ""No!"" })
+        .then(
+            () =&gt; {
+                return true;
+            },
+            () =&gt; {
+                return false;
+            }
+        );
+    return (response);
+</code></pre>
+
+<p>}</p>
+
+<p>Does anyone know how can I get this?</p>
+","4211827","","","","","2017-02-15 21:30:59","React: shouldComponentUpdate wait for an asynchronous operation","<reactjs><asynchronous><react-native>","2","3","1","",""
+"39617344","1","","","2016-09-21 13:02:14","","0","55","<p>I am currently working on an React-Application where I use Immutable.js in my Redux-Reducers. The reducers will return the previous state as a reference if they have not changed it (as recommended). 
+If I now compared the previous state with the next state <code>(state===nextState)</code> it would return true, since the reference has not changed, right?</p>
+
+<p>Now if the reducer changed the state, it would return a new Immutable.js Map.</p>
+
+<p>Doing the same comparision now it would return false, since it is a new Map.</p>
+
+<p>Would it be reasonable to somehow detect prop changes within shouldComponentUpdate like that?</p>
+
+<p>If so, is there a way to modify the react-redux connect function to use my custom shouldComponentUpdate method? Because apparently it is not possible to pass an Immutable.js Object as props to a component.</p>
+","6623807","","858913","","2017-12-13 14:50:47","2017-12-13 14:50:47","Would it be possible to utilize Immutable.js in a React-Redux Application for comparing props in shouldComponentUpdate?","<reactjs><redux><immutable.js>","1","1","","",""
+"48270880","1","","","2018-01-15 21:25:56","","2","59","<p>According to the docs, React.Component doesn't implement <code>shouldComponentUpdate</code> ?</p>
+
+<p>So how about a lifecycle of a component (<a href=""https://reactjs.org/docs/react-component.html#the-component-lifecycle"" rel=""nofollow noreferrer"">the-component-lifecycle</a>) (<a href=""https://reactjs.org/docs/react-component.html#shouldcomponentupdate"" rel=""nofollow noreferrer"">shouldcomponentupdate</a>) ?</p>
+
+<blockquote>
+  <p>React.PureComponent is similar to React.Component. The difference
+  between them is that React.Component doesn’t implement
+  shouldComponentUpdate(), but React.PureComponent implements it with a
+  shallow prop and state comparison.</p>
+</blockquote>
+","4829408","","4829408","","2018-01-15 22:06:05","2018-01-15 22:42:47","React.Component doesn’t implement shouldComponentUpdate?","<reactjs>","1","2","","",""
+"48560366","1","48560480","","2018-02-01 10:22:17","","1","84","<p>The official documentation of react ( <a href=""https://reactjs.org/docs/react-component.html"" rel=""nofollow noreferrer"">https://reactjs.org/docs/react-component.html</a> ) says that an update in props results in the child being updated, but it does not happen in my code. Am I missing something?</p>
+
+<p>I created a parent component (Y) and a child component (X). The parent passes currentTime to the child as props. Even though after the props change in the parent after 3 seconds (due to setTimeout), the value in the h2 tag in the child does not change. </p>
+
+<p>I found on the official page of react though ( <a href=""https://reactjs.org/docs/react-component.html"" rel=""nofollow noreferrer"">https://reactjs.org/docs/react-component.html</a> ) that ""An update can be caused by changes to props or state."" (I'm attaching a screenshot as well of the text on the official site below) Moreover I found that there that ""These methods are called when a component is being re-rendered:""</p>
+
+<pre><code>componentWillReceiveProps()
+shouldComponentUpdate()
+componentWillUpdate()
+render()
+componentDidUpdate()
+</code></pre>
+
+<p>But in my case the change in props does not cause the value in h2 tag in the child to change. The official documentation says that an update in props results in the child being updated, but it does not happen in my code. Am I missing something? </p>
+
+<p>I've pasted my code here for reference.</p>
+
+<pre><code>const Y = () =&gt; {
+
+    let currentTime=""09:00"";
+    setTimeout(()=&gt; {
+            currentTime = ""10:00:""
+        }, 3000);
+
+    return (
+        &lt;X time={currentTime}/&gt;
+    );
+};
+
+
+class X extends Component {
+    time = ""11:00"";
+
+    render = () =&gt; {
+        return (
+            &lt;h2&gt;{this.props.time}&lt;/h2&gt;
+        );
+    };
+}
+</code></pre>
+
+<p>Screenshot:
+<a href=""https://prnt.sc/i8kvaw"" rel=""nofollow noreferrer"">https://prnt.sc/i8kvaw</a></p>
+
+<p><strong>Update:
+The comment from Shubham Khatri ""The props for the child will only change if the parent re-renders"", really helped me understand. :)</strong></p>
+","8882300","","8882300","","2018-02-01 16:37:35","2018-02-01 16:37:35","In react, will change in props in parent result in a corresponding updation in the child?","<reactjs><react-props>","2","1","","",""
+"44599328","1","44599513","","2017-06-16 23:39:49","","0","165","<p>I cannot find anywhere how to implement this feature that looks so easy to implement.</p>
+
+<p>This feature is mentioned in this dev talk <a href=""https://youtu.be/-DX3vJiqxm4?t=1741"" rel=""nofollow noreferrer"">https://youtu.be/-DX3vJiqxm4?t=1741</a></p>
+
+<p>He mentions that for every object in array he checks upvotes and downvotes to check if list row needs updating, but I just can't implement it.</p>
+
+<p>I have an app in react JS with alot of items, and I am changing only one random item. React of course rerenders the whole list in virtual DOM and diffs the previous and current virtual DOMs of the whole list and it takes long time.</p>
+
+<p>But I would like to avoid rendering the unchanged list items. In my app - if ""todo"" property hasn't changed, the item doesn't need to be updated.
+Here is a demo of my app: <a href=""https://jsfiddle.net/2Lk1hr6v/29/"" rel=""nofollow noreferrer"">https://jsfiddle.net/2Lk1hr6v/29/</a></p>
+
+<pre><code>shouldComponentUpdate:function(nextProps, nextState){
+return this.props.todo!==nextProps.todo;
+},
+</code></pre>
+
+<p>I am using this method in the list item component, but the this.props.todo is the same as nextProps.todo so no rows are updated when I change a random item of the first five items.</p>
+","7841823","","","","","2017-06-17 09:02:56","React JS - shouldComponentUpdate on list items","<reactjs>","1","0","","",""
+"31061189","1","","","2015-06-25 21:34:50","","2","1204","<p>I am brand new to React. Am using v0.13.3. I have a functioning page (index.html with link to external css file and external js file). All works great.</p>
+
+<p>JS file contains exactly what is in the JavaScript pane of this <a href=""http://jsfiddle.net/airwwwave/32284cze/13/"" rel=""nofollow"">JSFIDDLE</a>. (Apologies the fiddle doesn't run, I can't figure out why console says <code>Uncaught SyntaxError: Unexpected token &lt;</code>. I have <code>/** @jsx React.DOM */</code> at the top, but anyway...it makes a chart.)</p>
+
+<p>QUESTION: How can I get what is in</p>
+
+<pre><code>var data = [{""letter"":""A"",""frequency"":0.08167},""letter"":""B"",""frequency"":0.01492},{""letter"":""C"",""frequency"":0.02782},{""letter"":""D"",""frequency"":0.04253},...]
+</code></pre>
+
+<p>to come from an external JSON file instead? (I want the chart to update if the JSON file's contents change).</p>
+
+<p>(I realize there is the option to use React to break all of the pieces of the d3 chart into separate components and do it that way instead of all of the d3 inside one function. But for now, I'd like it to remain this way - based on the conclusion of <a href=""http://ahmadchatha.com/writings/article1.html"" rel=""nofollow"">this article</a>.) </p>
+
+<p>So, it didn't work to use <code>d3.json(path/to/file.js)</code> inside <code>function createChart</code>. And I've tried what is in <a href=""https://facebook.github.io/react/docs/tutorial.html"" rel=""nofollow"">this tutorial</a> under ""Hook Up the Data Model"" and ""Fetching from the server"", but I'm not having any luck. Also, looked at <a href=""https://facebook.github.io/react/tips/initial-ajax.html"" rel=""nofollow"">this article</a>. I'm suspecting I need to do something else with <code>componentDidMount</code> and <code>shouldComponentUpdate</code>, but a bit baffled. Searched for other examples, but having trouble finding one like this. Thanks for any suggestions.</p>
+","4534236","","4534236","","2015-06-25 21:49:55","2015-07-14 00:16:45","get data from external json with react and d3","<javascript><json><d3.js><reactjs>","1","0","","",""
+"41439811","1","","","2017-01-03 09:01:43","","1","235","<p>I have a react/redux app which has a recharts chart which animates when data is changed.</p>
+
+<p>I'm using <code>Redux</code> and most of my actions only change a single <code>state</code> property which results in a single <code>props</code> pass. However, some of my actions are now using <code>thunks</code> for some async actions and calling other actions. </p>
+
+<p>For example, I might have an action <code>getChartData</code> which would be called when the user selects an axis. </p>
+
+<pre><code>export let getChartData = axis =&gt; dispatch =&gt; {
+  // trimmed for brevity
+  fetchJSON(url).then(data =&gt; {
+    dispatch(dataRetrievalSuccess(data));
+    dispatch(updateSelectedAxis(axis));
+  }).catch(error =&gt; {
+    dispatch(dataRetrievalError(error));
+  });
+};
+</code></pre>
+
+<p>In this example the <code>updateSelectedAxis</code> value will change a local state property responsible for displaying the currently selected axis and the <code>dataRetrievalSuccess</code> function would be responsible for passing  <code>props.data</code> to the chart.</p>
+
+<p>The problem I'm trying to solve is to prevent the chart from updating when the selectedAxis props of the component change but the data hasn't.</p>
+
+<p>I thought I would be able to use something like <code>componentWillRecieveProps</code> but the issue I have here with my above <code>thunk</code> example is that I get one call to <code>componentWillRecieveProps</code> when I call <code>dataRetrievalSuccess</code> which has the same data in both <code>this.props.data</code> and <code>nextProps.data</code> so I can prevent the update. However when I subsequently call <code>updateSelectedAxis</code> I don't have the <code>data</code> as part of the props as it's already changed, so I can't perform logic operations based on the two values.</p>
+
+<p>I thought this was possibly an ordering issue, but even if I pack this into a single action I still get multiple setting of props.</p>
+
+<p>Would I solve this issue by packaging up the data and the change of axis into a single object? 
+I'm not quite sure the best way to go about this architecturally and would welcome any suggestions.</p>
+
+<p><strong>EDIT:</strong>
+Just to expand a little, I am dispatching two actions, both which change their own bit of state which causes two renders.</p>
+
+<p>I've tried writing something like this:</p>
+
+<pre><code>shouldComponentUpdate(nextProps, nextState) {
+  if(this.dataHasChanged(nextProps)) {
+    return true;
+  }
+  return false;
+}
+</code></pre>
+
+<p>Which almost works, but each time the data the chart shows is one render behind where it needs to be.</p>
+","777733","","777733","","2017-01-03 10:36:20","2017-01-04 07:32:22","Preventing component updates from multiple props in react","<reactjs><redux><redux-thunk>","1","11","1","",""
+"40287253","1","40311891","","2016-10-27 14:27:29","","0","250","<p><strong>Description</strong></p>
+
+<p>I have a potentially long list of items rendered in a react-virtualized <code>VirtualScroll</code>.<br>
+Each item (row) in the list has a fairly large amount of elements, one of which opens a context menu. I'm trying to use <code>react-tether</code> to render that menu on the HTML <code>body</code> (so that it's not hidden when the item is at the bottom/top of the scrollable list) and keep the menu 'stuck' to my item while the user scrolls through the list.<br>
+My problem is that there is a noticeable lag in updating the position of the tethered menu.</p>
+
+<p><strong>Some of the steps I've taken so far:</strong></p>
+
+<ol>
+<li>Rendered a simple list, without <code>VirtualScroll</code>. The tethered menu was rendered smoothly, no noticeable jank. That's how I concluded that the problem is with <code>react-virtualized</code></li>
+<li>Simplified my <code>rowRenderer</code> down to only the menu trigger, as <a href=""https://stackoverflow.com/a/37054717/507240"">recommended here</a>. </li>
+<li>Implemented <code>shouldComponentUpdate</code> in the row component. This has improved the perceived performance greatly, reduced the delay greatly but it is still noticeable.</li>
+<li>Checked Chrome devtools' timeline. I see reflows triggered by both <code>Grid.js</code> and <code>tether.js</code>.</li>
+</ol>
+
+<p><strong>Library Versions:</strong></p>
+
+<ul>
+<li>react-virtualized v. 7.24.3 (Large project, not ready to make the step to 8.x yet)  </li>
+<li>react-tether v. 0.5.2</li>
+<li>react v. 15.2.1</li>
+</ul>
+
+<p><strong>Working Demo</strong></p>
+
+<p><a href=""https://plnkr.co/edit/f7OhCoCXkDsWbyjxhR3f"" rel=""nofollow noreferrer"">https://plnkr.co/edit/f7OhCoCXkDsWbyjxhR3f</a></p>
+
+<p><strong>Screenshot:</strong></p>
+
+<p><a href=""https://i.stack.imgur.com/Ml7on.gif"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/Ml7on.gif"" alt=""screenshot""></a></p>
+","507240","","-1","","2017-05-23 12:06:48","2016-10-28 19:20:17","Performance issue with react-tether inside item in a react-virtualized list","<javascript><performance><reactjs><react-virtualized><tether>","1","3","","",""
+"42093066","1","42094100","","2017-02-07 14:59:10","","0","109","<p>I need to start react js project without <code>react-router</code>, but I cannot setup hot module replacement without that one, please can you help me.<br>
+My server </p>
+
+<pre><code>const app = express()
+
+// Apply gzip compression
+app.use(compress())
+
+if (project.env === 'development') {
+  const compiler = webpack(webpackConfig)
+
+   debug('Enabling webpack dev and HMR middleware')
+   app.use(require('webpack-dev-middleware')(compiler, {
+   publicPath  : webpackConfig.output.publicPath,
+   contentBase : project.paths.client(),
+   hot         : true,
+   quiet       : project.compiler_quiet,
+   noInfo      : project.compiler_quiet,
+   lazy        : false,
+   stats       : project.compiler_stats
+ }))
+ app.use(require('webpack-hot-middleware')(compiler, {
+   path: '/__webpack_hmr'
+ }))
+} else {
+    ....
+}
+</code></pre>
+
+<p>My application entry point. </p>
+
+<pre><code>const MOUNT_NODE = document.getElementById('root')
+
+let render = () =&gt; {
+   ReactDOM.render(
+    &lt;App store={store} /&gt;,
+    MOUNT_NODE)
+ }
+
+ if (__DEV__) {
+    if (module.hot) {
+      // Development render functions
+      const renderApp = render
+      const renderError = (error) =&gt; {
+      const RedBox = require('redbox-react').default
+
+      ReactDOM.render(&lt;RedBox error={error} /&gt;, MOUNT_NODE)
+    }
+
+    // Wrap render in try/catch
+   render = () =&gt; {
+      try {
+         renderApp()
+      } catch (error) {
+         console.error(error)
+         renderError(error)
+      }
+   }
+
+  // Setup hot module replacement
+   module.hot.accept('./App', () =&gt;
+     setImmediate(() =&gt; {
+        ReactDOM.unmountComponentAtNode(MOUNT_NODE)
+        render()
+     })
+   )
+ }
+</code></pre>
+
+<p>}</p>
+
+<p>Where <code>./App</code> is simple component wrapping my application inside provider. </p>
+
+<pre><code>shouldComponentUpdate = () =&gt; false;
+
+ render () {
+    return (
+    &lt;Provider store={this.props.store}&gt;
+       &lt;RootComponent /&gt;
+    &lt;/Provider&gt;  )
+ }
+</code></pre>
+
+<p>And the main problem is - that when I save this, or child file, HMR rebuilding and nothing changed, but even, I use router, and pass as entry point of application, instead of simple component - its working fine.</p>
+
+<pre><code>export const createRoutes = (store) =&gt; ({
+  path        : '/',
+  component   : CoreLayout,
+  indexRoute  : { onEnter: (nextState, replace) =&gt; replace('/songs') },
+  childRoutes : [
+    ...
+ ]
+ })
+</code></pre>
+
+<p>What I am doing wrong?</p>
+","6252161","","6252161","","2017-02-07 15:15:15","2017-02-07 15:46:58","Webpack react HMR without router","<reactjs><webpack><redux><ecmascript-7><hot-module-replacement>","1","0","","",""
+"33523115","1","33524169","","2015-11-04 13:25:47","","1","642","<p><strong>Problem:</strong> <code>shouldComponentUpdate</code> retrieves previous state with <code>this.state</code>, that doesn't work if you keep reference to array at <code>UserList</code>, and update array entity at <code>UserStore</code>.</p>
+
+<p><strong><em><code>PureRenderMixin.js</code></em></strong></p>
+
+<pre><code>const deepEqual = require('deep-equal');
+
+module.exports = function pureRenderMixin(Component) {
+    Component.prototype.shouldComponentUpdate = function(nextProps, nextState) {
+        return !deepEqual(this.props, nextProps) || !deepEqual(this.state, nextState);
+    };
+    return Component;
+};
+</code></pre>
+
+<p><strong><em><code>UserList.react.js</code></em></strong></p>
+
+<pre><code>class UserList extends React.Component {
+
+    constructor(props) { 
+        super(props);
+        this._onChange = this._onChange.bind(this);
+    }
+
+    componentWillMount() {
+        UsersStore.addChangeListener(this._onChange);
+    }
+
+    _onChange() {            
+        this.setState({userList: UsersStore.getState()});
+    }
+}
+
+module.exports = PureRenderMixin(UserList);
+</code></pre>
+
+<p><strong><em><code>UsersStore.js</code></em></strong></p>
+
+<pre><code>......
+getState() { return _userList; }
+
+switch(action.type) {
+   case ActionTypes.UPDATE_USER_FLAG:
+       //!!!!!!!!!!!!!!
+       //PROBLEM: since UserList.react keep userList reference, there is no way to retrieve previous state inside shouldComponentUpdate
+       _userList[action.index].flag = action.flag;
+       UsersStore.emitChange();
+       break;
+}
+</code></pre>
+
+<h2>@taggon solution</h2>
+
+<p>thanks to taggon, now I know how to make <code>shouldComponentUpdate</code> keep the reference to previous state:</p>
+
+<p><strong><em><code>UsersStore.js</code></em></strong></p>
+
+<pre><code>......
+getState() { return _userList; }
+
+switch(action.type) {
+   case ActionTypes.UPDATE_USER_FLAG:
+       //SOLUTION: copy an array, so there will be two versions of _userList[action.index]
+       _userList =  _.map(_userList, _.clone);
+
+       _userList[action.index].flag = action.flag;
+       UsersStore.emitChange();
+       break;
+}
+</code></pre>
+","2761509","","218196","","2015-11-04 14:42:53","2015-11-04 14:42:53","shouldComponentUpdate + deepEqual and arrays","<javascript><reactjs><flux>","2","0","","",""
+"42831399","1","","","2017-03-16 10:29:02","","0","624","<p>I am trying to add mouseover/out events to a <code>&lt;GeoJSON /&gt;</code> component of <code>react-leaflet</code>.
+If I am adding the events like in the code snippet below and <strong>only</strong> add the <code>console.log()</code> everything is working fine (mouseover and mouseout are working).</p>
+
+<p>But i added a redux action (<code>this.props.hoverQuickInfo</code>) to update the css class of an element. Now i can only register mouseover, but mouseout is never called. I tried it without redux and I was using the <code>setState</code> having the same result.</p>
+
+<pre><code>onEachFeature(feature, layer) {
+    layer.on({
+        'mouseover': (e) =&gt; {
+            console.log('over!');
+            // this.setState({show: true});
+            this.props.hoverQuickInfo(true);
+        },
+        'mouseout': (e) =&gt; {
+            console.log('out!');
+            // this.setState({show: false});
+            this.props.hoverQuickInfo(false);
+        },
+    });
+}
+</code></pre>
+
+<p>I read a little bit about it and found that a redux state change will result in a call of <code>shouldComponentUpdate</code> where I tried to 'filter' out any updates to the 'same' GeoJSON element, but i could not figure out how to get it to work and why it happens.</p>
+
+<pre><code>shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.ui.showQuickInfo) {
+         return false;
+    }
+    return true;
+}
+</code></pre>
+
+<p>Maybe someone out there is able to help me.</p>
+","7616355","","","","","2017-03-17 03:48:00","react-leaflet mouseover/out event and redux","<redux><react-redux><react-leaflet>","1","4","","",""
+"40319786","1","","","2016-10-29 13:54:42","","0","35","<p>I am trying to figure out the most idiomatic implementation of the react lifecycle method <code>shouldComponentUpdate</code>. I feel that I, and possibly others, don't utilize this method to the extent it could be because it is optional.</p>
+
+<p>Generally I want to check if if the <code>props</code> or <code>state</code> of an object has changed between updates.</p>
+
+<p>This does not work as this equality is pointing at the object reference:</p>
+
+<pre><code>shouldComponentUpdate(nextProps, nextState) {
+  return this.props !== nextProps;
+}
+</code></pre>
+
+<p>So then we go down the rabbit hole of object cloning, which seems like a little bit of an ugly solution:</p>
+
+<pre><code> return JSON.parse(JSON.stringify(this.props) !== JSON.parse(JSON.stringify(nextProps));
+
+ // lodash cloning method
+ return _.cloneDeep(this.props) !== _.cloneDeep(nextProps);
+</code></pre>
+
+<p>Another possibility is using an immutable library like <a href=""https://facebook.github.io/immutable-js/"" rel=""nofollow"">immutablejs</a>, but that is another dependency I'm not sure I want to add to the project, and another API to learn. </p>
+
+<p>Am I missing something? Is there a more concise approach to this?</p>
+","4396787","","","","","2016-10-29 13:58:46","Idiomatic implementation of shouldComponentUpdate?","<javascript><reactjs>","1","1","","",""
+"50856248","1","50856487","","2018-06-14 11:15:59","","0","61","<p>Before anyone marks this as a duplicate, I went through this question 
+<a href=""https://stackoverflow.com/questions/45351446/reactjs-warning-thumbnails-shouldcomponentupdate-returned-undefined-instead"">ReactJS Warning: Thumbnails.shouldComponentUpdate(): Returned undefined instead of a boolean value. Make sure to return true or false</a> and it doesn't answer my question (or I wasn't able to get it (to say the least) </p>
+
+<p>so this my code </p>
+
+<pre><code>  shouldComponentUpdate(nextProps, nextState) {
+    console.log(this.props.order, nextProps.order)
+    if (nextProps.order !== this.props.order) {
+      return true;
+    }
+  }
+</code></pre>
+
+<p>Here when I check the console log in chrome, it throws a warning saying </p>
+
+<blockquote>
+  <p>shouldComponentUpdate(): Returned undefined instead of a boolean
+  value. Make sure to return true or false</p>
+</blockquote>
+
+<p>But everything works as expected (or the way I want to), Also when I do something like </p>
+
+<pre><code>shouldComponentUpdate(nextProps, nextState) {
+    console.log(this.props.order, nextProps.order)
+      return nextProps.order !== this.props.order
+  }
+</code></pre>
+
+<p>It doesn't throw an error. </p>
+
+<p><strong>[Question]</strong> Why am i getting that warning? when I clearly return true?</p>
+","9708262","","","","","2018-06-14 11:28:24","shouldComponentUpdate(): Returned undefined instead of a boolean value.","<reactjs>","3","1","","",""
+"49278511","1","","","2018-03-14 13:03:18","","0","115","<p>I am using react-plotly to generate a large timeline of data (10,000-100,000 points) and I animate across the data in another window. I need to get a scrubber (vertical line) that moves with a react-property representing time, but I need to update the scrubber without updating the rest of the timeline, since it would take so long to do so. How can I get just the vertical line to update?</p>
+
+<p>Edit: Was asked for code</p>
+
+<p>In the following code, the <code>backtracks</code> and <code>thresholds</code> objects are <code>Uint32Array</code>s and represent the y-axis of traces, where the x-axes are the <code>Uint32Array</code>s <code>backtracksTime</code> and <code>thresholdsTime</code>. What I am trying to get is a vertical line at the x-coordinate <code>currentTime</code>.</p>
+
+<pre><code>import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+
+import Plotly from 'plotly.js';
+import Plot from 'react-plotly.js';
+
+import styles from './style.scss';
+
+export default class ThresholdWindow extends Component {
+  static propTypes = {
+    name: PropTypes.string,
+    backtracks: PropTypes.object,
+    backtracksTime: PropTypes.object,
+    thresholds: PropTypes.object,
+    thresholdsTime: PropTypes.object,
+    currentTime: PropTypes.number,
+  }
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      plotRevision: 0,
+      width: 0,
+      height: 0,
+    };
+  }
+
+  componentDidMount() {
+    const resizeObserver = new ResizeObserver(entries =&gt; {
+      const oldPlotRevision = this.state.plotRevision;
+      const rect = entries[0].contentRect;
+      this.setState({
+        plotRevision: oldPlotRevision + 1,
+        height: rect.height,
+        width: rect.width,
+      });
+    });
+    resizeObserver.observe(this.container);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.state.plotRevision !== nextState.plotRevision) {
+      return true;
+    } else if (this.props.currentTime !== nextProps.currentTime) {
+      return true;
+    }
+    return false;
+  }
+
+  render() {
+    const data = [
+      {
+        name: 'Threshold',
+        type: 'scattergl',
+        mode: 'lines',
+        x: this.props.thresholdsTime,
+        y: this.props.thresholds,
+        side: 'above',
+      },
+      {
+        name: 'Backtracks',
+        type: 'scattergl',
+        mode: 'lines',
+        x: this.props.backtracksTime,
+        y: this.props.backtracks,
+      },
+      {
+        name: 'Current Time',
+        type: 'scattergl',
+        mode: 'lines',
+        x: [this.props.currentTime, this.props.currentTime],
+        y: [0, 1],
+        yaxis: 'y2',
+      },
+    ];
+
+    return (
+      &lt;div className={styles['threshold-window']} ref={(el) =&gt; { this.container = el; }}&gt;
+        &lt;Plot
+          divId={`backtracks-${this.props.name}`}
+          className={styles['threshold-graph']}
+          ref={(el) =&gt; { this.plot = el; }}
+          layout={{
+            width: this.state.width,
+            height: this.state.height,
+            yaxis: {
+              fixedrange: true,
+            },
+            yaxis2: {
+              side: 'right',
+              range: [0, 1],
+            },
+            margin: {
+              l: 35,
+              r: 15,
+              b: 20,
+              t: 15,
+            },
+            legend: {
+              orientation: 'h',
+              y: 1,
+            },
+          }}
+          revision={this.state.plotRevision}
+          data={data}
+        /&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>Edit2: I don't actually see the <code>currentTime</code> line anywhere, so I'm pretty sure there's a bug somewhere.</p>
+","1137713","","1137713","","2018-03-14 14:42:58","2018-03-14 14:42:58","How do I update only one trace in react plotly?","<javascript><plotly>","1","0","","",""
+"49269705","1","49269971","","2018-03-14 04:16:37","","0","36","<p>Does <code>shouldComponentUpdate</code> not work in React Native, or am I missing something? I'm just trying to log the arguments so that I can compare but it's not even being logged. All I see when I run the JS is ""######### render called"".</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>import React, { Component } from 'react';
+
+class MyComponent extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {}
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        console.log(""######### shouldComponentUpdate called"");
+        console.log(nextProps);
+        return true;
+    }
+
+    render() {
+        console.log(""######### render called"");
+        return &lt;SomeJSX&gt;
+    }
+}
+
+export default MyComponent;
+  </code></pre>
+</div>
+</div>
+</p>
+","1791914","","1791914","","2018-03-14 04:33:32","2018-03-14 04:50:00","Can't get shouldComponenUpdate() to work in react native","<javascript><reactjs><react-native>","1","2","","",""

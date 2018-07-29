@@ -1,0 +1,321 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"36215637","1","36217268","","2016-03-25 07:15:03","","2","937","<p>I have a React component that has buttons for which the onClick events are bound to functions passed as properties from the parent component, e.g. <code>&lt;Counter counter=0 incrementCounter={incrementFunction} decrementCounter={decrementFunction} /&gt;</code>.</p>
+
+<p>I'm new to unit testing React components so I'm trying to check that the function gets called when clicking on the increment/decrement buttons. For this I'm using Jasmine's spyOn method, but it never seems to catch the function being called.</p>
+
+<p>If I output a console.log in the function I'm using (e.g. <code>let incrementCounter = () =&gt; { console.log(""increment!""); };</code>) then I can tell the function is being called when I do <code>TestUtils.Simulate.click(incrementButton);</code>, however the test still won't pass. What am I missing?</p>
+
+<p><strong>Counter.js</strong></p>
+
+<pre><code>import React, { Component, PropTypes } from ""react"";
+
+class Counter extends Component {
+
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    const { incrementCounter, decrementCounter, counter } = this.props;
+    return (
+
+        &lt;div&gt;
+          &lt;h1&gt;Counter&lt;/h1&gt;
+          &lt;p&gt;
+            &lt;b&gt;Counter: {counter} times&lt;/b&gt;
+            {"" ""}
+            &lt;button onClick={incrementCounter}&gt;+&lt;/button&gt;
+            {"" ""}
+            &lt;button onClick={decrementCounter}&gt;-&lt;/button&gt;
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+    );
+  }
+}
+
+Counter.propTypes = {
+  incrementCounter: PropTypes.func.isRequired,
+  decrementCounter: PropTypes.func.isRequired,
+  counter: PropTypes.number.isRequired
+};
+
+export default Counter;
+</code></pre>
+
+<p><strong>Counter.test.js</strong></p>
+
+<pre><code>import React from ""react"";
+import TestUtils from ""react/lib/ReactTestUtils"";
+import Counter from ""./Counter""
+
+describe(""Counter"", function () {
+
+  let renderedComponent = {};
+  let heading = {};
+  let decrementButton = {};
+  let incrementButton = {};
+  let incrementCounter = () =&gt; {};
+  let decrementCounter = () =&gt; {};
+  let counter = 0;
+
+  beforeEach(function(){
+
+    renderedComponent = TestUtils.renderIntoDocument(
+        &lt;Counter incrementCounter={incrementCounter} decrementCounter={decrementCounter} counter={counter} /&gt;
+    );
+
+    heading = TestUtils.findRenderedDOMComponentWithTag(renderedComponent, ""h1"");
+
+    let buttons = TestUtils.scryRenderedDOMComponentsWithTag(renderedComponent, ""button"");
+
+    decrementButton = buttons[1];
+    incrementButton = buttons[0];
+
+    this.incrementCounter = incrementCounter;
+
+  });
+
+  it(""renders without problems"", function () {
+
+    expect(TestUtils.isDOMComponent(heading)).toBe(true);
+    expect(heading.innerText).toMatch(/Counter/g);
+
+    expect(TestUtils.isDOMComponent(decrementButton)).toBe(true);
+    expect(decrementButton.innerText).toMatch(/-/g);
+
+    expect(TestUtils.isDOMComponent(incrementButton)).toBe(true);
+    expect(incrementButton.innerText).toMatch(/\+/g);
+
+  });
+
+  it(""fires the increment function"", function() {
+
+    spyOn(this, ""incrementCounter"");
+    TestUtils.Simulate.click(incrementButton);
+    expect(this.incrementCounter).toHaveBeenCalled(); // Error: fuction doesn't get called
+
+  });
+
+});
+</code></pre>
+","1547401","","","","","2016-03-25 09:26:18","Testing onClick event on react component using Jasmine","<unit-testing><reactjs><jasmine>","1","0","","",""
+"29846117","1","29846442","","2015-04-24 11:18:13","","1","4732","<p>I have a react component consisting of a wrapper div and a checkbox inside, here is the render function:</p>
+
+<pre><code>render: function(){
+    return (
+        &lt;div id=""wrapperDiv""&gt;
+            &lt;input type=""checkbox"" id=""checkbox"" /&gt;
+        &lt;/div&gt;
+    )
+}
+</code></pre>
+
+<p>On <code>componentDidMount</code> I swap out this checkbox for a div that will act as the checkbox, here is the <code>componentDidMount</code> function;</p>
+
+<pre><code>componentDidMount: function(){
+    var div = document.createElement(""div"");
+    div.id = ""checkboxDiv"";
+    this.getDOMNode().appendChild(div);
+}
+</code></pre>
+
+<p>when rendering this on screen the empty div is added to the component and all works fine.</p>
+
+<p>On my jest test I try this;</p>
+
+<pre><code>TestUtils.scryRenderedDOMComponentsWithTag(component, ""div"");
+</code></pre>
+
+<p>But the length of this array is 1, bringing back only the div with the id of ""wrapperDiv"" looking as though it has not added the checkboxDiv to the DOM. However when I try this in the test;</p>
+
+<pre><code>component.getDOMNode().parentNode.getElementsByTagName(""div"");
+</code></pre>
+
+<p>It brings back the <code>wrapperDiv</code> and the <code>checkboxDiv</code></p>
+
+<p>Is there a reason it doesn't add the div in the component, or is there an extra step needed in the test?</p>
+","2021955","","1229014","","2016-06-23 15:13:02","2016-06-23 15:13:02","How to appendChild to a react component in the correct place within a jest test DOM","<reactjs><jestjs>","1","0","","",""
+"31758954","1","34119145","","2015-08-01 06:20:33","","3","2131","<p>I'm now using node.js(0.10.x) version, jest(0.4.x) version to test react.js.</p>
+
+<p>Before I decided to test my react components, I have used node.js 0.12.x version. Change through nvm to 0.10.x.</p>
+
+<p>I rebuilded the all the modules and restarted the test.</p>
+
+<p>The error is below.</p>
+
+<pre><code>Using Jest CLI v0.4.17
+ PASS  __tests__/unit/app.test.js (0.058s)
+ PASS  __tests__/unit/preprocessor.js (0.68s)
+ FAIL  __tests__/unit/mypage.test.js
+Error: /Users/nuko/WebstormProjects/pliky/__tests__/unit/mypage.test.js: /Users/nuko/WebstormProjects/pliky/__tests__/unit/preprocessor.js: Parse Error: Line 1: Illegal import declaration
+  at throwError (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:2813:21)
+  at throwErrorTolerant (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:2825:24)
+  at parseSourceElement (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:6390:17)
+  at parseProgramElement (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:6446:16)
+  at parseProgramElements (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:6478:29)
+  at parseProgram (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:6491:16)
+  at Object.parse (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:7653:23)
+  at getAstForSource (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/src/jstransform.js:251:21)
+  at transform (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/src/jstransform.js:274:11)
+  at innerTransform (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/main.js:94:10)
+  at Object.module.exports.transform (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/main.js:20:18)
+  at Object.module.exports.process (/Users/nuko/WebstormProjects/pliky/__tests__/unit/preprocessor.js:5:27)
+  at Object.readAndPreprocessFileContent (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/lib/utils.js:432:33)
+  at Loader._execModule (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:209:11)
+  at Loader.requireModule (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:914:12)
+  at Loader.requireModuleOrMock (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:935:17)
+  at /Users/nuko/WebstormProjects/pliky/__tests__/unit/mypage.test.js:4:14
+  at Object.runContentWithLocalBindings (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/lib/utils.js:485:17)
+  at Loader._execModule (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:245:9)
+  at Loader.requireModule (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:914:12)
+  at jasmineTestRunner (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/jasmineTestRunner/jasmineTestRunner.js:292:16)
+  at /Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/TestRunner.js:376:12
+  at tryCatcher (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/util.js:26:23)
+  at Promise._settlePromiseFromHandler (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/promise.js:503:31)
+  at Promise._settlePromiseAt (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/promise.js:577:18)
+  at Promise._settlePromises (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/promise.js:693:14)
+  at Async._drainQueue (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/async.js:123:16)
+  at Async._drainQueues (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/async.js:133:10)
+  at Async.drainQueues (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/async.js:15:14)
+  at process._tickCallback (node.js:448:13)
+
+1 test failed, 2 tests passed (3 total)
+Run time: 2.189s
+npm ERR! Test failed.  See above for more details.
+npm ERR! not ok code 0
+</code></pre>
+
+<p>My preprocessor.js code.(same as the official document script)</p>
+
+<pre><code>    var ReactTools = require('react-tools');
+
+    module.exports = {
+        process: function(src) {
+            return ReactTools.transform(src);
+        }
+    };
+</code></pre>
+
+<p>My mypage.test.js code.</p>
+
+<pre><code>jest.dontMock('../../React/mypage.js');
+
+var React = require('react/addons'),
+    Mypage = require('../../React/mypage.js'),
+    TestUtils = React.addons.TestUtils;
+
+describe('mypage', function() {
+
+    var MypageElement = TestUtils.renderIntoDocument(&lt;Mypage /&gt;);
+
+    var list = TestUtils.scryRenderedDOMComponentsWithTag(MypageElement, 'option');
+
+
+    it('has 3 default items', function() {
+        expect(list.props.children.length).toEqual(5);
+    });
+});
+</code></pre>
+
+<p>And I added this part to package.json file.</p>
+
+<pre><code>""jest"": {
+    ""scriptPreprocessor"": ""./__tests__/unit/preprocessor.js"",
+    ""unmockedModulePathPatterns"": [
+      ""./node_modules/react""
+    ]
+  },
+</code></pre>
+
+<p>Where is this error come from and how can I fix this? Please let me know. Thank you.</p>
+","3698435","","","","","2015-12-06 15:31:07","Jest(react testing tool) error - Parse Error: Line 1: Illegal import declaration","<javascript><node.js><unit-testing><reactjs><jestjs>","1","0","","",""
+"35156232","1","","","2016-02-02 14:34:48","","1","89","<p>I have a mocha + chai test suite set up for unit testing in my react app. This has been working great, however I am trying to cover one small bit of new code and am not sure how to best approach this. I have a small function that calls jquery and a jquery plugin to print a page. The code looks like so :</p>
+
+<pre><code> printAsset() {
+    const iframeDocument = $('#previewForPrint').contents().find('body');
+
+    $.print(iframeDocument, {
+        globalStyles: false,
+        mediaPrint: true,
+        stylesheet: null,
+        noPrintSelector: ""scrispt"",
+        iframe: true,
+        append: null,
+        prepend: null,
+        manuallyCopyFormValues: true
+    });
+}
+</code></pre>
+
+<p>This functionality works fine, however I cannot seem to find a way to correctly unit test this. A few important things to note are that the <code>jquery</code> and <code>jquery.print</code> are not installed in the package.json, they are bower components that are loaded on the index.html. So when running my unit test i don't believe i have access to jquery and the print jquery addon. Here is my test  : </p>
+
+<pre><code>  it('fires print when the print button is clicked', () =&gt; {
+    const previewCAS = TestUtils.renderIntoDocument(&lt;PrintAsset /&gt;);
+    const button = TestUtils.scryRenderedDOMComponentsWithTag(PrintAsset, 'button');
+
+    TestUtils.Simulate.click(button[0]);
+    // breaks here
+    // expect(Print).to.have.been.called();
+});
+</code></pre>
+
+<p>This breaks with : ReferenceError: $ is not defined . So, I understand this, jquery is not imported uptop because its global with bower, however I am unsure how I am suppose to test this otherwise with the current suite. Is there a better way to do this or alternative approaches? Any advice would be greatly appreciated, thanks for reading!</p>
+","3201696","","","","","2016-02-02 14:34:48","React, unit testing jquery + jquery print plugin in react","<javascript><jquery><unit-testing><reactjs>","0","0","","",""
+"30811288","1","30815744","","2015-06-12 20:01:32","","0","157","<p>So I have a react component that looks something like this:</p>
+
+<pre><code>class SignInForm extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+    onFormSubmit(event) {
+        const username = React.findDOMNode(this.refs.username).value;
+        const password = React.findDOMNode(this.refs.username).value;
+
+        // very basic validation
+        if (username &amp;&amp; password.length &gt; 6) {
+            this.props.flux.signIn({ username, password });
+        }
+
+        event.preventDefault();
+    }
+    render() {
+        return (
+            &lt;form onSubmit={ this.onFormSubmit.bind(this) } &gt;
+                &lt;input type=""text"" ref=""username"" placeholder=""username""/&gt;
+                &lt;input type=""password"" ref=""password"" placeholder=""password""/&gt;
+                &lt;button type=""submit""&gt;Submit&lt;/button&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>And then I want to test it as follows:</p>
+
+<pre><code>describe('The SignInForm', () =&gt; {
+    it('should call `attemptSignIn` when submitted with valid data in its input fields', (done) =&gt; {
+        const spy = sinon.stub(flux.getActions('UserStateActions'), 'attemptSignIn');
+        const element = &lt;SignInForm { ...componentProps }/&gt;;
+        const component = TestUtils.renderIntoDocument(element);
+
+        const inputs = TestUtils.scryRenderedDOMComponentsWithTag(component, 'input');
+        TestUtils.Simulate.change(inputs[ 0 ], { target: { value: 'Joshua' } });
+        TestUtils.Simulate.change(inputs[ 1 ], { target: { value: 'Welcome123' } });
+
+        // This works, but I'd rather not set the values using the refs directly
+        // React.findDOMNode(component.refs.userNameOrEmailAddressInput).value = 'Joshua';
+        // React.findDOMNode(component.refs.plainTextPasswordInput).value = 'Welcome123';
+
+        const DOMNode = React.findDOMNode(component, element);
+        TestUtils.Simulate.submit(DOMNode);
+        spy.callCount.should.equal(1);
+        spy.restore();
+    });
+});
+</code></pre>
+
+<p>However the values of the references fields on the <code>onFormSubmit</code> method aren't those set by the <code>Simulate.change</code> call.</p>
+
+<p>Why not? Is this expected behaviour?</p>
+","436336","","","","","2015-06-13 06:22:32","How can I get simulated react events to update the values of the ref in my component?","<javascript><unit-testing><testing><reactjs><reactjs-testutils>","1","1","","",""

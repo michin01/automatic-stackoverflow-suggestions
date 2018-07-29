@@ -1,0 +1,3949 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"36573175","1","38190987","","2016-04-12 12:23:30","","1","457","<p>I want to test login component in react using mocha</p>
+
+<pre><code>const loginView = require('./index');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const ReactTestUtils = require('react-addons-test-utils');
+const chai = require('chai');
+const jsdom = require('mocha-jsdom');
+const injectTapEventPlugin = require('react-tap-event-plugin');
+const nock = require('nock');
+const api = require('../../configuration').api;
+
+injectTapEventPlugin();
+chai.should();
+
+describe('login', () =&gt; {
+
+  beforeEach(() =&gt; {
+    jsdom();
+  });
+
+  it('show error dialog when username or password is invalid', (done) =&gt; {
+    const login = ReactTestUtils.renderIntoDocument(React.createElement(loginView));
+
+    nock(api).post('user/access-token').reply(200);
+
+    login.setState({
+      email: 'test@email.tld',
+      password: 'wrong-password'
+    });
+
+    ReactTestUtils.Simulate.touchTap(ReactDOM.findDOMNode(login.refs.signin).firstChild);
+
+    setTimeout(() =&gt; {
+      login.state.showErrorDialog.should.equal(true);
+      login.setState({
+        showErrorDialog: false
+      });
+      done();
+    }, 1500);
+  });
+});
+</code></pre>
+
+<p>When sign in button is click, the ajax request check username and password (using superagent).</p>
+
+<p>The problem is I don't want to use <strong>setTimeout</strong> function, I like to use a callback or promise when ajax request is complete. Is it possible ?</p>
+","847841","","","","","2016-08-26 13:00:10","What is the best way for testing asynchronous react component","<testing><reactjs><mocha><webpack>","1","0","2","",""
+"34611727","1","34617446","","2016-01-05 12:27:48","","9","5171","<p>I'm trying to write unit tests for a container component called <code>AsyncApp</code> but I get the following error ""<code>mapStateToProps</code> must return an object. Instead received undefined.""</p>
+
+<p>This is my set-up.</p>
+
+<p><strong>Root.js</strong></p>
+
+<pre><code>import configureStore from '../configureStore';
+import React, { Component } from 'react';
+import { Provider } from 'react-redux';
+import AsyncApp from './AsyncApp';
+
+const store = configureStore();
+
+export default class Root extends Component {
+  render() {
+    return (
+      &lt;Provider store={store}&gt;
+        &lt;AsyncApp /&gt;
+      &lt;/Provider&gt;
+    );
+  }
+}
+</code></pre>
+
+<p><strong>configureStore.js</strong></p>
+
+<pre><code>import { createStore, applyMiddleware } from 'redux';
+import thunkMiddleware from 'redux-thunk';
+import createLogger from 'redux-logger';
+import rootReducer from './reducers';
+
+const loggerMiddleware = createLogger();
+
+const createStoreWithMiddleware = applyMiddleware(
+  thunkMiddleware
+  //loggerMiddleware
+)(createStore);
+
+export default function configureStore(initialState) {
+  return createStoreWithMiddleware(rootReducer, initialState);
+}
+</code></pre>
+
+<p><strong>AsyncApp.js</strong></p>
+
+<pre><code>import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
+import { foo } from '../actions';
+import FooComponent from '../components/FooComponent';
+
+class AsyncApp extends Component {
+  constructor(props) {
+    super(props);
+    this.onFoo= this.onFoo.bind(this);
+    this.state = {}; // &lt;--- adding this doesn't fix the issue
+  }
+
+  onFoo(count) {
+    this.props.dispatch(foo(count));
+  }
+
+  render () {
+    const {total} = this.props;
+
+    return (
+      &lt;div&gt;
+        &lt;FooComponent onFoo={this.onFoo} total={total}/&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+function mapStateToProps(state) {
+  return state;
+}
+
+export default connect(mapStateToProps)(AsyncApp);
+</code></pre>
+
+<p>I'm passing <code>store</code> directly to <code>AsyncApp</code> in my test to avoid getting the following Runtime Error : <code>Could not find ""store"" in either the context or props of ""Connect(AsyncApp)"". Either wrap the root component in a &lt;Provider&gt;, or explicitly pass ""store"" as a prop to ""Connect(AsyncApp)"".</code></p>
+
+<p>The test isn't complete yet because I can't get past the <code>mapStateToProps</code> error message.</p>
+
+<p><strong>AsyncApp-test.js</strong></p>
+
+<pre><code>jest.dontMock('../../containers/AsyncApp');
+jest.dontMock('redux');
+jest.dontMock('react-redux');
+jest.dontMock('redux-thunk');
+jest.dontMock('../../configureStore');
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-addons-test-utils';
+const configureStore = require( '../../configureStore');
+const AsyncApp = require('../../containers/AsyncApp');
+
+const store = configureStore();
+
+//const asyncApp = TestUtils.renderIntoDocument(
+  //&lt;AsyncApp store={store} /&gt;
+//);
+
+const shallowRenderer = TestUtils.createRenderer();
+shallowRenderer.render(&lt;AsyncApp store={store}/&gt;);
+</code></pre>
+
+<p>I want to eventually test that <code>AsyncApp</code> contains a <code>FooComponent</code>, and that a <code>foo</code> action is dispatched when <code>onFoo</code> is called. </p>
+
+<p>Is what I am trying to do achievable? Am I going about this the right way?</p>
+","5325596","","","","","2016-09-09 00:13:47","How can I write a unit test for a react component that calls reduxjs's mapStateToProps?","<javascript><reactjs><redux><jestjs>","1","0","1","",""
+"36434002","1","","","2016-04-05 18:15:55","","3","365","<p>Updating to the latest .d.ts definitions for react-addons-test-utils has broken compilation for our test code. In this function:</p>
+
+<pre><code>import * as TestUtils from 'react-addons-test-utils';
+import MyReactComponent from 'blabla'
+
+let buildComponent = () =&gt; {
+    const root = TestUtils.renderIntoDocument(&lt;MyReactComponent/&gt;);
+    return TestUtils.findRenderedComponentWithType(root, MyReactComponent);
+}
+</code></pre>
+
+<p>Passing <code>root</code> to the last function here causes <code>error TS2345: Argument of type 'Component&lt;any, {}&gt; | Element | void' is not assignable to parameter of type 'Component&lt;any, any&gt;'.</code> </p>
+
+<p>Fine, I can cast:</p>
+
+<pre><code>let buildComponent = () =&gt; {
+    const root = TestUtils.renderIntoDocument(&lt;MyReactComponent/&gt;);
+    return TestUtils.findRenderedComponentWithType(root as React.Component&lt;any, any&gt;, MyReactComponent);
+}
+</code></pre>
+
+<p>But now passing <code>MyReactComponent</code> on the last line causes <code>error TS2345: Argument of type 'typeof MyReactComponent' is not assignable to parameter of type 'ComponentClass&lt;{}&gt; &amp; (new () =&gt; MyReactComponent) &amp; (new () =&gt; { props: any; })'.</code></p>
+
+<p>Apparently it expects a <code>ClassType&lt;any, T, C&gt;</code> where <code>C extends ComponentClass&lt;{}&gt;</code>, and somehow my <code>class MyReactComponent extends React.Component&lt;IMyReactComponentProps, IMyReactComponentState&gt;</code> doesn't fit the bill, but how, I don't understand.</p>
+","154766","","","","","2016-08-16 19:31:15","New compilation errors with react-addons-test-utils","<reactjs><typescript>","3","0","1","",""
+"34907460","1","34958481","","2016-01-20 18:13:08","","0","430","<p>I'm trying to write a simple unit test and can't seem to figure it out. I want to test a bootstrap modal to ensure it displays the correct contents when I pass certain object properties to it. Here's what my modal code looks like:</p>
+
+<pre><code>import React, { Component, PropTypes } from 'react';
+import { Button, Modal } from 'react-bootstrap';
+
+class ModalBox extends Component {
+  render() {
+    const { modalBox } = this.props;
+    let content;
+
+    if (modalBox.contentBody) {
+      content = modalBox.contentBody;
+    } else {
+      content = (
+        &lt;span&gt;
+          &lt;Modal.Header closeButton onHide={this.close.bind(this)}&gt;
+            &lt;Modal.Title&gt;{modalBox.title}&lt;/Modal.Title&gt;
+          &lt;/Modal.Header&gt;
+          &lt;Modal.Body&gt;
+            {modalBox.message}
+          &lt;/Modal.Body&gt;
+          {modalBox.isConfirm &amp;&amp;
+            &lt;Modal.Footer&gt;
+              &lt;Button onClick={modalBox.onCancel} className=""modal-button cancel""&gt;{modalBox.cancelText || 'Cancel'}&lt;/Button&gt;
+              &lt;Button onClick={modalBox.onConfirm} className=""modal-button confirm""&gt;{modalBox.confirmText || 'Confirm'}&lt;/Button&gt;
+            &lt;/Modal.Footer&gt;
+          }
+        &lt;/span&gt;
+      );
+    }
+
+    return (
+      &lt;Modal show={typeof modalBox != 'undefined'} onHide={this.close.bind(this)} dialogClassName={modalBox.dialogClassName || ''} backdrop={modalBox.backdrop || true}&gt;
+        {content}
+      &lt;/Modal&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>So for a test, I want to make sure that if I pass the prop modalBox containing the contentBody field that it just returns the contentBody for the modal body. Here's an example of what I'm trying to test:</p>
+
+<pre><code>it(""renders only contentBody when provided"", () =&gt; {
+let modalBoxObj = {
+  contentBody: &lt;div className=""test-content-body""&gt;This is a test.&lt;/div&gt;
+};
+
+let element = React.createElement(ModalBox, {modalBox: modalBoxObj});
+
+let component = TestUtils.renderIntoDocument(element);
+let modalWrapper = TestUtils.scryRenderedDOMComponentsWithClass(component, 'modal');
+
+// modalWrapper returns an empty array, so this returns ""Expected 0 to be 1""
+expect(modalWrapper.length).toBe(1);
+
+let testBody = TestUtils.scryRenderedDOMComponentsWithClass(component, 'test-content-body');
+
+
+// testBody returns an empty array, so this returns ""Expected 0 to be 1""
+expect(testBody.length).toBe(1);
+
+// this returns ""TypeError: 'undefined' is not an object (evaluating 'testBody[0].innerHTML')""
+expect(testBody[0].innerHTML).toEqual(""This is a test."");
+}
+</code></pre>
+
+<p>I've also tried doing shallow rendering with TestUtils.createRenderer and trying that approach, but had no luck with it. Based on the examples I've seen online and previous testing experience with react &lt;0.14, I feel this test should work. I just don't know what I'm missing or misunderstanding. In the past, I did something like below and just looked at the componentNode object to find elements and such, but componentNode is returning null.</p>
+
+<pre><code>let component = TestUtils.renderIntoDocument(element);
+let componentNode = findDOMNode(component);
+</code></pre>
+
+<p>Thanks for your help!</p>
+","2540448","","2540448","","2016-01-21 01:22:07","2016-01-23 01:11:39","React/Jasmine/Karma/Phantom Unit Test: findDOMNode and renderIntoDocument not working as expected","<unit-testing><reactjs><jasmine><reactjs-testutils>","1","0","","",""
+"41626436","1","","","2017-01-13 02:24:45","","0","148","<p>I'm new to react :) </p>
+
+<p>If my component render looks like this:</p>
+
+<pre><code>render() {
+return (
+  &lt;object-search className=""m-t-xs""&gt;
+    &lt;div className=""stats-title pull-left""&gt;
+      &lt;h4&gt;Object Search&lt;/h4&gt;
+</code></pre>
+
+<p>and my tests are:</p>
+
+<pre><code>beforeEach(() =&gt; {
+    component = TestUtils.renderIntoDocument(&lt;ObjectSearch {...props}/&gt;);
+    renderedDOM = () =&gt; ReactDOM.findDOMNode(component);
+});
+it('should render with the correct DOM', () =&gt; {
+    const parent = renderedDOM();
+    expect(parent.tagName).toBe('OBJECT-SEARCH');
+    expect(parent.children.length).toBe(7);
+    expect(parent.classList[0]).toEqual('m-t-xs');
+})
+</code></pre>
+
+<p>why am I seeing an empty classList attribute?</p>
+
+<pre><code>Home page ObjectSearch Rendering of ObjectSearch on componentDidMount should render with the correct DOM FAILED
+Expected '' to equal 'm-t-xs'.
+</code></pre>
+
+<p>Note: using the karma test runner and jasmine</p>
+","3562777","","","","","2017-01-13 02:24:45","react empty classlist attribute?","<reactjs><jasmine><karma-jasmine>","0","5","","",""
+"35156232","1","","","2016-02-02 14:34:48","","1","89","<p>I have a mocha + chai test suite set up for unit testing in my react app. This has been working great, however I am trying to cover one small bit of new code and am not sure how to best approach this. I have a small function that calls jquery and a jquery plugin to print a page. The code looks like so :</p>
+
+<pre><code> printAsset() {
+    const iframeDocument = $('#previewForPrint').contents().find('body');
+
+    $.print(iframeDocument, {
+        globalStyles: false,
+        mediaPrint: true,
+        stylesheet: null,
+        noPrintSelector: ""scrispt"",
+        iframe: true,
+        append: null,
+        prepend: null,
+        manuallyCopyFormValues: true
+    });
+}
+</code></pre>
+
+<p>This functionality works fine, however I cannot seem to find a way to correctly unit test this. A few important things to note are that the <code>jquery</code> and <code>jquery.print</code> are not installed in the package.json, they are bower components that are loaded on the index.html. So when running my unit test i don't believe i have access to jquery and the print jquery addon. Here is my test  : </p>
+
+<pre><code>  it('fires print when the print button is clicked', () =&gt; {
+    const previewCAS = TestUtils.renderIntoDocument(&lt;PrintAsset /&gt;);
+    const button = TestUtils.scryRenderedDOMComponentsWithTag(PrintAsset, 'button');
+
+    TestUtils.Simulate.click(button[0]);
+    // breaks here
+    // expect(Print).to.have.been.called();
+});
+</code></pre>
+
+<p>This breaks with : ReferenceError: $ is not defined . So, I understand this, jquery is not imported uptop because its global with bower, however I am unsure how I am suppose to test this otherwise with the current suite. Is there a better way to do this or alternative approaches? Any advice would be greatly appreciated, thanks for reading!</p>
+","3201696","","","","","2016-02-02 14:34:48","React, unit testing jquery + jquery print plugin in react","<javascript><jquery><unit-testing><reactjs>","0","0","","",""
+"35138975","1","37112001","","2016-02-01 19:45:15","","7","1760","<p>I am trying to test drive react native code using <a href=""http://www.schibsted.pl/2015/10/testing-react-native-components-with-jest/"">this</a> guide. The react native is overridden by reactjs to enable shallow rendering and testing using jestjs.</p>
+
+<p>Even though I am able test shallow rendered components (checking its presence and children), I am unable to test touch events.</p>
+
+<pre><code>handleTouch() {
+ this.setState({ showDescription: !this.state.showDescription });
+}
+
+
+render() {
+const description = this.state.showDescription ? (&lt;Text style={styles.description}&gt;{this.props.entry.description}&lt;/Text&gt;) : null;
+return (
+  &lt;TouchableNativeFeedback onPress={() =&gt; this.handleTouch()}&gt;
+    &lt;View style={styles.rowContainer}&gt;
+      &lt;View style={styles.row}&gt;
+      &lt;/View&gt;
+      {description}
+    &lt;/View&gt;
+  &lt;/TouchableNativeFeedback&gt;
+ )
+}
+</code></pre>
+
+<p>I'm trying to test if on touch of <code>TouchableNativeFeedback</code>, <code>description</code> tag is rendered. The reactjs <a href=""https://facebook.github.io/react/docs/test-utils.html#simulate"">TestUtils</a> provides <code>Simulate</code> but it didn't work. </p>
+
+<p>This is my spec setup:</p>
+
+<pre><code>beforeEach(function() {
+    profileView = TestUtils.renderIntoDocument(&lt;ProfileEntryView entry={entry}/&gt;);
+    var touchableNativeFeedback = TestUtils.findRenderedComponentWithType(profileView, TouchableNativeFeedback);
+    TestUtils.Simulate.onTouchEnd(touchableNativeFeedback);
+});
+</code></pre>
+
+<p>How will I test UI interactions using reactjs <code>TestUtils</code> for react-native?</p>
+","3804420","","3804420","","2016-03-15 10:11:36","2016-12-29 09:40:06","Unit testing touch events in react native","<tdd><ecmascript-6><react-native><jestjs>","1","0","3","",""
+"47458123","1","","","2017-11-23 14:46:23","","0","71","<p>I am using enzyme for my unit tests and I am currently preparing to start using react@16.0.0 by updating all of my unit tests to run against it.</p>
+
+<p>I have updated the following modules to allow for this...</p>
+
+<pre><code>""enzyme"": ""3.1.0"",
+""enzyme-adapter-react-16"": ""^1.0.0"",
+""react"": ""^16.0.0"",
+""react-dom"": ""^16.0.0"",
+""react-test-renderer"": ""^16.0.0"",
+</code></pre>
+
+<p>Previously when running my unit tests, they would all pass and work fine. Since updating however I have found that any of my tests using <code>ReactTestUtils.renderIntoDocument</code> and rendering the component are no longer passing, they all just fail. </p>
+
+<p>It's as if <code>ReactTestUtils.renderIntoDocument</code> is not rendering the component at all. </p>
+
+<p>Below is an example of how I'm using this...</p>
+
+<pre><code>import React from 'react';
+import Component from '../../component-example';
+
+const ReactTestUtils = require('react-dom/test-utils');
+
+describe('Component test', () =&gt; {
+  it('should render', () =&gt; {
+    const component = ReactTestUtils.renderIntoDocument(&lt;Component /&gt;,);   
+    const span = ReactTestUtils.findRenderedDOMComponentWithTag(component, 'span');
+
+    expect(span.textContent).toBe('Hello world!');   
+  }
+}
+</code></pre>
+
+<p>Any help to get this working would be much appreciated.</p>
+","970706","","970706","","2017-11-23 15:03:25","2017-11-23 15:03:25","update to react@16.0.0 and ReactTestUtils.renderIntoDocument no longer working","<reactjs><unit-testing><enzyme>","0","0","1","",""
+"49943998","1","","","2018-04-20 14:28:49","","0","27","<p>This test is working (most of the time), but only when using setTimeout. I can't figure out why <code>wait</code> from <a href=""https://github.com/kentcdodds/react-testing-library/"" rel=""nofollow noreferrer""><code>react-testing-library</code></a> doesn't work (commented out), although I'm guessing it's because I'm ignorant about something. I am intentionally NOT mocking <code>axios</code> with this test (and related tests), as that would destroy most confidence in the integration test.</p>
+
+<p>The problem is that occasionally the test would fail because it takes longer than 500ms to get a response back from the server when registering a new user. Also, it forces each test that uses this method to take at a minimum that 500ms, thus making it take potentially much longer than it needs to run all the tests.</p>
+
+<p>Any suggestions would be greatly appreciated.</p>
+
+<p>Test</p>
+
+<pre><code>it('Registers a user when email and password are provided', async (done) =&gt; {
+      expect.assertions(2)
+
+      const wrapper = renderSetupWithRedux()
+      const { registerUserForm, getByTestId, store } = wrapper
+      const passwordInput = getByTestId('register-user-form-password')
+      const emailInput = getByTestId('register-user-form-email')
+
+      emailInput.value = userCreds.email 
+      fireEvent(emailInput, new Event('change', {
+        bubbles: true,
+        cancelable: true,
+      }))
+
+      passwordInput.value = userCreds.password 
+      fireEvent(passwordInput, new Event('change', {
+        bubbles: true,
+        cancelable: true,
+      }))
+
+      fireEvent(registerUserForm, new Event('submit', {
+        bubbles: true,
+        cancelable: true,
+      }))
+
+      // let stateAfterSubmit
+      // await wait(() =&gt; stateAfterSubmit = store.getState())
+
+      // need to wait for the response from the auth server (not able to get this to work with ""wait"" right now)
+      setTimeout(() =&gt; {
+        done()
+        const stateAfterSubmit = store.getState()
+        expect(stateAfterSubmit.auth.user.email).toBe(userCreds.email)
+        expect(stateAfterSubmit.auth.authed).toBe(true)
+
+        integrationStore = store // preserve store for next tests
+      }, 500)
+    })
+</code></pre>
+
+<p>renderSetupWithRedux</p>
+
+<pre><code>function renderSetupWithRedux(store = integrationStore, overrides) {
+  const wrapper = renderWithRedux(
+    &lt;div&gt;
+      &lt;RegisterUserForm /&gt;
+      &lt;LogoutForm /&gt;
+      &lt;LoginForm /&gt;
+    &lt;/div&gt;,
+    { store },
+  )
+  const loginForm = wrapper.getByTestId('login-form')
+  const logoutFormButton = wrapper.getByTestId('logout-form-button')
+  const registerUserForm = wrapper.getByTestId('register-user-form')
+  const initialState = wrapper.store.getState()
+
+  return {
+    ...wrapper,
+    initialState,
+    loginForm,
+    logoutFormButton,
+    registerUserForm,
+    ...overrides,
+  }
+}
+</code></pre>
+
+<p>renderWithRedux</p>
+
+<pre><code>export function renderWithRedux(
+  ui,
+  { initialState, store = createStore(reducer, initialState) } = {},
+) {
+  return {
+    ...renderIntoDocument(&lt;Provider store={store}&gt;{ui}&lt;/Provider&gt;),
+    store,
+  }
+}
+</code></pre>
+","3914885","","","","","2018-04-20 14:28:49","Async integration test issues w/Jest & react-testing-library","<reactjs><testing><redux><react-redux><jest>","0","0","","",""
+"35209849","1","","","2016-02-04 19:27:04","","1","180","<p>In testing my react components with mocha, I'm receiving the warning:</p>
+
+<blockquote>
+  <p>Warning: ReactDOMComponent: Do not access .props of a DOM node;
+  instead, recreate the props as <code>render</code> did originally or read the DOM
+  properties/attributes directly from this node (e.g.,
+  this.refs.box.className). This DOM node was rendered by <code>Input</code>.</p>
+</blockquote>
+
+<p>My test looks like this:</p>
+
+<pre><code>const component = renderIntoDocument(ComponentA);
+const inputs = scryRenderedDOMComponentWithTag(component, 'input');
+expect(inputs[0].props.value).to.equal('abc123');
+</code></pre>
+
+<p>This works and the tests pass, but obviously I'm doing something wrong per the warning.  My question is <strong>what is the proper way to test an input value in a component</strong></p>
+
+<p>Note: The value is derived from a prop on the component e.g.<code>&lt;ComponentA myName=""abc""/&gt;</code></p>
+","324243","","","","","2016-02-04 19:27:04","Proper way to get input value while testing react elements","<javascript><reactjs><mocha>","0","1","","",""
+"43193933","1","","","2017-04-03 20:45:30","","0","42","<p>I am trying to mock a component that has the following structure:</p>
+
+<pre><code>//A_Form.js
+import React from ""react"";
+
+export default React.createClass({
+    displayname: ""A_Form"",
+
+    updateState: function() {
+        // I want to mock this function as it opens a web connection
+    }    
+    render: function() {
+        return ( 
+            &lt;form&gt;
+                &lt;div className='class1'&gt;
+                    &lt;label htmlFor=""name""&gt; name &lt;/label&gt;
+                &lt;/div&gt;
+            &lt;/form&gt;
+    }
+</code></pre>
+
+<p>I'm trying to test this with jest using the following:</p>
+
+<pre><code>//A_Form.spec.js
+import React
+import {A_Form} from './A_Form';
+
+function mock_A_Form() {
+    var A_Form = React.createElement(require.requireActual(""./A_Form"");
+    return {
+        ... A_Form,
+        updateState: jest.fn( () =&gt; { return; } )
+    }
+jest.mock(""./A_Form"",() =&gt; { return mock_A_Form(); } );
+
+describe(""A_Form test"",function() {
+    var ReactTestUtils = require('react-addons-test-utils');
+    var a_form = React.createElement(require.requireMock(""./A_Form"");
+
+    it(""checking"",function() {
+        var n = ""name"";
+        var rendered_a_form = ReactTestUtils.renderIntoDocument(a_form);
+        var my_name = ReactTestUtils.findRenderedDOMComponentWithTag(rendered_a_form,""label"");
+        expect(my_name.textContent).toBe(n);
+    });
+});
+</code></pre>
+
+<p>I think I have included all of the relevant code.  I am stuck with I call renderIntoDocument as it returns ""Invariant Violation: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object."".</p>
+
+<p>As I am rather new to Jest and React any push in reasonable direction would be appreciated. </p>
+","5107245","","","","","2017-04-03 21:22:38","Probably a simple jest/react error on my part","<javascript><reactjs><jest>","1","0","","",""
+"42337948","1","","","2017-02-20 06:36:48","","0","426","<p>I have one reactjs component   and there is one function inside that component. I want to write unit test case for that. Below is my sample unit test case. function name is  getNewGroupName</p>
+
+<pre><code>describe(""CreateGroupName component"", () =&gt; {
+
+      it(""Correct Copy name should be generated for first copy"", () =&gt; {
+          component = ReactTestUtils.renderIntoDocument( &lt; CreateGroupName reactor = {
+              reactor
+            } &gt; &lt; /CreateGroupName&gt;);
+
+            expect(component.getNewGroupName(""SampleGroupName"")).tobe(""SampleGroupName - Copy(1)"")
+          });
+
+      });
+</code></pre>
+
+<p>But when I am running unit test cases I am getting below error</p>
+
+<p>TypeError: undefined is not a constructor (evaluating 'e.getNewGroupName(""SampleGroupName"")') </p>
+
+<p>After looking into the object using the debugger I am able to see only below property for this object. </p>
+
+<p><a href=""https://i.stack.imgur.com/nOAXp.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/nOAXp.png"" alt=""enter image description here""></a></p>
+
+<p>I also tried writing above test using enzyme library. But Both are giving me same object in the result.</p>
+
+<pre><code> it(""Correct Copy name should be generated for first copy"", () =&gt; {
+            const wrapper = enzyme.mount(&lt;CreateGroupName reactor={reactor}&gt;&lt;/CreateGroupName&gt;);
+            const inst = wrapper.instance();
+            expect(inst.getNewGroupName('SampleGroupName')).toBe(""SampleGroupName - Copy(1)"");
+        });
+</code></pre>
+
+<p>Here is my component </p>
+
+<p><a href=""https://i.stack.imgur.com/Dtx5s.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/Dtx5s.png"" alt=""enter image description here""></a></p>
+
+<p>stack trace is as below</p>
+
+<pre><code>""TypeError: t.getNewGroupName is not a function
+    at Object.&lt;anonymous&gt; (http://localhost:9876/base/app/spec/webpack.loader.js:96:18873)
+    at attemptSync (http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1886:24)
+    at QueueRunner.run (http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1874:9)
+    at QueueRunner.execute (http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1859:10)
+    at Spec.queueRunnerFactory (http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:697:35)
+    at Spec.execute (http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:359:10)
+    at Object.fn (http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:2479:37)
+    at attemptAsync (http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1916:24)
+    at QueueRunner.run (http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1871:9)
+    at http://localhost:9876/base/node_modules/jasmine-core/lib/jasmine-core/jasmine.js:1898:16""
+</code></pre>
+","917326","","917326","","2017-02-20 23:46:27","2017-02-21 01:55:30","Unit test function of component in reactjs using karma and Jasmine","<javascript><unit-testing><reactjs><karma-jasmine>","1","4","","",""
+"42587215","1","","","2017-03-03 19:44:30","","1","414","<p>I'm trying to test a highchart I built using enzyme mount method. It works fine when trying to test it with shallow rendering but I want to render the whole component. Here is a repo with the problem: <a href=""https://github.com/hyalkaf/react-highCharts-enzyme-issue"" rel=""nofollow noreferrer"">https://github.com/hyalkaf/react-highCharts-enzyme-issue</a>, to run the broken test do: <code>npm run test-mocha</code> after of course forking and running <code>npm i</code>. Here are snippets of code to reproduce the problem:</p>
+
+<p>App.js</p>
+
+<pre><code>import React, { Component } from 'react';
+global.HighCharts = require('highcharts');
+require('highcharts/modules/exporting')(global.HighCharts);
+require('highcharts-offline-exporting')(global.HighCharts);
+const ReactHighCharts = require('react-highcharts');
+
+const config = {
+  chart: {
+    plotBackgroundColor: null,
+    plotBorderWidth: null,
+    plotShadow: false,
+    type: 'pie'
+  },
+  title: {
+      text: 'Browser market shares January, 2015 to May, 2015'
+  },
+  tooltip: {
+      pointFormat: '{series.name}: &lt;b&gt;{point.percentage:.1f}%&lt;/b&gt;'
+  },
+  plotOptions: {
+    pie: {
+      allowPointSelect: true,
+      cursor: 'pointer',
+      dataLabels: {
+        enabled: true,
+        format: '&lt;b&gt;{point.name}&lt;/b&gt;: {point.percentage:.1f} %'
+      }
+    }
+  },
+  series: [{
+    name: 'Brands',
+    colorByPoint: true,
+    data: [{
+        name: 'Microsoft Internet Explorer',
+        y: 56.33
+    }, {
+        name: 'Chrome',
+        y: 24.03,
+        sliced: true,
+        selected: true
+    }, {
+        name: 'Firefox',
+        y: 10.38
+    }, {
+        name: 'Safari',
+        y: 4.77
+    }, {
+        name: 'Opera',
+        y: 0.91
+    }, {
+        name: 'Proprietary or Undetectable',
+        y: 0.2
+    }]
+  }]
+};
+
+class App extends Component {
+  render() {
+    return (
+      &lt;div className=""App""&gt;
+        &lt;p className=""App-intro""&gt;
+          To get started, edit &lt;code&gt;src/App.js&lt;/code&gt; and save to reload.
+        &lt;/p&gt;
+        &lt;div&gt;
+          &lt;ReactHighCharts config={config} /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+export default App;
+</code></pre>
+
+<p>App.test.js:</p>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+import { mount, shallow } from 'enzyme';
+
+it('fails when trying to mount react highcharts', () =&gt; {
+  const wrapper = mount(&lt;App /&gt;);
+});
+</code></pre>
+
+<p>setup.js:</p>
+
+<pre><code>var jsdom = require('jsdom').jsdom;
+
+global.document = jsdom('&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;');
+global.window = document.defaultView;
+global.navigator = global.window.navigator;
+window.sessionStorage = {
+  getItem(key) {
+    return this[key];
+  },
+  setItem(key, value) {
+    this[key] = value;
+  },
+  removeItem(key) {
+    this[key] = undefined;
+  },
+};
+window.localStorage = window.sessionStorage;
+</code></pre>
+
+<p>and finally here is the stack trace:</p>
+
+<pre><code>InvalidCharacterError
+  at exports.name (node_modules\jsdom\lib\jsdom\living\helpers\validate-names.js:10:11)
+  at DocumentImpl.createElement (node_modules\jsdom\lib\jsdom\living\nodes\Document-impl.js:685:5)
+  at Document.createElement (node_modules\jsdom\lib\jsdom\living\generated\Document.js:92:59)
+  at a.createElement (node_modules\highcharts\highcharts.js:17:221)
+  at Object.init (node_modules\highcharts\highcharts.js:91:494)
+  at Object.createElement (node_modules\highcharts\highcharts.js:62:286)
+  at Object.createElement (node_modules\highcharts\highcharts.js:107:323)
+  at Object.init (node_modules\highcharts\highcharts.js:100:377)
+  at Object.B (node_modules\highcharts\highcharts.js:109:141)
+  at Object.getContainer (node_modules\highcharts\highcharts.js:249:378)
+  at Object.firstRender (node_modules\highcharts\highcharts.js:263:422)
+  at Object.init (node_modules\highcharts\highcharts.js:240:174)
+  at Object.getArgs (node_modules\highcharts\highcharts.js:239:189)
+  at Object.a.Chart (node_modules\highcharts\highcharts.js:238:501)
+  at renderChart (node_modules\react-highcharts\dist\ReactHighcharts.js:1:1283)
+  at componentDidMount (node_modules\react-highcharts\dist\ReactHighcharts.js:1:1804)
+  at node_modules\react-dom\lib\ReactCompositeComponent.js:265:25
+  at measureLifeCyclePerf (node_modules\react-dom\lib\ReactCompositeComponent.js:75:12)
+  at node_modules\react-dom\lib\ReactCompositeComponent.js:264:11
+  at CallbackQueue.notifyAll (node_modules\react-dom\lib\CallbackQueue.js:76:22)
+  at ReactReconcileTransaction.close (node_modules\react-dom\lib\ReactReconcileTransaction.js:80:26)
+  at ReactReconcileTransaction.closeAll (node_modules\react-dom\lib\Transaction.js:206:25)
+  at ReactReconcileTransaction.perform (node_modules\react-dom\lib\Transaction.js:153:16)
+  at batchedMountComponentIntoNode (node_modules\react-dom\lib\ReactMount.js:126:15)
+  at ReactDefaultBatchingStrategyTransaction.perform (node_modules\react-dom\lib\Transaction.js:140:20)
+  at Object.batchedUpdates (node_modules\react-dom\lib\ReactDefaultBatchingStrategy.js:62:26)
+  at Object.batchedUpdates (node_modules\react-dom\lib\ReactUpdates.js:97:27)
+  at Object._renderNewRootComponent (node_modules\react-dom\lib\ReactMount.js:320:18)
+  at Object._renderSubtreeIntoContainer (node_modules\react-dom\lib\ReactMount.js:401:32)
+  at Object.render (node_modules\react-dom\lib\ReactMount.js:422:23)
+  at Object.renderIntoDocument (node_modules\react-dom\lib\ReactTestUtils.js:79:21)
+  at renderWithOptions (node_modules\enzyme\build\react-compat.js:187:26)
+  at new ReactWrapper (node_modules\enzyme\build\ReactWrapper.js:94:59)
+  at mount (node_modules\enzyme\build\mount.js:19:10)
+  at Context.&lt;anonymous&gt; (C:/Users/phil/Downloads/projects with problems/react-highcharts-enzyme-issue/src/App.test.js:7:19)
+</code></pre>
+
+<p>versions of libraries:  </p>
+
+<p>npm: <strong>3.10.7</strong>,<br>
+node: <strong>6.9.5</strong>,<br>
+react: <strong>15.4.2</strong>,<br>
+enzyme: <strong>2.7.1</strong>,<br>
+jsdom: <strong>9.11.0</strong>,<br>
+mocha: <strong>3.2.0</strong></p>
+","6710925","","","","","2017-03-04 01:26:10","rendering react-highcharts with mount enzyme gives an InvalidCharacterError","<reactjs><highcharts><enzyme><jsdom>","1","1","1","",""
+"32462730","1","32486458","","2015-09-08 16:21:48","","0","1041","<p>I am using Jest 0.4.0. I have a component wrapped into this (from react-router docs):</p>
+
+<pre><code>var stubRouterContext = (Component, props, stubs) =&gt; {
+  function RouterStub() { }
+
+  Object.assign(RouterStub, {
+    makePath () {},
+    makeHref () {},
+    transitionTo () {},
+    replaceWith () {},
+    goBack () {},
+    getCurrentPath () {},
+    getCurrentRoutes () {},
+    getCurrentPathname () {},
+    getCurrentParams () {},
+    getCurrentQuery () {},
+    isActive () {},
+    getRouteAtDepth() {},
+    setRouteComponentAtDepth() {}
+  }, stubs)
+
+  return React.createClass({
+    childContextTypes: {
+      router: React.PropTypes.func,
+      routeDepth: React.PropTypes.number
+    },
+
+    getChildContext () {
+      return {
+        router: RouterStub,
+        routeDepth: 0
+      };
+    },
+
+    render () {
+      return &lt;Component {...props} /&gt;
+    }
+  });
+};
+</code></pre>
+
+<p>My component uses <code>componentWillUpdate</code>:</p>
+
+<pre><code>  getInitialState: function(){
+    return {something: """"};
+  },
+  componentWillUpdate: function(nextProps, nextState) {
+    if(nextState.something === ""12345""){
+      this.context.router.transitionTo(""MyRoute"", {id: nextState.something});
+    }
+  },
+</code></pre>
+
+<p>In my test:</p>
+
+<pre><code>var ComponentWrapper = stubRouterContext(MyComponent, {});
+var myComponentInstance = TestUtils.renderIntoDocument(&lt;ComponentWrapper /&gt;);
+
+it('expects to do something on componentWillUpdate', function(){
+  myComponentInstance.setState({something: ""12345""});
+  expect(myComponentInstance.getChildContext().router.transitionTo.mock.calls[0][0]).toEqual('MyRoute'); 
+  expect(myComponentInstance.getChildContext().router.transitionTo.mock.calls[0][1]).toEqual({id: '12345'});
+});
+</code></pre>
+
+<p>As much as I call <code>setState</code>, my <code>nextState</code> in <code>componentWillUpdate</code> is always <code>something: """"</code>. However, in the test, if I check the content of <code>myComponentInstance.state</code> then it is <code>something: ""12345""</code>. So basically, <code>componentWillUpdate</code> gets called but not having the new state even my instance component has it.</p>
+
+<p>Any ideas on this?</p>
+
+<p>-- </p>
+
+<h1>EDIT 1</h1>
+
+<p>Below suggestions are based on setState being asynchronous function but that didn't solve the problem. I was also trying to simulate a store change (Flux pattern) in this way:</p>
+
+<pre><code>myStore.getState = jest.genMockFunction().mockImplementation(function() {
+   return{
+    something: ""12345"",
+   };
+});
+
+myComponentInstance.onChange(); //Simulate store change (this function has setState inside taking values from the store)
+</code></pre>
+
+<p>Well that didn't work either, actually was telling me that <code>onChange</code> is not defined. So my problem is with the react-router wrapper. I found a solution but I am not sure if there are better ones cause this one looks very hacky. It is the following:</p>
+
+<pre><code>var RouterWrapper = stubRouterContext(Component, {ref: ""myRealComponentInstance""});
+var renderedComponent = TestUtils.renderIntoDocument(&lt;RouterWrapper /&gt;);
+var myComponentInstance = renderedComponent.refs.myRealComponentInstance;
+</code></pre>
+
+<p>In this way, both <code>myComponentInstance.setState</code> or simulating a <code>myComponentInstance.onChange</code> mocking the store work and I don't need to use asynchronous functions.</p>
+","2277631","","2277631","","2015-09-10 15:59:36","2015-09-10 15:59:36","nextState on componentWillUpdate not correct while testing with Jest (using also react-router wrapper)","<javascript><reactjs><react-router><jestjs><reactjs-testutils>","2","2","1","",""
+"35610252","1","","","2016-02-24 18:34:10","","4","3046","<p>I had this problem in the past while using older versions of react-router which I solved using: <a href=""https://github.com/reactjs/react-router/blob/57543eb41ce45b994a29792d77c86cc10b51eac9/docs/guides/testing.md#stubroutercontext"" rel=""nofollow"">stubRouterContext</a> + a hacky way to access the component instance (using refs: <a href=""https://github.com/reactjs/react-router/issues/1140#issuecomment-113174774"" rel=""nofollow"">https://github.com/reactjs/react-router/issues/1140#issuecomment-113174774</a>)</p>
+
+<p>I thought this would improve in the future but I am hitting the same wall with react-router 2.0 (I am not saying this is a problem with react-router but since it uses context, it affects my tests). So, I have a component that uses context to push new state into the url <code>this.context.router.push(...)</code> which is the way to go now 
+<a href=""https://github.com/reactjs/react-router/blob/master/upgrade-guides/v2.0.0.md#programmatic-navigation"" rel=""nofollow"">https://github.com/reactjs/react-router/blob/master/upgrade-guides/v2.0.0.md#programmatic-navigation</a></p>
+
+<p>I am telling <code>jest.dontMock('react-router')</code> but my test will fail with:</p>
+
+<p><code>
+TypeError: Cannot read property 'push' of undefined
+</code></p>
+
+<p>This happens because the instance returned by <code>TestUtils.renderIntoDocument</code> will have:</p>
+
+<p><code>
+context: Object { router: undefined }
+</code></p>
+
+<p>Now, what is the real problem here? Is it Jest? I'm pretty sure I am not the only one who encounters this and since <a href=""https://github.com/reactjs/react-router/blob/57543eb41ce45b994a29792d77c86cc10b51eac9/docs/guides/testing.md#stubroutercontext"" rel=""nofollow"">stubRouterContext</a> it's not in the <a href=""https://github.com/reactjs/react-router/blob/master/docs/guides/testing.md"" rel=""nofollow"">official docs</a> of react-router anymore, is there any broad accepted solution for this?</p>
+
+<p>How would I make the test to work? Which is basically having the correct context and being able to access everything from the component instance returned by <code>TestUtils.renderIntoDocument</code>.</p>
+
+<p>I am using react 0.14.7, jest-cli 0.8.2 and react-router 2.0.</p>
+","2277631","","","","","2016-03-29 11:17:19","How to test a React component that uses context like in react-router 2.0 with Jest 0.8.x","<javascript><reactjs><react-router><jestjs><reactjs-testutils>","2","1","","",""
+"32415946","1","","","2015-09-05 17:40:20","","2","1131","<p>I have a React components. I want to test them. But I get unexpected error on every trying to <code>findRenderedDOMComponentWithTag</code> with tested component. Here is the Karma error log:</p>
+
+<pre><code>05 09 2015 20:31:23.450:INFO [watcher]: Changed file ""/tmp/35ffb917aab483a567d1be6fed779291.browserify"".
+PhantomJS 2.0.0 (Linux 0.0.0) DestroySession should process user logout FAILED
+    TypeError: undefined is not a function (evaluating 'target.dispatchEvent(e)') in http://localhost:9876/karma.js (line 1134)
+        at /tmp/35ffb917aab483a567d1be6fed779291.browserify:59730:16
+PhantomJS 2.0.0 (Linux 0.0.0): Executed 3 of 7 (1 FAILED) (skipped 4) (0.04 secs / 0.019 secs)
+</code></pre>
+
+<p>My stack is:</p>
+
+<ul>
+<li>coffeescript</li>
+<li>react(+jsx)</li>
+<li>browserify</li>
+<li>karma.js</li>
+<li>phantomjs</li>
+<li>jasmine</li>
+</ul>
+
+<p>Component:</p>
+
+<pre><code>React = require('react')
+ReactBootstrap = require('react-bootstrap')
+
+Button = ReactBootstrap.Button
+
+SessionActions = require('../../actions/session_actions.coffee')
+
+module.exports = React.createClass
+  contextTypes: router: React.PropTypes.func
+  handleClick: (e) -&gt;
+    e.preventDefault()
+    console.log 'хуйло'
+    SessionActions.destroy()
+    @context.router.transitionTo('/sessions/new')
+  render: -&gt;
+    &lt;Button onClick={@handleClick} className='btn btn-default navbar-btn'&gt;Sign out&lt;/Button&gt;
+</code></pre>
+
+<p>Test:</p>
+
+<pre><code>React = require('react/react-with-addons.js')
+TestUtils = React.addons.TestUtils
+
+DestroySession = require('../../../../app/coffee/components/sessions/destroy.coffee')
+
+describe 'DestroySession', -&gt;
+  instance = undefined
+
+  beforeEach -&gt;
+    instance = TestUtils.renderIntoDocument(&lt;DestroySession /&gt;)
+
+
+  it 'should process user logout', -&gt;
+    localStorage.setItem('token', 123)
+    localStorage.setItem('userName', 'Anonymous Person')
+    localStorage.setItem('userId', 11)
+
+    button = TestUtils.findRenderedDOMComponentWithTag(instance, 'button')
+
+    console.log button
+</code></pre>
+
+<p>It's very strange, but I get an error when I try to <code>console.log</code> my button variable. If I comment out last line of my test, it will be passed. What's happened?</p>
+","2926641","","","","","2016-01-29 15:31:39","reactjs get `undefined is not a function` on testing with Jasmine","<javascript><coffeescript><reactjs><jasmine><phantomjs>","2","1","","",""
+"33383146","1","33914388","","2015-10-28 04:52:48","","12","5679","<p>I am new to reactJS and try to learn how to test with it. I have encouter the following testing util method. However i am keep getting the same error <code>message:ReferenceError: document is not defined</code>. </p>
+
+<hr>
+
+<p><strong>renderIntoDocument</strong></p>
+
+<pre><code>ReactComponent renderIntoDocument(
+  ReactElement instance
+)
+</code></pre>
+
+<p>Render a component into a detached DOM node in the document. This function requires a DOM.</p>
+
+<p>Note:
+You will need to have window, window.document and window.document.createElement globally available before you import React. Otherwise React will think it can't access the DOM and methods like setState won't work.</p>
+
+<hr>
+
+<p>I know it the reason failing its missing the DOM, but how can i insert the DOM or require it?</p>
+
+<hr>
+
+<p>My test below:</p>
+
+<pre><code>import expect from 'expect.js';
+import React from 'react';
+import Header from '../../components/header';
+import {renderShallow} from './help';
+import ReactAddOn from 'react/addons';
+
+var TestUtils = ReactAddOn.addons.TestUtils;
+
+describe('Test react', function() {
+  let component;
+
+  beforeEach(()=&gt;{
+    component = TestUtils.renderIntoDocument(&lt;Header&gt;&lt;/Header&gt;);
+  });
+
+
+  it('Test if the content been correclty render', function() {
+    console.log(component);
+  });
+});
+</code></pre>
+","409275","","409275","","2015-10-29 00:53:29","2016-08-10 20:13:22","Test with reactjs renderIntoDocument keep failed due to required DOM","<reactjs><mocha><expect.js>","2","10","5","",""
+"45048672","1","","","2017-07-12 04:49:10","","0","146","<p>I use <code>react-dom/test-utils</code> to test my react component.</p>
+
+<p>But the return value of <code>scryRenderedDOMComponentsWithClass</code> has no <code>props</code></p>
+
+<p>and <code>props.children</code> property. Did I do something wrong or what?</p>
+
+<p>here is my test code: </p>
+
+<pre><code>it('renders item count correctly', () =&gt; {
+    const $$searchList  = TestUtils.renderIntoDocument(&lt;SearchList items={datas}/&gt;)
+    const list = TestUtils.scryRenderedDOMComponentsWithClass($$searchList, 'list');
+
+    expect(list.props.children).toHaveLength(4);
+    expect(items).toHaveLength(4);
+
+  });
+</code></pre>
+
+<p>here is the test result:</p>
+
+<pre><code>● component - SearchList test suites › renders item count correctly
+
+    TypeError: Cannot read property 'children' of undefined
+
+      at Object.&lt;anonymous&gt; (src/components/List/__tests__/SearchList.test.jsx:17:26)
+      at Promise.resolve.then.el (node_modules/p-map/index.js:42:16)
+      at process._tickCallback (internal/process/next_tick.js:109:7)
+
+  component - SearchList test suites
+    ✓ loads without error (43ms)
+    ✕ renders item count correctly (18ms)
+</code></pre>
+
+<p>-- update --</p>
+
+<p>Here is my component render: </p>
+
+<pre><code>return (
+      &lt;div className=""list""&gt;
+        {
+          items.map((item: Book, idx: number): React.ReactElement&lt;IListProps&lt;Book&gt;&gt; =&gt; {
+            return (
+              &lt;ListItem onClick={() =&gt; this.onItemClick(item, idx)} key={item.id} item={item}/&gt;
+            );
+          })
+        }
+      &lt;/div&gt;
+    );
+</code></pre>
+","6463558","","6463558","","2017-07-12 05:31:09","2017-07-12 05:48:18","react-dom/test-utils, TypeError: Cannot read property 'children' of undefined","<reactjs><jestjs>","1","0","","",""
+"44383373","1","","","2017-06-06 07:02:34","","2","117","<p>I am using Jest to test the following Material-UI component. I would like to assert that the function handleSubmit gets called when the RaisedButton  component is clicked.</p>
+
+<pre><code>        //Form.js
+
+export default class Form extends React.Component {    
+
+&lt;RaisedButton
+            ref=""buttonTag""
+            className='SubmitButton'
+            label='Go'
+            icon={&lt;ActionSearch /&gt;}
+            onClick={this.handleSubmit} /&gt;
+
+        handleSubmit = (event) =&gt; {
+
+        };
+    }
+
+    //Form-test.js
+
+    import Form from '../../src/Components/Form/Form';
+    import React from 'react';
+    import TestUtils from 'react-dom/test-utils';
+
+    let form = TestUtils.renderIntoDocument(
+        &lt;Form /&gt;
+    );
+
+    const spy = jest.spyOn(form, 'handleSubmit').mockImplementation(() =&gt; {});
+    let buttonNode = form.refs.buttonTag; 
+    TestUtils.Simulate.click(buttonNode);
+    expect(spy).toHaveBeenCalled();
+</code></pre>
+
+<p>When execution gets to :</p>
+
+<pre><code>TestUtils.Simulate.click(buttonNode);
+</code></pre>
+
+<p>I get the following error:</p>
+
+<pre><code>""Cannot read property '__reactInternalInstance$a2hlbpvzpyeu9ywvcwjr1kyb9' of undefined""
+</code></pre>
+
+<p>How can I properly simulated a click on the RaisedButton to trigger handleSubmit() ?</p>
+","4122132","","","","","2018-03-20 22:08:24","Getting error ""Cannot read property '__reactInternalInstance$a2hlbpvzpyeu9ywvcwjr1kyb9' of undefined""","<reactjs><jasmine><material-ui><jest>","1","1","","",""
+"28246828","1","30658079","","2015-01-31 00:31:10","","1","785","<p>I am writing a React component that depends on a meta tag of a specific name to be present in the head area of the DOM, so I'm trying to use TestUtils.renderIntoDocument to create that meta tag for running my Jest test, which is not working.</p>
+
+<pre><code>jest.dontMock('../channel-finder');
+
+describe('Channel Finder Component', function() {
+  it('Renders properly with no props', function() {
+
+    var React = require('react/addons');
+    var ChannelFinder = require('../channel-finder');
+    var TestUtils = React.addons.TestUtils;
+
+    // Render into Document
+    var ChannelFinderComponent = TestUtils.renderIntoDocument(
+      &lt;ChannelFinder /&gt;
+    );
+    var ClientIpMetaTag = TestUtils.renderIntoDocument(
+      &lt;meta name=""client-ip"" content=""50.200.28.114""&gt;
+    );
+
+    // Find Rendered DOM Component
+    var ChannelFinderDomElement = TestUtils.findRenderedDOMComponentWithTag(ChannelFinderComponent, 'div');
+
+    // Assert Results
+    expect(ChannelFinderDomElement.getDOMNode().textContent).toEqual('');
+  });
+});
+</code></pre>
+
+<p>Can this be accomplished with either React TestUtils or React itself somehow?</p>
+
+<p>Result is a super-long error stack trace:
+<img src=""https://i.stack.imgur.com/TK5aa.jpg"" alt=""enter image description here""></p>
+
+<p>My preprocessor.js file: </p>
+
+<pre><code>// preprocessor.js
+var ReactTools = require('react-tools');
+module.exports = {
+  process: function(src) {
+    return ReactTools.transform(src);
+  }
+};
+</code></pre>
+","3347994","","3347994","","2015-01-31 00:37:46","2015-06-05 03:53:52","Jest + React TestUtils: Render a <meta> tag with TestUtils.renderIntoDocument","<reactjs><jestjs><reactjs-testutils>","1","2","1","",""
+"28094336","1","29056517","","2015-01-22 16:52:59","","6","3574","<p>I'm trying to write tests for some d3 elements that are rendered via react component, and I was hoping to be able to pick out some of the svg elements on the page and check their width to see if they're behaving as expected.</p>
+
+<p>I'm not entirely sure what the react test-utils docs are expecting when they say ReactComponent tree.</p>
+
+<pre><code>array scryRenderedDOMComponentsWithClass(ReactComponent tree, string className)
+</code></pre>
+
+<p>I'm rendering my component into the document via:</p>
+
+<pre><code>  var component = TestUtils.renderIntoDocument(
+    &lt;ProgressCircle percentage={75} /&gt;
+  );
+</code></pre>
+
+<p>And I'm able to successfully check for a css className by doing:</p>
+
+<pre><code>  it('should render an element with the class ""progress-circle""', function() {
+    var circleContainer = TestUtils.findRenderedDOMComponentWithClass(component, 'progress-circle');
+    expect(circleContainer).toBeDefined();
+  });
+</code></pre>
+
+<p>But I don't understand what I need to provide to some of these find / scry methods that expect a ReactComponent tree.</p>
+
+<p><a href=""http://facebook.github.io/react/docs/test-utils.html"" rel=""noreferrer"">http://facebook.github.io/react/docs/test-utils.html</a></p>
+
+<p>Edit:</p>
+
+<p>For more clarification, the rendered DOM for this component looks like this:</p>
+
+<pre><code>&lt;div class=""progress-circle""&gt;
+  &lt;svg&gt;
+    &lt;g&gt;
+    &lt;/g&gt;
+  &lt;/svg&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>... and I'm trying to find the  element.</p>
+","2461190","","2461190","","2015-01-22 17:14:57","2015-09-18 20:13:53","What does react test-utils expect when it refers to ReactComponent tree?","<reactjs><jestjs>","1","0","1","",""
+"36727050","1","","","2016-04-19 18:52:10","","1","284","<p>I am trying to write a unit test of React and React-bootstrap components using Mocha.</p>
+
+<p>All of my javascript is written in ES6, and I am using babel to transpile to ES5.  </p>
+
+<p>The files I am using are below.</p>
+
+<p>After running <code>npm install</code>, I run <code>npm test</code>.  This fails with the following output:</p>
+
+<pre><code>$ npm test
+
+&gt; @ test /Users/tda0106/test/npm
+&gt; mocha --compilers jsx:babel-register simple-test.jsx
+
+
+
+  A simple test
+    1) ""before all"" hook: render and locate element
+
+
+  0 passing (34ms)
+  1 failing
+
+  1) A simple test ""before all"" hook: render and locate element:
+     AssertionError: expected null to exist
+      at Context.&lt;anonymous&gt; (simple-test.jsx:21:9)
+
+
+
+npm ERR! Test failed.  See above for more details.
+</code></pre>
+
+<p>TestUtils.renderIntoDocument is returning null for no reason that I can see.  The <a href=""https://facebook.github.io/react/docs/test-utils.html#renderintodocument"" rel=""nofollow"">TestUtil docs</a> indicate that <code>window</code> and <code>document</code> must be defined before importing <code>React</code>, which is the point of <code>test-dom.jsx</code>.  </p>
+
+<p>I am certain that <code>test-dom.jsx</code> is loaded before React, because before I added the line setting <code>global.navigator</code>,  React was throwing an error deep in its code trying to access that variable.</p>
+
+<p>Any idea what I need to do to make this work?</p>
+
+<p><em>package.json</em></p>
+
+<pre><code>{
+  ""dependencies"": {
+    ""react"": ""^15.0.1"",
+    ""react-bootstrap"": ""^0.28.5"",
+    ""react-dom"": ""^15.0.1""
+  },
+  ""scripts"": {
+      ""test"": ""mocha --compilers jsx:babel-register simple-test.jsx""
+  },
+  ""devDependencies"": {
+    ""babel-preset-es2015"": ""^6.6.0"",
+    ""babel-preset-react"": ""^6.5.0"",
+    ""babelify"": ""^7.2.0"",
+    ""chai"": ""^3.5.0"",
+    ""jsdom"": ""^8.4.0"",
+    ""mocha"": ""^2.4.5"",
+    ""react-addons-test-utils"": ""^15.0.1""
+  }
+}
+</code></pre>
+
+<p><em>test-dom.jsx</em></p>
+
+<pre><code>// React needs the basic dom objects defined before it is imported.  
+// And babel moves the imports before the rest of the code. 
+// So the dom setup needs to be in its own file and imported.
+
+import jsdom from 'jsdom';
+
+
+const document = jsdom.jsdom(""hello world"");
+const window = document.defaultView;
+
+// A super simple DOM ready for React to render into
+// Store this DOM and the window in global scope ready for React to access
+global.document = document;
+
+global.window = window;
+
+global.navigator = {userAgent: 'None'};
+
+export default { document: document, window: window };
+</code></pre>
+
+<p><em>simple-test.jsx</em></p>
+
+<pre><code>import TestDom from './test-dom.jsx';
+
+import { expect } from 'chai';
+
+import React from 'react';
+import { Panel } from 'react-bootstrap';
+
+import TestUtils from 'react-addons-test-utils';
+
+
+const Map = () =&gt; (
+    &lt;Panel&gt;A map &lt;/Panel&gt;
+);
+
+describe('A simple test', () =&gt; {
+     before('render and locate element', () =&gt; {
+       const renderedComponent = TestUtils.renderIntoDocument(
+            &lt;Map /&gt;
+        );
+
+        expect(renderedComponent).to.exist; // This fails
+    });
+
+
+
+    it('test something', () =&gt; {
+        expect(1+1).is('true');
+    });
+});
+</code></pre>
+
+<p><em>.babelrc</em></p>
+
+<pre><code>{
+    ""presets"": [
+        ""es2015"",
+        ""react""
+    ]
+}
+</code></pre>
+","1375292","","","","","2016-04-19 18:52:10","Testing react-bootstrap with mocha and ES6/babel","<javascript><reactjs><mocha><babeljs><react-bootstrap>","0","0","","",""
+"36181345","1","","","2016-03-23 14:46:39","","1","126","<p>I am trying to write unit tests for a simple react component that has a radio button. Whether or not the test is failing is beside the point because I am getting syntax errors before the test can do its job.
+I am running React0.14.7, node0.12.0, and jest 0.4.0 (this version of jest is compatible with node0.12.0. My dependencies are listed below.<br></p>
+
+<pre><code>""devDependencies"": {
+""babel-jest"": ""^9.0.3"",
+""babel-polyfill"": ""^6.7.2"",
+""babel-preset-es2015"": ""^6.6.0"",
+""babel-preset-react"": ""^6.5.0"",
+""gulp"": ""latest"",
+""gulp-concat"": ""latest"",
+""gulp-less"": ""latest"",
+""gulp-react"": ""latest"",
+""gulp-sourcemaps"": ""latest"",
+""jest-cli"": ""^0.4.0"",
+""watch"": ""latest""
+},
+""jest"": {
+  ""scriptPreprocessor"": ""&lt;rootDir&gt;/node_modules/babel-jest"",
+""testFileExtensions"": [""es6"", ""js""],
+""moduleFileExtensions"": [""js"", ""json"", ""es6""]
+</code></pre>
+
+<p>}</p>
+
+<p>This is my test ""../src/<strong>tests</strong>/radio-group-test.js""</p>
+
+<pre><code>jest.unmock('../components/radio-group.jsx')
+
+import React from 'react'
+import ReactDOM from 'react-dom'
+import TestUtils from 'react-addons-test-utils'
+import PolicyConditions from '../components/radio-group.jsx'
+
+describe('../components/radio-group.jsx', () =&gt; {
+  it('renders a subform when clicking a checkbox', () =&gt; {
+    var conditions = TestUtils.renderIntoDocument(
+      &lt;RadioGroup 
+        radioType='labelRadios'
+        name='email'
+      /&gt;
+    )
+
+    var radioNode = ReactDOM.findDOMNode(radio)
+
+    expect(radioNode.checked).toEqual('false')
+
+    TestUtils.Simulate.change(
+      TestUtils.findRenderedDOMComponentWithTag(radio, 'checked')
+    )
+
+    expect(radioNode.checked).toEqual('true')
+  })
+})
+</code></pre>
+
+<p>The error from the terminal:</p>
+
+<pre><code>SyntaxError: ../node_modules/babel-jest: ../node_modules/babel-jest/src/index.js:15
+process(src, filename) {
+       ^ 
+Unexpected token (
+</code></pre>
+
+<p>Its almost as if babel isn't doing its job in translating es2015 because I had an earlier error with using <code>const</code> before changing it to <code>var</code>.</p>
+
+<p>Edit: apologies, forgot to add the code that is actually failing.</p>
+
+<pre><code>'use strict';
+
+var babel = require('babel-core');
+var jestPreset = require('babel-preset-jest');
+
+module.exports = {
+  process(src, filename) {
+    if (babel.util.canCompile(filename)) {
+      return babel.transform(src, {
+        auxiliaryCommentBefore: 'istanbul ignore next',
+        filename,
+        presets: [jestPreset],
+        retainLines: true,
+      }).code;
+    }
+    return src;
+  },
+};
+</code></pre>
+","6104813","","","","","2016-03-23 14:46:39","Unit testing react with jest 0.4.0 and node 0.12.0","<node.js><unit-testing><reactjs><jestjs>","0","0","1","",""
+"36215637","1","36217268","","2016-03-25 07:15:03","","2","937","<p>I have a React component that has buttons for which the onClick events are bound to functions passed as properties from the parent component, e.g. <code>&lt;Counter counter=0 incrementCounter={incrementFunction} decrementCounter={decrementFunction} /&gt;</code>.</p>
+
+<p>I'm new to unit testing React components so I'm trying to check that the function gets called when clicking on the increment/decrement buttons. For this I'm using Jasmine's spyOn method, but it never seems to catch the function being called.</p>
+
+<p>If I output a console.log in the function I'm using (e.g. <code>let incrementCounter = () =&gt; { console.log(""increment!""); };</code>) then I can tell the function is being called when I do <code>TestUtils.Simulate.click(incrementButton);</code>, however the test still won't pass. What am I missing?</p>
+
+<p><strong>Counter.js</strong></p>
+
+<pre><code>import React, { Component, PropTypes } from ""react"";
+
+class Counter extends Component {
+
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    const { incrementCounter, decrementCounter, counter } = this.props;
+    return (
+
+        &lt;div&gt;
+          &lt;h1&gt;Counter&lt;/h1&gt;
+          &lt;p&gt;
+            &lt;b&gt;Counter: {counter} times&lt;/b&gt;
+            {"" ""}
+            &lt;button onClick={incrementCounter}&gt;+&lt;/button&gt;
+            {"" ""}
+            &lt;button onClick={decrementCounter}&gt;-&lt;/button&gt;
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+    );
+  }
+}
+
+Counter.propTypes = {
+  incrementCounter: PropTypes.func.isRequired,
+  decrementCounter: PropTypes.func.isRequired,
+  counter: PropTypes.number.isRequired
+};
+
+export default Counter;
+</code></pre>
+
+<p><strong>Counter.test.js</strong></p>
+
+<pre><code>import React from ""react"";
+import TestUtils from ""react/lib/ReactTestUtils"";
+import Counter from ""./Counter""
+
+describe(""Counter"", function () {
+
+  let renderedComponent = {};
+  let heading = {};
+  let decrementButton = {};
+  let incrementButton = {};
+  let incrementCounter = () =&gt; {};
+  let decrementCounter = () =&gt; {};
+  let counter = 0;
+
+  beforeEach(function(){
+
+    renderedComponent = TestUtils.renderIntoDocument(
+        &lt;Counter incrementCounter={incrementCounter} decrementCounter={decrementCounter} counter={counter} /&gt;
+    );
+
+    heading = TestUtils.findRenderedDOMComponentWithTag(renderedComponent, ""h1"");
+
+    let buttons = TestUtils.scryRenderedDOMComponentsWithTag(renderedComponent, ""button"");
+
+    decrementButton = buttons[1];
+    incrementButton = buttons[0];
+
+    this.incrementCounter = incrementCounter;
+
+  });
+
+  it(""renders without problems"", function () {
+
+    expect(TestUtils.isDOMComponent(heading)).toBe(true);
+    expect(heading.innerText).toMatch(/Counter/g);
+
+    expect(TestUtils.isDOMComponent(decrementButton)).toBe(true);
+    expect(decrementButton.innerText).toMatch(/-/g);
+
+    expect(TestUtils.isDOMComponent(incrementButton)).toBe(true);
+    expect(incrementButton.innerText).toMatch(/\+/g);
+
+  });
+
+  it(""fires the increment function"", function() {
+
+    spyOn(this, ""incrementCounter"");
+    TestUtils.Simulate.click(incrementButton);
+    expect(this.incrementCounter).toHaveBeenCalled(); // Error: fuction doesn't get called
+
+  });
+
+});
+</code></pre>
+","1547401","","","","","2016-03-25 09:26:18","Testing onClick event on react component using Jasmine","<unit-testing><reactjs><jasmine>","1","0","","",""
+"37106885","1","45176185","","2016-05-09 02:09:56","","3","636","<p>I'm using mocha and JsDom to test my react component.</p>
+
+<p>First of all my component works perfectly, so it is problem with the testing enviornment. </p>
+
+<p>Situation:</p>
+
+<p>I have a component that render a couple of <code>select</code> tag with id. Then a <code>componentDidMount</code> in the component that would use <code>document.getElementById</code> to get those select tags and add options to them. But when I run my test, it is showing null for these <code>getElementById</code>.</p>
+
+<p>Now if I comment out <code>componentDidMount</code>, and assert stuff such as below, it works perfectly, so the component did render out those select tags.</p>
+
+<pre><code>    describe('test component', function(){
+      var renderedElement = ReactTestUtils.renderIntoDocument(&lt;Component/&gt;);
+      var renderedNode = ReactDom.findDOMNode(renderedElement);
+      it('should have the proper markup', function(){
+        assert.equal(renderedNode.childElementCount, 5);
+       [...]
+      })
+    })
+</code></pre>
+
+<p>what is causing the problem? Is it cause <code>document.getElementById</code> the document object doesn't exist in my testing environment cause Im using a 'fake' one, if so how should I test this?</p>
+
+<p>below is my jsdom setup for mocha</p>
+
+<pre><code>    (function () {
+        'use strict';
+
+        var jsdom = require('jsdom'),
+            baseHTML,
+            window;
+
+        if (!global.window) {
+            baseHTML = '&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head lang=""en""&gt;&lt;meta charset=""UTF-8""&gt;&lt;title&gt;Tests&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;';
+            window = jsdom.jsdom(baseHTML).defaultView;
+
+            global.window = window;
+            global.document = window.document;
+            global.navigator = window.navigator;
+        }
+
+    }());
+</code></pre>
+","308553","","308553","","2016-05-09 02:15:06","2017-07-18 20:11:09","mocha JSDOM testing on react, getElementById return null","<reactjs><mocha><jsdom>","1","0","","",""
+"32494407","1","","","2015-09-10 06:11:52","","3","2084","<p>I'm working through a TodoMVC example for the <a href=""http://rackt.github.io/redux/"" rel=""nofollow"">Redux</a> ecosystem. I've completed working code for the example and am now working through the creation of tests for each of the elements of the application.</p>
+
+<p>For actions and reducers, the testing is very straightforward, but for the components, writing tests has proven somewhat more challenging.</p>
+
+<p>My general component architecture looks like this:</p>
+
+<pre><code>Home.js
+      \-App.js
+              \-TodoList.js
+                          \-TodoItem.js
+                                       \-TodoInput.js
+</code></pre>
+
+<p>Writing the unit tests for TodoInput.js has been relatively straightforward:</p>
+
+<p>TodoInput.js:</p>
+
+<pre><code>handleChange(e) {
+    this.setState({ text: e.target.value });
+  }
+
+...
+
+  render() {
+
+    return (
+      &lt;input type=""text"" autoFocus='true'
+            className={classnames({
+              edit: this.props.editing,
+              'new-todo': this.props.newTodo
+             })}
+            value={this.state.text}
+            placeholder={this.props.placeholder}
+            onKeyDown={this.handleKeyDown.bind(this)}
+            onBlur={this.handleBlur.bind(this)}
+            onChange={this.handleChange.bind(this)}&gt;
+      &lt;/input&gt;
+    );
+  }
+</code></pre>
+
+<p>TodoInput-test.js:</p>
+
+<pre><code>const mockedTodo = {
+  text: 'abc123',
+  complete: false
+};
+
+
+it(`should update text from user input`, () =&gt; {
+      const component = TestUtils.renderIntoDocument(
+        &lt;TodoInput
+          text = {mockedTodo.text}
+          editing = {false}
+          onSave = {_.noop}
+        /&gt;
+      );
+
+      const inputComponent = TestUtils.findRenderedDOMComponentWithTag(component, 'input');
+
+      expect(React.findDOMNode(inputComponent).value).toBe(mockedTodo.text);
+
+      TestUtils.Simulate.change(React.findDOMNode(inputComponent), {target: {value: ""newValue""}});
+
+      expect(React.findDOMNode(inputComponent).value).toBe(""newValue"");
+
+      React.unmountComponentAtNode(React.findDOMNode(component));
+});
+</code></pre>
+
+<p>But for TodoItem.js, testing has been a little trickier.</p>
+
+<p>The render code branches based on whether or not an <code>editing</code> flag has been set on the item:</p>
+
+<p>TodoItem.js:</p>
+
+<pre><code>import React, { Component, PropTypes } from 'react';
+import TodoInput from './TodoInput';
+import classnames from 'classnames';
+
+export default class TodoItem extends Component {
+
+  static propTypes = {
+    todo: PropTypes.object.isRequired,
+    editTodo: PropTypes.func.isRequired,
+    markTodoAsComplete: PropTypes.func.isRequired,
+    deleteTodo: PropTypes.func.isRequired
+  }
+
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
+      editing: false
+    };
+  }
+
+  handleDoubleClick() {
+    this.setState({ editing: true });
+  }
+
+
+  handleSave(id, text) {
+    if (text.length === 0) {
+      this.props.deleteTodo(id);
+    } else {
+      this.props.editTodo(id, text);
+    }
+    this.setState({ editing: false });
+  }
+
+  render() {
+    const {todo, markTodoAsComplete, deleteTodo} = this.props;
+    let element;
+
+    if (this.state.editing) {
+      element = (
+        &lt;TodoInput text={todo.text}
+                       editing={this.state.editing}
+                       onSave={(text) =&gt; this.handleSave(todo.id, text)} /&gt;
+      );
+    } else {
+      element = (
+        &lt;div className='view'&gt;
+          &lt;label onDoubleClick={this.handleDoubleClick.bind(this)}&gt;
+            {todo.text}
+          &lt;/label&gt;
+          &lt;input className='markComplete'
+                 type='checkbox'
+                 checked={todo.complete}
+                 onChange={() =&gt; markTodoAsComplete(todo)} /&gt;
+          &lt;button className='destroy'
+                  onClick={() =&gt; deleteTodo(todo)} /&gt;
+        &lt;/div&gt;
+      );
+    }
+
+    return (
+      &lt;li className={classnames({
+        completed: todo.complete,
+        editing: this.state.editing
+      })}&gt;
+        {element}
+      &lt;/li&gt;
+    )
+  }
+}
+</code></pre>
+
+<p>I'm a little stumped on how to go about writing a test that, for instance, would verify that a double-click on the component had successfully set the state to <code>editing: true</code>. </p>
+
+<p>Typically, I have my tests divided into two parts, ""rendering"" and ""events"", i.e. for TodoItem-test.js:</p>
+
+<pre><code>import React, { addons } from 'react/addons';
+import _ from 'lodash';
+import expect from 'expect';
+const { TestUtils } = addons;
+
+import TodoItem from '../TodoItem';
+
+describe('TodoItem', () =&gt; {
+
+  const mockedTodo = {
+    text: 'abc123',
+    complete: false
+  };
+
+describe('rendering', () =&gt; {
+    let component;
+
+    before(() =&gt; {
+      component = TestUtils.renderIntoDocument(
+        &lt;TodoItem
+          todo={mockedTodo}
+          editTodo={_.noop}
+          markTodoAsComplete={_.noop}
+          deleteTodo={_.noop}
+        /&gt;
+      );
+    });
+
+    afterEach(() =&gt; {
+      React.unmountComponentAtNode(React.findDOMNode(component));
+    });
+
+    it('should render the element', () =&gt; {
+      const liComponent = TestUtils.findRenderedDOMComponentWithTag(component, 'li');
+
+      expect(liComponent).toExist();
+    });
+
+    it('should render text in label', () =&gt; {
+      const labelComponent = TestUtils.findRenderedDOMComponentWithTag(component, 'label');
+
+      expect(labelComponent).toExist();
+      expect(React.findDOMNode(labelComponent).textContent).toEqual('abc123');
+    });
+  });
+
+ describe('events', () =&gt; {
+  ...
+
+});
+</code></pre>
+
+<p>but in this case, I want to see if double-clicking on the component leads to the following:</p>
+
+<ol>
+<li>the component state should now have an <code>editing</code> flag associated with it</li>
+<li>the <code>element</code> should have changed, and <code>TodoItem.js</code> should now render a <code>&lt;TodoInput/&gt;</code> component instead.</li>
+</ol>
+
+<p>What is the most efficient way to structure a test against this expected behavior? I am thinking that I should do two things:</p>
+
+<p>First, test to see if a double-click on the component adds the expected <code>""editing: true""</code> flag. <strong>I am not sure how to do this</strong>. If I set up a test as follows:</p>
+
+<pre><code>describe('events', () =&gt; {
+    let component;
+    let deleteTodoCallback = sinon.stub();
+
+    beforeEach(() =&gt; {
+      component = TestUtils.renderIntoDocument(
+        &lt;TodoItem
+          todo={mockedTodo}
+          editTodo={_.noop}
+          markTodoAsComplete={_.noop}
+          deleteTodo={deleteTodoCallback}
+        /&gt;
+      );
+    });
+
+    afterEach(() =&gt; {
+      React.unmountComponentAtNode(React.findDOMNode(component));
+    });
+
+    it(`should change the editing state to be true if a user double-clicks
+          on the todo`, () =&gt; {
+
+        const liComponent = TestUtils.findRenderedDOMComponentWithTag(component, 'li');
+
+        // expect the editing flag to be false
+
+        TestUtils.Simulate.doubleClick(React.findDOMNode(liComponent));
+
+        // expect the editing flag to be true
+
+    });
+  });
+</code></pre>
+
+<p><strong>how do I go about testing to ensure that the editing flag has been set?</strong> <code>liComponent.props.editing</code> returns <code>undefined.</code></p>
+
+<p>Second, have a <code>context(""if the component is editing mode"")</code> that tests to make sure that the following has been rendered correctly:</p>
+
+<pre><code>  &lt;li className={classnames({
+    completed: todo.complete,
+    editing: this.state.editing
+  })}&gt;
+      &lt;TodoInput text={todo.text}
+                   editing={this.state.editing}
+                   onSave={(text) =&gt; this.handleSave(todo.id, text)} /&gt;
+  &lt;/li&gt;
+</code></pre>
+
+<p>I'm also not sure how I would go about testing this rigorously as well.</p>
+","972253","","218196","","2015-09-10 15:48:14","2015-09-10 16:37:57","unit testing a react component with mocha","<javascript><unit-testing><reactjs><redux>","1","0","2","",""
+"36682241","1","36682433","","2016-04-17 21:06:52","","6","2117","<p>I am learning to test <em>React stateless components</em> using the <em>ReactTestUtils</em> library. This is my simple component:</p>
+
+<pre><code>import React from 'react';
+
+const Greeter = ({name,place}) =&gt; (
+  &lt;h1&gt;Hello,{name}. Welcome to the {place}.&lt;/h1&gt;
+);
+
+export default Greeter;
+</code></pre>
+
+<p>This is my test spec, to get the <code>renderIntoDocument</code> working, I wrapped my <em>Greeter</em> component in a div as suggested <a href=""http://t4d.io/jest-testutils-and-react-stateless-components/"" rel=""nofollow noreferrer"">here</a>:</p>
+
+<pre><code>import {expect} from 'chai';
+import React from 'react';
+import ReactTestUtils from 'react-addons-test-utils';
+import Greeter from '../Greeter';
+
+describe('Greeter Components',() =&gt; {
+  it('renders correctly',() =&gt; {
+    var component = ReactTestUtils.renderIntoDocument(&lt;div&gt;
+        &lt;Greeter name=""Vamsi"" place=""Hotel California""/&gt;
+    &lt;/div&gt;);
+
+    var hasH1 = ReactTestUtils.findRenderedDOMComponentWithTag(component,'h1');
+expect(hasH1).to.be.ok;
+  });
+});
+</code></pre>
+
+<p>I get the error </p>
+
+<blockquote>
+  <p>findAllInRenderedTree(...): instance must be a composite component.</p>
+</blockquote>
+
+<p>I am providing my code as jsbin <a href=""http://jsbin.com/bohosodupa/1/edit?html,js,console"" rel=""nofollow noreferrer"">here</a>.</p>
+","2309862","","1575353","","2017-07-14 17:59:59","2017-12-24 04:51:06","Testing functional components with renderIntoDocument","<javascript><unit-testing><reactjs><mocha><karma-runner>","3","0","4","",""
+"46084113","1","","","2017-09-06 20:49:07","","0","28","<p>Trying to perform a first test in a new component... However in the code below the <code>renderIntoDocument</code> method returns a <strong>empty object</strong>. It is good to point out that the component works fine in the main app, rendered using webpack. No other error is throw! Thanks in advance</p>
+
+<pre><code>import React from 'react';
+import TestUtils from 'react-dom/test-utils';
+
+import TwistCardComponent from '../lib/twist-card-component';
+
+describe('Render TwistCardComponent into document', function() {
+    let component;
+    beforeEach(function() {
+        component = TestUtils.renderIntoDocument(&lt;TwistCardComponent /&gt;);
+    });
+
+    it('should render', function() {
+        console.log(component);
+        expect(component.getDOMNode().className).toEqual(
+            'twist-card-component');
+    });
+});
+</code></pre>
+
+<p><strong>component</strong></p>
+
+<pre><code>import React from 'react';
+import createReactClass from 'create-react-class';
+
+const TwistCardComponent = createReactClass({
+  render() {
+    return (
+      &lt;div className='twist-card-component'&gt;Hello World!&lt;/div&gt;
+    );
+  }
+});
+
+export default TwistCardComponent;
+</code></pre>
+
+<p>** package.json ** </p>
+
+<pre><code>{
+  ""name"": ""twist-card-component"",
+  ""version"": ""1.0.0"",
+  ""description"": ""twist card component"",
+  ""scripts"": {
+    ""test"": ""eslint lib/ spec/ &amp;&amp; ./node_modules/karma/bin/karma start karma.conf.js"",
+    ""watch-test"": ""./node_modules/karma/bin/karma start karma.conf.js --auto-watch --no-single-run"",
+    ""build"": ""webpack -p --display-error-details --colors"",
+    ""start"": ""webpack-dev-server --inline --hot""
+  },
+  ""author"": """",
+  ""license"": ""BSD"",
+  ""keywords"": [
+    ""react"",
+    ""reactjs"",
+    ""react-component""
+  ],
+  ""main"": ""dist/index.js"",
+  ""files"": [
+    ""dist""
+  ],
+  ""devDependencies"": {
+    ""babel-core"": ""~5.8.22"",
+    ""babel-eslint"": ""^4.1.8"",
+    ""babel-loader"": ""~5.3.2"",
+    ""css-loader"": ""~0.16.0"",
+    ""es5-shim"": ""~4.1.10"",
+    ""eslint"": ""^0.21.1"",
+    ""eslint-plugin-react"": ""^2.3.0"",
+    ""jasmine"": ""~2.3.2"",
+    ""jasmine-core"": ""~2.3.4"",
+    ""karma"": ""^1.7.1"",
+    ""karma-jasmine"": ""^0.3.8"",
+    ""karma-phantomjs-launcher"": ""^0.2.3"",
+    ""karma-sourcemap-loader"": ""^0.3.7"",
+    ""karma-webpack"": ""^2.0.4"",
+    ""node-sass"": ""^3.13.1"",
+    ""phantomjs"": ""^2.1.7"",
+    ""phantomjs-prebuilt"": ""^2.1.15"",
+    ""react"": ""^15.6.1"",
+    ""react-addons-test-utils"": ""^15.6.0"",
+    ""react-dom"": ""^15.6.1"",
+    ""sass-loader"": ""~2.0.1"",
+    ""sourcemap"": ""^0.1.0"",
+    ""style-loader"": ""~0.12.3"",
+    ""webpack"": ""^1.15.0"",
+    ""webpack-dev-server"": ""~1.10.1""
+  },
+  ""dependencies"": {
+    ""babel-runtime"": ""~5.8.20""
+  }
+}
+</code></pre>
+","575734","","","","","2017-09-06 20:49:07","Test failing using react TestUtils","<reactjs><testing><npm>","0","0","","",""
+"29494111","1","","","2015-04-07 14:31:36","","1","1719","<p>I am trying to write a simple jest test for a react-router Route module.</p>
+
+<p>The component has a button and when clicking on it, there is a programatic navigation to another route by using the 'transitionTo' method. </p>
+
+<p>I keep getting the following error, even after adding the stubRouterContext utils (as explained <a href=""https://github.com/rackt/react-router/blob/v0.12.4/docs/guides/testing.md"" rel=""nofollow"">here</a>), and wrapping my UserDetails component in the stubRouterContext:</p>
+
+<p><code>TypeError: Property 'transitionTo' of object #&lt;Object&gt; is not a function</code></p>
+
+<p>I am using react 12.2, react-router 12.4, and jest 2.2</p>
+
+<p>My dummy component:</p>
+
+<pre><code>var Navigation, React, Router;
+
+React = require('react/addons');
+Router = require('react-router');
+Navigation = require('react-router').Navigation;
+
+module.exports = React.createClass({
+
+  mixins: [Navigation],
+
+  onButtonClick: function() {
+    this.transitionTo('next-page');
+  },
+
+  render: function() {
+    return (&lt;button onClick={@onButtonClick}&gt;Go to next page&lt;/button&gt;)
+  }
+});
+</code></pre>
+
+<p>My test file:</p>
+
+<pre><code>jest.dontMock('./../utils/stub-router-context')
+    .dontMock('../dummy-component');
+
+describe('DummyComponent', function() {
+  it('let you navigate to next page', function() {
+
+    var React = require('react/addons');
+    var TestUtils = React.addons.TestUtils;
+    var stubRouterContext = require('./../utils/stub-router-context');
+    var DummyComponent = require('../dummy-component');
+
+    var Subject = stubRouterContext(DummyComponent);
+    dummyComponent = TestUtils.renderIntoDocument(&lt;Subject/&gt;);
+
+    button = TestUtils.findRenderedDOMComponentWithTag(dummyComponent, 'button');
+    React.addons.TestUtils.Simulate.click(button);
+
+  });
+});
+</code></pre>
+
+<p>My stub-router-context.cjsx file:</p>
+
+<pre><code>var React = require('react/addons');
+var func = React.PropTypes.func;
+var _ = require('lodash');
+
+module.exports  = function(Component, props, stubs) {
+  return React.createClass({
+    childContextTypes: {
+      makePath: func,
+      makeHref: func,
+      transitionTo: func,
+      replaceWith: func,
+      goBack: func,
+      getCurrentPath: func,
+      getCurrentRoutes: func,
+      getCurrentPathname: func,
+      getCurrentParams: func,
+      getCurrentQuery: func,
+      isActive: func
+    },
+    getChildContext: function() {
+      return _.merge({}, {
+        makePath: function() {},
+        makeHref: function() {},
+        transitionTo: function() {},
+        replaceWith: function() {},
+        goBack: function() {},
+        getCurrentPath: function() {},
+        getCurrentRoutes: function() {},
+        getCurrentPathname: function() {},
+        getCurrentParams: function() {},
+        getCurrentQuery: function() {},
+        isActive: function() {}
+      }, stubs);
+    },
+    render: function() {
+      return React.createElement(Component, props);
+    }
+  });
+};
+</code></pre>
+","4757928","","","","","2015-05-25 18:29:18","Jest testing of react-router","<react-router><jestjs>","2","1","1","",""
+"38875808","1","38925053","","2016-08-10 14:09:36","","0","426","<p>I have been trying to test a react app using jest. but couldn't even move a step further. I have created a Simple Component and tried to test it with jest. </p>
+
+<p>here is the component </p>
+
+<pre><code>import React from 'react'
+
+export default class TestComponent extends React.Component{
+ render(){
+    return(
+        &lt;h1&gt;This is a Test Component&lt;/h1&gt;
+    )
+ }
+}
+</code></pre>
+
+<p>and the test</p>
+
+<pre><code>jest.dontMock('../src/components/TestComponent')
+
+import TestComponent from '../src/components/TestComponent'
+var React = require('react'),
+TestUtils = require('react-addons-test-utils')
+
+describe('TestComponent', () =&gt;{
+
+it('should Render Somehow',() =&gt; {
+    let testComponent = TestUtils.renderIntoDocument(
+        &lt;TestComponent /&gt;
+    )
+    let com = TestUtils.scryRenderedDOMComponentsWithTag(testComponent, 'h1')
+      expect(com.length).toEqual(1);
+    console.log(com)
+})
+})
+</code></pre>
+
+<p>the output of testComponent is not really null it prints out something starting with 'Testcomponent{' but when I tried to find out anything from the testComponent using the scryRenderedDOMComponentsWithTag method this is a null always .</p>
+
+<p>Thank you </p>
+","3309470","","2102634","","2016-12-08 22:44:49","2016-12-08 22:44:49","React with jest renderIntoDocument always returns null","<reactjs><jestjs>","1","0","","",""
+"38706566","1","39260323","","2016-08-01 19:21:24","","0","191","<pre><code>  - TypeError: Cannot read property 'addStyleRule' of undefined
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/build/plotcss.js:61:15)
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/src/plotly.js:30:1)
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/src/core.js:15:14)
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/lib/core.js:9:18)
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/lib/index.js:15:12)
+
+    at emitTwo (events.js:106:13)
+    at process.emit (events.js:191:7)
+    at process.nextTick (internal/child_process.js:719:12)
+    at _combinedTickCallback (internal/process/next_tick.js:67:7)
+    at process._tickCallback (internal/process/next_tick.js:98:9)
+</code></pre>
+
+<p>My react project uses plotly and it is having trouble with plotly when running a jest test</p>
+
+<p>My test code looks like such:</p>
+
+<pre><code>import React from 'react'
+import ReactDOM from 'react-dom'
+import TestUtils from 'react-addons-test-utils'
+
+import AppBar from ""./index""
+import Navigation from ""../navigation/""
+
+// Use real modules for testing.
+jest.unmock(""./index"")
+jest.unmock(""./brand"")
+
+describe(""AppBar"", () =&gt; {
+  let component = &lt;AppBar /&gt;
+  let element = TestUtils.renderIntoDocument(component)
+  let node = ReactDOM.findDOMNode(element)
+
+  it(""renders the navigation to screen"", () =&gt; {
+    let el = TestUtils.findRenderedComponentWithType(element, Navigation)
+    expect(el).toBeDefined()
+  })
+})
+</code></pre>
+
+<p>I figure that mocking plotly has something to do with the addStyleRule of undefined error but I haven't quite pinned down as to what needs to be mocked/unmocked for this particular case of using an external library</p>
+","1557887","","2102634","","2016-12-08 22:46:56","2016-12-08 22:46:56","Plotly error when running jest test for react","<javascript><reactjs><plotly><jestjs>","1","0","","",""
+"30781250","1","31092619","","2015-06-11 12:46:52","","0","377","<p>I'm trying to test a react component which takes in input and fires off events whenever the value is changed. I pass it a client and a callback to call when the value is changed.</p>
+
+<p>I'm testing this by using mocha and using react's TestUtils. Here is the component :</p>
+
+
+
+<pre><code>var React = require('react');
+
+var SearchBar = React.createClass({
+    handleChange : function(event){
+        var algoliaClient = this.props.client;
+        // call algoliaClient.search with event.target.value
+        // this returns a promise on which .then is called 
+        // with a function which calls the onSearch callback
+    },
+    render: function(){
+        return (
+            &lt;div className=""search-bar""&gt;
+                &lt;input id=""search-bar"" type=""text"" onChange={this.handleChange} /&gt;
+            &lt;/div&gt;
+        );
+    }
+});
+
+module.exports = SearchBar;
+</code></pre>
+
+<p>In order to test this I wrote the following test :</p>
+
+<pre><code>describe('SearchBar', function(){
+it('Sets searchResults state variable on input', function(){
+    require('es6-promise').polyfill()
+    var React = require('react/addons');
+    var SearchBar = require('../app/components/SearchBar.js');
+    var TestUtils = React.addons.TestUtils;
+
+    var mockSearchResults = {};
+
+    var mockSearch = function(mockData) {
+        var mockPromise = new Promise(function(resolve, reject){
+            resolve(mockData);
+        });
+
+        return mockPromise;
+    };
+
+    var mockAlgoliaClient = {
+        search : mockSearch
+    };
+
+    var mockSetState = function(data){
+        mockSearchResults = data;
+    }
+
+    // Rendering component into the testdom
+    var searchBar = TestUtils.renderIntoDocument(
+        &lt;SearchBar client={ mockAlgoliaClient } onSearch={ mockSetState } /&gt;
+    );
+    debugger;
+
+    var input = TestUtils.findRenderedDOMComponentWithTag(
+        searchBar, 'input'
+    );
+
+    assert.equal( Object.keys(mockSearchResults).length, 0 );
+
+    TestUtils.Simulate.change(input, {target : {value : 's'}});
+    debugger;
+
+    assert.equal( mockSearchResults , {data : 's'});
+});
+});
+</code></pre>
+
+<p>At the end of the <code>Simulate.change</code> call, the value of <code>mockSearchResults</code> is still the same.</p>
+","2054527","","2054527","","2015-06-11 13:14:07","2015-06-27 19:19:07","How can we check if Simulate.change method is working when testing a react component?","<javascript><reactjs><mocha>","1","4","","",""
+"37925098","1","38239798","","2016-06-20 14:28:48","","1","1216","<p>I want to test react component:</p>
+
+<pre><code>export class IdentityPage extends React.Component&lt;PageProps, State&gt; {
+    constructor(props: PageProps) {
+        super(props);
+    }
+
+    componentDidMount() { this.reload(this.props.routeParams.id); }
+    render(){....}
+}
+</code></pre>
+
+<p>which is used in react router like this:</p>
+
+<pre><code>&lt;Router history={hashHistory}&gt;
+    &lt;Route path=""/""&gt;
+        &lt;Route path=""Identities""&gt;
+            &lt;Route path="":action/:id"" component={IdentityPage} /&gt;
+        &lt;/Route&gt;
+    &lt;/Route&gt;
+&lt;/Router&gt;
+</code></pre>
+
+<p>However, the test fails with:</p>
+
+<blockquote>
+  <p>Cannot read property 'id' of undefined</p>
+</blockquote>
+
+<p>when I try to run:</p>
+
+<pre><code>let pageProps: PageProps = {
+    params: {
+        action: ""view"",
+        id: ""0""
+    }
+};
+let instance = TestUtils.renderIntoDocument(React.createElement(IdentityPage, pageProps));
+</code></pre>
+","475727","","","","","2017-03-21 08:04:55","Testing react component withing react router","<reactjs><jasmine><react-router>","2","0","","",""
+"37783296","1","37784472","","2016-06-13 06:45:06","","0","354","<p>I have a <a href=""https://facebook.github.io/react/"" rel=""nofollow"">react</a> ""wrapper"" component that is supposed to wrap its child. Here is the relevant part:</p>
+
+<pre><code>export class Wrapper extends Component {   
+    render(){
+        return (&lt;div&gt;{ this.props.children }&lt;/div&gt;);
+    }
+}
+</code></pre>
+
+<p>I am trying to use <a href=""https://facebook.github.io/jest/"" rel=""nofollow""><code>jest</code></a> to test if the rendered child is indeed what has been provided to this wrapper.
+Here is what I tried;</p>
+
+<pre><code>describe('SwapWrapper', () =&gt; {
+    it('contains its child', () =&gt; {
+        const potentialChild = (&lt;AMockedComponent/&gt;);
+        const wrapper = TestUtils.renderIntoDocument(
+            &lt;Wrapper&gt;{potentialChild}&lt;/Wrapper&gt;
+        );
+        const realChild = TestUtils.findRenderedComponentWithType(wrapper, AMockedComponent);
+        expect(realChild).toBe(potentialChild); // Obviously does not work.
+    });
+});
+</code></pre>
+
+<p>It obviously does not work. <a href=""https://facebook.github.io/react/blog/2015/12/18/react-components-elements-and-instances.html"" rel=""nofollow""><code>realChild</code> is a component instance while <code>potentialChild</code> is a component element</a>.</p>
+
+<p>Currently, the only things I have been able to do is to create <code>potentialChild</code> with a property and to check that <code>realChild</code> does contain this property.</p>
+
+<p>Is there a more valid way to check if <code>realChild</code> corresponds in fact to the <code>potentialChild</code> that has been provided?</p>
+","2212031","","2102634","","2016-12-08 23:00:21","2016-12-08 23:00:21","Test if a react component's child is in fact the provided child with jest","<javascript><reactjs><jestjs>","1","2","","",""
+"38007846","1","","","2016-06-24 07:25:30","","1","65","<p>I am using react-addons-test-utils with teaspoon and jest and I mount the component to be tested for each test using render or shallowRender:</p>
+
+<pre><code>TestUtils.renderIntoDocument(&lt;Component /&gt;)
+</code></pre>
+
+<p>or</p>
+
+<pre><code>$(&lt;Component /&gt;).render()
+$(&lt;Component /&gt;).shallowRender()
+</code></pre>
+
+<p>My question is do I have to unmount manually every component after each it()? If I don't will this cause memory leaks?</p>
+","1295369","","2102634","","2016-12-08 22:58:30","2016-12-08 22:58:30","Do react testUtilities rendered components need to be unmounted after each test","<reactjs><jasmine><jestjs>","0","0","1","",""
+"30811288","1","30815744","","2015-06-12 20:01:32","","0","157","<p>So I have a react component that looks something like this:</p>
+
+<pre><code>class SignInForm extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+    onFormSubmit(event) {
+        const username = React.findDOMNode(this.refs.username).value;
+        const password = React.findDOMNode(this.refs.username).value;
+
+        // very basic validation
+        if (username &amp;&amp; password.length &gt; 6) {
+            this.props.flux.signIn({ username, password });
+        }
+
+        event.preventDefault();
+    }
+    render() {
+        return (
+            &lt;form onSubmit={ this.onFormSubmit.bind(this) } &gt;
+                &lt;input type=""text"" ref=""username"" placeholder=""username""/&gt;
+                &lt;input type=""password"" ref=""password"" placeholder=""password""/&gt;
+                &lt;button type=""submit""&gt;Submit&lt;/button&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>And then I want to test it as follows:</p>
+
+<pre><code>describe('The SignInForm', () =&gt; {
+    it('should call `attemptSignIn` when submitted with valid data in its input fields', (done) =&gt; {
+        const spy = sinon.stub(flux.getActions('UserStateActions'), 'attemptSignIn');
+        const element = &lt;SignInForm { ...componentProps }/&gt;;
+        const component = TestUtils.renderIntoDocument(element);
+
+        const inputs = TestUtils.scryRenderedDOMComponentsWithTag(component, 'input');
+        TestUtils.Simulate.change(inputs[ 0 ], { target: { value: 'Joshua' } });
+        TestUtils.Simulate.change(inputs[ 1 ], { target: { value: 'Welcome123' } });
+
+        // This works, but I'd rather not set the values using the refs directly
+        // React.findDOMNode(component.refs.userNameOrEmailAddressInput).value = 'Joshua';
+        // React.findDOMNode(component.refs.plainTextPasswordInput).value = 'Welcome123';
+
+        const DOMNode = React.findDOMNode(component, element);
+        TestUtils.Simulate.submit(DOMNode);
+        spy.callCount.should.equal(1);
+        spy.restore();
+    });
+});
+</code></pre>
+
+<p>However the values of the references fields on the <code>onFormSubmit</code> method aren't those set by the <code>Simulate.change</code> call.</p>
+
+<p>Why not? Is this expected behaviour?</p>
+","436336","","","","","2015-06-13 06:22:32","How can I get simulated react events to update the values of the ref in my component?","<javascript><unit-testing><testing><reactjs><reactjs-testutils>","1","1","","",""
+"37084110","1","37085647","","2016-05-07 03:14:21","","2","1174","<p>So I know if Im using createClass I can access a helper function with prototype:</p>
+
+<pre><code>  import React from 'react';
+
+  var ContactUsRoot = React.createClass({
+
+    test: function(){
+      return 'yes';
+    },
+    render: function(){
+      return (
+        &lt;div id='contact-us-wall'&gt;
+          &lt;h6&gt;Contact us&lt;/h6&gt;
+          &lt;p&gt;Please free feel to contact us with the following contact information&lt;/p&gt;
+        &lt;/div&gt;)
+    }
+
+  })
+  export default ContactUsRoot;
+</code></pre>
+
+<p>test.js:</p>
+
+<pre><code>import Contact from 'Contact.js';
+
+describe('Helper functions in contactUsComponent', function(){
+  var renderedNode;
+
+  it('should return yes', function(){
+        assert.equal(Contact.prototype.test(), 'yes');// look here
+  });
+</code></pre>
+
+<p>But how do I access a helper function inside a es6 react component?</p>
+
+<p><code>class ContactUsRoot extends React.Component{</code> Do I have to create an instance then access from that instance or something? that doesn't sound right though</p>
+
+<hr>
+
+<p>EDIT:
+@CH Buckingham:</p>
+
+<p>in test:</p>
+
+<pre><code>  var renderedElement = ReactTestUtils.renderIntoDocument(&lt;Provider store = {store}&gt;&lt;GraphRoot/&gt;&lt;/Provider&gt;);
+
+  april = renderedElement.getDays(3, 2016, ""13"");
+</code></pre>
+
+<p>actual component:</p>
+
+<pre><code>  class GraphRoot extends React.Component{
+ [...]
+
+ getDays(month, year, days){
+ [...]
+ return item;
+ }
+</code></pre>
+
+<p>The rendering part worked perfectly, but when I try to access a method with <code>renderedElement.getDays(3, 2016, ""13"");</code>, it's saying it's not a function </p>
+","1294510","","1294510","","2016-05-07 14:40:23","2016-05-07 16:13:45","trying to unit test a function inside react es6 component","<reactjs><ecmascript-6>","2","0","","",""
+"28994283","1","","","2015-03-11 18:12:26","","7","3027","<p>I have the following code in a jest based test:</p>
+
+<pre><code>it('will show the hero loop if there is one', function() {
+
+    var React = require('react/addons');
+    var ShowsDetailHeader = require('../../../../routes/shows/components/ShowsDetailHeader.jsx');
+    var mockData = require('../../../../mock/episodeDetailData');
+    mockData.data.show.assets._webHeroVideoUrl = 'https://test.video.com';
+
+    var Subject = require('../../../../mock/stubRouterContext')(ShowsDetailHeader,  {
+      show: mockData.data.show
+    });
+
+    var TestUtils = React.addons.TestUtils;
+
+    var showsHeader = TestUtils.renderIntoDocument(
+      &lt;Subject /&gt;
+    );
+
+    showsHeader.setState({
+      showVideo: true
+    });
+
+    var videoClass = TestUtils.findRenderedDOMComponentWithClass(showsHeader, 'flex-video').getDOMNode().getAttribute('class');
+
+    expect(videoClass.indexOf('in')).toBe(-1);
+
+    console.log(videoClass);
+
+
+  });
+</code></pre>
+
+<p>My previous test tests the initial state of the component. I now want to call setState to check the component after a state change. The videoClass i'm logging here stays the same. I am on react 0.12. and latest jest 0.4.0.</p>
+
+<p>Any ideas on how to test what happens after set state?</p>
+","938269","","","","","2015-08-20 18:10:22","calling setState on a reactjs component with test utils not re-rendering component","<reactjs><jestjs>","1","0","1","",""
+"47362774","1","47362839","","2017-11-18 05:15:05","","0","43","<p>I'd like to test a form of my react-app.</p>
+
+<p>I have removed 'disabled' property of button when doing following things.</p>
+
+<pre><code>const component = TestUtils.renderIntoDocument(&lt;Mycomponent/&gt;);
+const myDOM =findDOMNode(component);
+const input = myDOM.querySelector('input');
+input.value = ""2017-11-11"";
+let submitButton = myDOM.querySelector('button');
+TestUtils.Simulate.click(submitButton);
+...
+const newlyAddedDate = record.querySelector('#date').innerHTML;
+console.log(""newlyAddedDate:""+newlyAddedDate);
+</code></pre>
+
+<p>but the output in console is</p>
+
+<pre><code>""newlyAddedDate:"" 
+</code></pre>
+
+<p>This react-app performs correctly in chrome.
+I believe it's the problem of</p>
+
+<pre><code>""input.value=""2017-11-11"";
+</code></pre>
+
+<p>This sentence failed to change the value in the inputbox.</p>
+
+<p>So how can i set the value in a inputbox when doing react-test?</p>
+
+<p>Here's the repo of this app
+<a href=""https://github.com/zzbslayer/ChargeAccount-React"" rel=""nofollow noreferrer"">https://github.com/zzbslayer/ChargeAccount-React</a></p>
+","8945288","","","","","2017-11-18 05:25:38","How can I change the value of input in react test","<reactjs><testing>","1","0","0","",""
+"38484466","1","","","2016-07-20 14:45:22","","3","75","<p>I am looking at the <a href=""https://facebook.github.io/react/docs/test-utils.html"" rel=""nofollow"">React Test Utilities docs</a>, in particular at the <code>renderIntoDocument</code> function:</p>
+
+<blockquote>
+  <p>Render a component into a detached DOM node in the document.</p>
+</blockquote>
+
+<p>I am wondering whether I should be doing anything with the component that I've rendered once I'm done testing?</p>
+
+<p>This works:</p>
+
+<pre><code>const component = ReactTestUtils.renderIntoDocument(createElement(MyThing));
+
+// do tests
+
+unmountComponentAtNode(findDOMNode(component).parentElement);
+</code></pre>
+
+<p>but I'm wondering if this step is necessary, since it isn't mentioned in the docs. Does my current approach actually achieve anything useful, or can I just use <code>renderIntoDocument</code> without worrying about tidying up?</p>
+","2088135","","","","","2016-07-20 14:45:22","renderIntoDocument clean up after test","<javascript><reactjs>","0","0","","",""
+"31971956","1","","","2015-08-12 17:40:09","","3","2534","<p>I am reading the <code>reactjs</code> documentation but I am having a having a hard time fully understanding it. I wish there were more step by step examples.</p>
+
+<p>I want to be able to test my components and their child components but I am not sure how to create mocks or instances of my components to test them. </p>
+
+<p>code:</p>
+
+<pre><code>import React from 'react/addons';
+import Layout from '../../app/views/layout.js';
+
+var TestUtils = React.addons.TestUtils;
+
+var mockLayout;
+
+describe('Layout (deep copy)', function() {
+    beforeEach(function() {
+        mockLayout = TestUtils.renderIntoDocument(&lt;Layout /&gt;);
+    });
+
+    it('is DOM Component', function(done) {
+        assert(TestUtils.isDOMComponent(mockLayout));
+        done();
+    });
+});
+</code></pre>
+
+<p>I am getting the error and I am not sure what it means:</p>
+
+<pre><code>TypeError: Cannot read property 'getRouteAtDepth' of undefined
+    at RouteHandler.createChildRouteHandler (base/spec/views/layout.js:23821:39)
+    at RouteHandler.render (base/spec/views/layout.js:23836:27)
+    at ReactCompositeComponentMixin._renderValidatedComponentWithoutOwnerOrContext (base/spec/views/layout.js:12011:35)
+    at ReactCompositeComponentMixin._renderValidatedComponent (base/spec/views/layout.js:12038:15)
+    at ReactPerf.measure.wrapper (base/spec/views/layout.js:3744:22)
+    at ReactCompositeComponentMixin.mountComponent (base/spec/views/layout.js:11459:31)
+    at ReactPerf.measure.wrapper [as mountComponent] (base/spec/views/layout.js:3744:22)
+    at Object.ReactReconciler.mountComponent (base/spec/views/layout.js:3819:36)
+    at ReactDOMComponent.ReactMultiChild.Mixin.mountChildren (base/spec/views/layout.js:13014:45)
+    at ReactDOMComponent.Mixin._createContentMarkup (base/spec/views/layout.js:12598:33)window.__karma__.result @ debug.html:37(anonymous function) @ adapter.js:98require.register.EventEmitter.emit @ mocha.js:616(anonymous function) @ adapter.js:73require.register.EventEmitter.emit @ mocha.js:611require.register.Runner.fail @ mocha.js:4797require.register.Runner.failHook @ mocha.js:4822(anonymous function) @ mocha.js:4863done @ mocha.js:4518require.register.Runnable.run @ mocha.js:4558next @ mocha.js:4855(anonymous function) @ mocha.js:4876timeslice @ mocha.js:6483
+</code></pre>
+","1815710","","","","","2015-08-12 18:22:22","Using React.addons.TestUtils to reactjs test components","<javascript><reactjs><reactjs-testutils>","1","0","2","",""
+"39322966","1","","","2016-09-05 01:45:31","","10","9592","<p>I'm following the example from this stackoverflow answer - <a href=""https://stackoverflow.com/questions/25533036/test-a-react-component-function-with-jest"">Test a React Component function with Jest</a>. I have an example component and test set up. The component works correctly when loaded into App.js. </p>
+
+<p>Component - </p>
+
+<pre><code>import React, { PropTypes, Component } from 'react';
+
+export default class ExampleModule extends Component {
+  static propTypes = {
+    onAction: PropTypes.func,
+  }
+
+  static defaultProps = {
+  onAction: () =&gt; { console.log(""In onAction""); }
+}
+
+doAction = () =&gt; {
+  // do something else
+  console.log('In do action');
+  this.props.onAction();
+}
+
+render() {
+  return(
+    &lt;div&gt;
+      &lt;button className='action-btn' onClick=  {this.doAction.bind(this)}&gt;Do action&lt;/button&gt;
+    &lt;/div&gt;
+  )
+}
+}
+</code></pre>
+
+<p>And here's the test - </p>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-addons-test-utils';
+import ExampleComponent from './ExampleModule.js';
+
+let Example;
+
+describe('Example component', function() {
+  beforeEach(function() {
+    Example = TestUtils.renderIntoDocument(&lt;ExampleComponent /&gt;);
+  })
+
+  it('calls props functions', function() {
+    Example.doAction = jest.genMockFunction();
+    let actionBtn = TestUtils.findRenderedDOMComponentWithClass(Example, 'action-btn');
+    TestUtils.Simulate.click(actionBtn);
+    expect(Example.doAction).toBeCalled();
+  })
+
+  it('doAction calls onAction', function() {
+    expect(Example.props.onAction).not.toBeCalled();
+    Example.doAction();
+    expect(Example.props.onAction).toBeCalled();
+  })
+})
+</code></pre>
+
+<p>However, I get the following error - </p>
+
+<pre><code>FAIL  src/App/components/Example/ExampleModule.test.js
+  Console
+
+    console.log src/App/components/Example/ExampleModule.js:14
+      In do action
+    console.log src/App/components/Example/ExampleModule.js:24
+      In onAction
+
+  Example component › calls props functions
+
+    Expected the mock function to be called.
+
+      at Object.&lt;anonymous&gt; (src/App/components/Example/ExampleModule.test.js:17:30)
+      at process._tickCallback (node.js:369:9)
+
+  Example component › doAction calls onAction
+
+    toBeCalled matcher can only be used on a spy or mock function.
+
+      at Object.&lt;anonymous&gt; (src/App/components/Example/ExampleModule.test.js:21:40)
+      at process._tickCallback (node.js:369:9)
+</code></pre>
+
+<p>I can see the console.logs in the <code>doAction</code> and <code>onAction</code> are being called even when I want to mock out <code>doAction</code>. 
+Also, I'm unable to mock out <code>onAction</code>. I get this error - </p>
+
+<pre><code>TypeError: Cannot assign to read only property 'onAction' of #&lt;Object&gt;
+</code></pre>
+
+<p>I've tried <code>jest.fn()</code> but got the same errors. </p>
+
+<p>How do I mock these functions and test them?</p>
+
+<p>EDIT:</p>
+
+<p>I was able to mock <code>doAction</code> by using jest.fn() in the following way - </p>
+
+<pre><code>let mockFn = jest.fn();
+Example.doAction = mockFn()
+</code></pre>
+
+<p>However, I'm still unable to mock <code>Example.props.onAction</code>.</p>
+","451906","","-1","","2017-05-23 12:17:36","2016-12-08 22:41:23","How to mock functions, and test that they're called, when passed as props in react components?","<javascript><unit-testing><reactjs><jestjs>","1","0","4","",""
+"32077331","1","","","2015-08-18 16:03:39","","1","1537","<p>I've been trying to figure out why this isn't working for a few days. I am having a really hard time getting <code>reactjs</code> <code>TestUtils</code> to work even when I reduced it to the most simple of examples:</p>
+
+<pre><code>describe('Layout', function() {
+    it('try to find className', function(done) {
+        var Wrapper = React.createClass({
+            render: function() {
+                return &lt;div className=""testWrapper""&gt;Hello &lt;span&gt;Jim&lt;/span&gt;&lt;/div&gt;;
+            }
+        });
+
+    var TestWrap = React.createClass({
+        render() {
+            return (
+                &lt;div&gt;
+                    &lt;p&gt;Test this &lt;/p&gt;
+                    &lt;Wrapper /&gt;
+                &lt;/div&gt;
+            );
+        }
+    })
+
+    var renderedTree = TestUtils.renderIntoDocument(&lt;TestWrap /&gt;);
+    var renderedMyComponent = TestUtils.findRenderedDOMComponentWithTag(renderedTree, 'div');
+    done();
+});
+</code></pre>
+
+<p>I am getting this error:</p>
+
+<pre><code>Error: Did not find exactly one match for tag:div
+    at Object.ReactTestUtils.findRenderedDOMComponentWithTag (/Users/bli1/Development/QE/data-trader/data-trader/spec/views/layout.js:22398:14)
+    at Context.&lt;anonymous&gt; (/Users/bli1/Development/QE/data-trader/data-trader/spec/views/layout.js:148:46)
+</code></pre>
+
+<p>Chrome 44.0.2403 (Mac OS X 10.10.4): Executed 1 of 1 (1 FAILED) ERROR (0.041 secs / 0.007 secs)</p>
+
+<p>Now when I change to look for <code>span</code>, it works...</p>
+
+<p>Same code but replace </p>
+
+<pre><code>var renderedMyComponent = TestUtils.findRenderedDOMComponentWithTag(renderedTree, 'div'); 
+</code></pre>
+
+<p>with </p>
+
+<pre><code>var renderedMyComponent = TestUtils.findRenderedDOMComponentWithTag(renderedTree, 'span');
+</code></pre>
+
+<p>result:</p>
+
+<p><code>Executed 1 of 1 SUCCESS (0.039 secs / 0.007 secs)</code></p>
+","1815710","","1815710","","2015-08-18 16:25:07","2015-08-28 01:42:01","Cannot find Component with Tag in reactjs TestUtils","<javascript><reactjs>","1","4","","",""
+"48479180","1","","","2018-01-27 18:35:38","","1","414","<p>We are now creating component with reactJS inside backbone/requireJS project, below is a simple component I created:</p>
+
+<pre><code>define(function(require) {
+    var React = require('react');
+    var Step1Comp =   React.createClass({
+        render: function() {
+            return &lt;div&gt;Step1&lt;/div&gt;
+        }
+    });
+    return Step1Comp;
+});
+</code></pre>
+
+<p>And this is the test:</p>
+
+<pre><code>'use strict';
+jest.unmock('../../public/js/Step1Comp');
+
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-dom';
+import Step1Comp from '../../public/js/Step1Comp';
+
+describe('a test testing comp', ()=&gt;{
+    it('render comp', ()=&gt;{
+        window.define={};
+        var step1Comp = TestUtils.renderIntoDocument(&lt;Step1Comp /&gt;);
+        expect(TestUtils.isCompositeComponent(step1Comp)).toBeTruthy();
+
+    });
+});
+</code></pre>
+
+<p>when we are running jest, I got this error:</p>
+
+<pre><code>Test suite failed to run
+ReferenceError: define is not defined
+</code></pre>
+
+<p>The component has to be within define, as the main project is written in requireJS, and we have to wrap it in define so that this comp can be loaded with other component.</p>
+
+<p>I have tried to add window['define']={} in the test to mock the define function, but it is useless.</p>
+
+<p>Can anyone help me to resolve this issue?</p>
+
+<p>Thanks in advance.</p>
+
+<p>Update now as below:</p>
+
+<pre><code>jest.mock('define', () =&gt; {
+});
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-dom';
+import Step1Comp from '../../public/js/app/create-quote/components/comps/details/step1/Step1Comp';
+
+describe('a test testing comp', ()=&gt;{
+    it('render comp', ()=&gt;{
+        var step1Comp = TestUtils.renderIntoDocument(&lt;Step1Comp /&gt;);
+        expect(TestUtils.isCompositeComponent(step1Comp)).toBeTruthy();
+    });
+});
+</code></pre>
+
+<p>But when I run jest, still same error:</p>
+
+<pre><code>&gt; NGCSC@1.0.0 test-faked /Users/frankhe/myjuniper-new/myjuniper/ngcsc-ui
+&gt; jest
+
+ FAIL  __tests__/test_comp/test.jest.js
+  ● Test suite failed to run
+
+    ReferenceError: define is not defined
+</code></pre>
+","3006967","","3006967","","2018-01-27 23:54:11","2018-01-28 07:11:39","Using react jest to test component created in requireJS, throwing error: ReferenceError: define is not defined","<reactjs><backbone.js><requirejs><jestjs>","2","0","","",""
+"38276331","1","","","2016-07-08 22:39:06","","0","207","<p>I have a simple react app that only contains a Hello World react component and I want to test it with Jest.</p>
+
+<p>Here's my simple hello world component</p>
+
+<pre><code>import React from 'react';
+
+class HelloWorld extends React.Component {
+
+    render() {
+        return (
+            &lt;div&gt;
+                Hello world 
+            &lt;/div&gt;
+        );
+    }
+}
+
+export default HelloWorld;
+</code></pre>
+
+<p>And here's my test</p>
+
+<pre><code>// helloWorldTest-spec.js
+jest.unmock('../src/components/HelloWorld');
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-addons-test-utils';
+import HelloWorld from '../src/components/HelloWorld';
+
+describe('jest test', () =&gt; {
+
+    const HelloWorld = TestUtils.renderIntoDocument(
+        &lt;HelloWorld /&gt;
+    );
+
+    it('should exist', () =&gt; {
+        expect(true).toEqual(true);   // just want the test to pass
+    });
+});
+</code></pre>
+
+<p>It will fail and return this</p>
+
+<pre><code>  runtime Error
+  - TypeError: Cannot read property 'default' of undefined
+         at Object.&lt;anonymous&gt; (__tests__/helloWorldTest-spec.js:5:36)
+    at Runtime._execModule (node_modules/jest-runtime/build/index.js:375:17)
+    at Runtime.requireModule (node_modules/jest-runtime/build/index.js:210:14)
+    at jasmine2 (node_modules/jest-jasmine2/build/index.js:293:11)
+    at Test.run (node_modules/jest-cli/build/Test.js:50:12)
+    at promise.then.then.data (node_modules/jest-cli/build/TestRunner.js:264:62)
+    at process._tickCallback (internal/process/next_tick.js:103:7)
+
+ 1 test suite failed, 0 tests passed (0 total in 1 test suite, run time 1.002s)
+</code></pre>
+
+<p>Has anyone ran into similar issue?</p>
+","1179623","","","","","2016-07-26 17:53:31","Jest renderIntoDocument not working","<javascript><reactjs><react-redux><jestjs>","1","0","","",""
+"32033711","1","32046636","","2015-08-16 09:41:35","","2","994","<p>I'm try to test my ReactJS mixin for drag and drop functionality using jasmine, karma and React TestUtils.</p>
+
+<p>No exception is thrown but when debugging it seems that the function bound to the event listener not being executed when the event is simulated.</p>
+
+<p>You can clone the it here:
+<a href=""https://github.com/itsh01/react-dragdrop/tree/testing-simutale-events"" rel=""nofollow"">https://github.com/itsh01/react-dragdrop/tree/testing-simutale-events</a></p>
+
+<p>Thank you very much in advance.</p>
+
+<p>Here is my test:</p>
+
+<pre><code>beforeEach(function () {
+
+    var CompDrag = React.createClass({
+        mixins: [DragDropMixin],
+        dragDrop: function dragDrop() {
+            return {
+                draggable: true,
+                dropType: 'test',
+                dataTransfer: {
+                    test: true
+                }
+            };
+        },
+        render: function render() {
+            return React.createElement('div', {});
+        }
+    });
+
+    var CompDrop = React.createClass({
+        mixins: [DragDropMixin],
+        dragDrop: function dragDrop() {
+            var self = this;
+            return {
+                droppable: true,
+                acceptableTypes: ['test'],
+                drop: function (data) {
+                    self.setState(data);
+                }
+            };
+        },
+        render: function render() {
+            return React.createElement('div', {});
+        }
+    });
+
+    elementDrag = React.createElement(CompDrag, {});
+    elementDrop = React.createElement(CompDrop, {});
+
+});
+
+...
+
+it('should attach drop functionality when configured', function () {
+    var renderedDrag = TestUtils.renderIntoDocument(elementDrag);
+    var renderedDrop = TestUtils.renderIntoDocument(elementDrop);
+    var nodeDrag = renderedDrag.getDOMNode();
+    var nodeDrop = renderedDrop.getDOMNode();
+    var mockEvent = {
+        preventDefault: function () {},
+        dataTransfer: {
+            types: [""objtopass""],
+            setData: function () {},
+            getData: function () {
+                return JSON.parse({
+                    dropType: 'test',
+                    data: {
+                        test: true
+                    }
+                });
+            }
+        }
+    };
+
+    TestUtils.SimulateNative.dragStart(nodeDrag, mockEvent);
+    TestUtils.Simulate.dragOver(nodeDrop, mockEvent);
+    TestUtils.Simulate.drop(nodeDrop, mockEvent);
+
+    expect(renderedDrop.state).not.toBeNull();
+});
+</code></pre>
+
+<p>Here is the mixin:</p>
+
+<pre><code>'use strict';
+
+var _ = lodash;
+
+var DragDropMixin = {
+    /*
+     *  usage:
+     *
+     *  mixins: [DragDropMixin],
+     *  dragDrop: function () {
+     *
+     *     return {
+     *
+     *         // when dragging an item
+     *         draggable: true,
+     *         dropType: 'myItem',
+     *         dataTransfer: { myItemData: property }
+     *
+     *         // when dropping an item:
+     *         droppable: true,
+     *         acceptableDrops: ['myItem'],
+     *         drop: function (myItem) {},
+     *     };
+     *  }
+     *
+     */
+    isAttrEnabled: function (attr) {
+        return this.dragDropData &amp;&amp; this.dragDropData[attr];
+    },
+    isDroppable: function () {
+        return this.isAttrEnabled('droppable');
+    },
+    isDraggable: function () {
+        return this.isAttrEnabled('draggable');
+    },
+    componentDidMount: function () {
+        var node = this.getDOMNode();
+
+        this.dragDropData = this.dragDrop();
+
+        if (this.isDroppable()) {
+            node.addEventListener('dragover', this.handleDragOver, this);
+            node.addEventListener('drop', this.handleDrop, this);
+        }
+
+        if (this.isDraggable()) {
+            node.draggable = true;
+            node.addEventListener('dragstart', this.handleDragStart, this);
+        }
+    },
+    componentWillUnmount: function () {
+        var node = this.getDOMNode();
+
+        if (this.isDroppable()) {
+            node.removeEventListener('dragover', this.handleDragOver);
+            node.removeEventListener('drop', this.handleDrop);
+        }
+
+        if (this.isDraggable()) {
+            node.removeEventListener('dragstart', this.handleDragStart);
+        }
+    },
+    handleDragOver: function (e) {
+        e.preventDefault();
+    },
+    handleDrop: function (e) {
+        var jsonData = e.dataTransfer.getData('objToPass'),
+            passedObj = JSON.parse(jsonData),
+            acceptableDrops = this.dragDropData.acceptableDrops;
+
+        e.preventDefault();
+
+        if (!this.dragDropData.drop) {
+            throw new Error('Must define drop function when using droppable');
+        }
+
+        if (_.includes(acceptableDrops, passedObj.dropType)) {
+            this.dragDropData.drop(passedObj.data);
+        }
+
+    },
+    handleDragStart: function (e) {
+        var objToPass = {
+            data: this.dragDropData.dataTransfer,
+            dropType: this.dragDropData.dropType
+        };
+
+        e.dataTransfer.setData('objToPass', JSON.stringify(objToPass));
+    }
+};
+</code></pre>
+
+<p>Thanks again.</p>
+","5232011","","","","","2015-08-17 09:13:22","Simulating drag drop with react testutils not working","<javascript><drag-and-drop><reactjs><karma-jasmine><reactjs-testutils>","1","0","1","",""
+"31758954","1","34119145","","2015-08-01 06:20:33","","3","2131","<p>I'm now using node.js(0.10.x) version, jest(0.4.x) version to test react.js.</p>
+
+<p>Before I decided to test my react components, I have used node.js 0.12.x version. Change through nvm to 0.10.x.</p>
+
+<p>I rebuilded the all the modules and restarted the test.</p>
+
+<p>The error is below.</p>
+
+<pre><code>Using Jest CLI v0.4.17
+ PASS  __tests__/unit/app.test.js (0.058s)
+ PASS  __tests__/unit/preprocessor.js (0.68s)
+ FAIL  __tests__/unit/mypage.test.js
+Error: /Users/nuko/WebstormProjects/pliky/__tests__/unit/mypage.test.js: /Users/nuko/WebstormProjects/pliky/__tests__/unit/preprocessor.js: Parse Error: Line 1: Illegal import declaration
+  at throwError (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:2813:21)
+  at throwErrorTolerant (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:2825:24)
+  at parseSourceElement (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:6390:17)
+  at parseProgramElement (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:6446:16)
+  at parseProgramElements (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:6478:29)
+  at parseProgram (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:6491:16)
+  at Object.parse (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/node_modules/esprima-fb/esprima.js:7653:23)
+  at getAstForSource (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/src/jstransform.js:251:21)
+  at transform (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/node_modules/jstransform/src/jstransform.js:274:11)
+  at innerTransform (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/main.js:94:10)
+  at Object.module.exports.transform (/Users/nuko/WebstormProjects/pliky/node_modules/react-tools/main.js:20:18)
+  at Object.module.exports.process (/Users/nuko/WebstormProjects/pliky/__tests__/unit/preprocessor.js:5:27)
+  at Object.readAndPreprocessFileContent (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/lib/utils.js:432:33)
+  at Loader._execModule (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:209:11)
+  at Loader.requireModule (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:914:12)
+  at Loader.requireModuleOrMock (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:935:17)
+  at /Users/nuko/WebstormProjects/pliky/__tests__/unit/mypage.test.js:4:14
+  at Object.runContentWithLocalBindings (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/lib/utils.js:485:17)
+  at Loader._execModule (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:245:9)
+  at Loader.requireModule (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/HasteModuleLoader/HasteModuleLoader.js:914:12)
+  at jasmineTestRunner (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/jasmineTestRunner/jasmineTestRunner.js:292:16)
+  at /Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/src/TestRunner.js:376:12
+  at tryCatcher (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/util.js:26:23)
+  at Promise._settlePromiseFromHandler (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/promise.js:503:31)
+  at Promise._settlePromiseAt (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/promise.js:577:18)
+  at Promise._settlePromises (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/promise.js:693:14)
+  at Async._drainQueue (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/async.js:123:16)
+  at Async._drainQueues (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/async.js:133:10)
+  at Async.drainQueues (/Users/nuko/WebstormProjects/pliky/node_modules/jest-cli/node_modules/bluebird/js/main/async.js:15:14)
+  at process._tickCallback (node.js:448:13)
+
+1 test failed, 2 tests passed (3 total)
+Run time: 2.189s
+npm ERR! Test failed.  See above for more details.
+npm ERR! not ok code 0
+</code></pre>
+
+<p>My preprocessor.js code.(same as the official document script)</p>
+
+<pre><code>    var ReactTools = require('react-tools');
+
+    module.exports = {
+        process: function(src) {
+            return ReactTools.transform(src);
+        }
+    };
+</code></pre>
+
+<p>My mypage.test.js code.</p>
+
+<pre><code>jest.dontMock('../../React/mypage.js');
+
+var React = require('react/addons'),
+    Mypage = require('../../React/mypage.js'),
+    TestUtils = React.addons.TestUtils;
+
+describe('mypage', function() {
+
+    var MypageElement = TestUtils.renderIntoDocument(&lt;Mypage /&gt;);
+
+    var list = TestUtils.scryRenderedDOMComponentsWithTag(MypageElement, 'option');
+
+
+    it('has 3 default items', function() {
+        expect(list.props.children.length).toEqual(5);
+    });
+});
+</code></pre>
+
+<p>And I added this part to package.json file.</p>
+
+<pre><code>""jest"": {
+    ""scriptPreprocessor"": ""./__tests__/unit/preprocessor.js"",
+    ""unmockedModulePathPatterns"": [
+      ""./node_modules/react""
+    ]
+  },
+</code></pre>
+
+<p>Where is this error come from and how can I fix this? Please let me know. Thank you.</p>
+","3698435","","","","","2015-12-06 15:31:07","Jest(react testing tool) error - Parse Error: Line 1: Illegal import declaration","<javascript><node.js><unit-testing><reactjs><jestjs>","1","0","","",""
+"34493926","1","","","2015-12-28 12:55:16","","1","583","<p>I am updating my code from the now deprecated react/addons package to the react-addon-test-utils package. I use jsdom and inject a document and window element, as shown below.</p>
+
+<pre><code>import jsdom from 'jsdom';
+import chai from 'chai';
+import chaiImmutable from 'chai-immutable';
+
+const doc = jsdom.jsdom('&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;');
+const win = doc.defaultView;
+
+global.document = doc;
+global.window = win;
+
+Object.keys(window).forEach((key) =&gt; {
+  if (!(key in global)) {
+    global[key] = window[key];
+  }
+});
+
+chai.use(chaiImmutable);
+</code></pre>
+
+<h3>And here is my unit test.</h3>
+
+<pre><code>import {expect} from 'chai';
+import ErrorBlock from '../src/Controls/ErrorBlock';
+import React from 'react-addons-test-utils';
+
+const {renderIntoDocument, scryRenderedDOMComponentsWithClass, Simulate}
+  = React;
+
+describe('ErrorBlock', () =&gt; {
+
+  it('renders properly', () =&gt; {
+    const id = 'test';
+    const message = 'my message';
+    const alertStyle = ""alert-danger"";
+    const component = renderIntoDocument(
+      &lt;ErrorBlock id={id} message={message} alertStyle={alertStyle} /&gt;
+    );
+    const spanEntry = scryRenderedDOMComponentsWithClass(component, id + 'AlertMessage');
+    expect (spanEntry.length).to.equal(1);
+  });
+});
+</code></pre>
+
+<p>I am in the process of getting unit testing setup for a React UI module for use on some projects. However, when I switch over to the new react-addons-test-utils package, I get the following error:</p>
+
+<pre><code>TypeError: _reactAddonsTestUtils2.default.createElement is not a function
+</code></pre>
+
+<p>This error occurs on the line where I define my component. </p>
+
+<p>Why am I getting this error ONLY when using the new package?</p>
+","3191037","","1755598","","2015-12-28 12:55:58","2017-06-16 02:56:22","Issue with react-addon-test-utils createElement","<javascript><unit-testing><reactjs><jsdom>","1","7","1","",""
+"41152911","1","","","2016-12-14 21:55:47","","0","309","<p>I'm writing unit tests for some React components using the handy renderIntoDocument() method, but when I look at the DOM's innerHTML, I'm getting the following:</p>
+
+<pre><code>&lt;h3&gt;
+  &lt;!-- react-text: 17 --&gt;Start with &lt;!-- /react-text --&gt;
+  &lt;span class=""theme-secondary-color""&gt;&lt;!-- react-text: 19 --&gt;5&lt;!-- /react-text --&gt;
+  &lt;!-- react-text: 20 --&gt; Plans&lt;!-- /react-text --&gt;&lt;/span&gt;
+&lt;/h3&gt;
+</code></pre>
+
+<p>When I really would like to parse:</p>
+
+<pre><code>&lt;h3&gt;
+  Start with &lt;span class=""theme-secondary-color""&gt;5 Plans
+  &lt;/span&gt;
+&lt;/h3&gt;
+</code></pre>
+
+<p>I realize that React needs the markup to do it's thing, but is there a utility to strip out the React markup in order to write tests that are easier to read?</p>
+
+<p>Any help would be appreciated!</p>
+","16642","","","","","2016-12-14 21:55:47","Is there a way to render plain HTML from react components without the markup?","<reactjs><chai>","0","3","","",""
+"26870527","1","","","2014-11-11 17:13:53","","3","3394","<p>I'm currently trying to add Jest tests to a React application (found <a href=""http://github.com/krazemon/reps/"" rel=""nofollow"">here</a>).</p>
+
+<p>However, when I run the following test,</p>
+
+<pre><code>/** @jsx React.DOM */
+
+jest.dontMock('jquery');
+jest.dontMock('../js/components/CategoryPage.jsx');
+describe('Category Page', function() {
+  var React = require('react/addons');
+  var TestUtils = React.addons.TestUtils;
+  var CategoryPage = require('../js/components/CategoryPage.jsx');
+  it('renders into the page correctly', function() {
+    // Render the CategoryPage into the document
+    var categoryPage = TestUtils.renderIntoDocument(
+      &lt;CategoryPage params={{""category"": ""tests""}} /&gt;
+    );
+    expect(categoryPage).toBeDefined();
+  });
+});
+</code></pre>
+
+<p>I get the following error:</p>
+
+<pre><code>● Category Page › it renders into the page correctly
+  - TypeError: Property 'makeHref' of object #&lt;Object&gt; is not a function
+        at Navigation.makeHref (/home/stephen/reps/node_modules/react-            router/modules/mixins/Navigation.js:29:25)
+        at React.createClass.getHref (/home/stephen/reps/node_modules/react-router/modules/components/Link.js:76:17)
+        at React.createClass.render (/home/stephen/reps/node_modules/react-router/modules/components/Link.js:97:18)
+        at ReactCompositeComponentMixin._renderValidatedComponent (/home/stephen/reps/node_modules/react/lib/ReactCompositeComponent.js:1260:34)
+        at wrapper [as _renderValidatedComponent] (/home/stephen/reps/node_modules/react/lib/ReactPerf.js:50:21)
+        at ReactCompositeComponentMixin.mountComponent     (/home/stephen/reps/node_modules/react/lib/ReactCompositeComponent.js:802:14)
+        at wrapper [as mountComponent] (/home/stephen/reps/node_modules/react/lib/ReactPerf.js:50:21)
+        at ReactDOMComponent.ReactMultiChild.Mixin.mountChildren (/home/stephen/reps/node_modules/react/lib/ReactMultiChild.js:195:42)
+        at ReactDOMComponent.Mixin._createContentMarkup (/home/stephen/reps/node_modules/react/lib/ReactDOMComponent.js:260:32)
+        at ReactDOMComponent.Mixin.mountComponent (/home/stephen/reps/node_modules/react/lib/ReactDOMComponent.js:182:14)
+        at ReactDOMComponent.wrapper [as mountComponent] (/home/stephen/reps/node_modules/react/lib/ReactPerf.js:50:21)
+        at ReactDOMComponent.ReactMultiChild.Mixin.mountChildren (/home/stephen/reps/node_modules/react/lib/ReactMultiChild.js:195:42)
+        at ReactDOMComponent.Mixin._createContentMarkup (/home/stephen/reps/node_modules/react/lib/ReactDOMComponent.js:260:32)
+</code></pre>
+
+<p>Both my app and the <code>CategoryPage</code> component specifically use react-router. The CategoryPage contains a mixin which uses react-router for authentication. Based on my own debugging, I have found that the error is occurring when Jest tries to call <code>makeHref</code>, one of react-router's built-in methods for Navigation.</p>
+
+<p>To fix this, I first tried calling <code>jest.dontMock('react-router')</code>, but this did not have any effect. The problem seems to be that, by not mocking <code>CategoryPage</code>, jest will automatically and irreversibly include all of its dependecies, unmocked.</p>
+
+<p>Part of the reason this issue is so difficult to solve is because most people using Jest with React seem to not be testing their components, either because they are not as test-focused or because they are using Flux and only testing Stores, Dispatchers, etc. We are not yet using Flux, so this is not an option for us, but may be something we have to transition to in the future.</p>
+
+<p>EDIT 1: The test passes if I remove the <code>jest.dontMock('../js/components/CategoryPage.jsx')</code> but then it is impossible to actually test the functionality of that component.</p>
+
+<p>EDIT 2: When I exclude <code>jest.dontMock('jquery')</code> I get another error related to the mixin I use to create Modals:</p>
+
+<pre><code>Category Page › it encountered a declaration exception
+- TypeError: 
+/home/stephen/reps/js/components/CategoryPage.jsx:  
+/home/stephen/reps/js/components/Feed.jsx:     
+/home/stephen/reps/js/components/InvestmentButton.jsx: 
+/home/stephen/reps/js/components/Modal.jsx: 
+/home/stephen/reps/js/mixins/BootstrapModalMixin.jsx: 
+/home/stephen/reps/node_modules/bootstrap/dist/js/npm.js: 
+/home/stephen/reps/node_modules/bootstrap/js/alert.js: Cannot call method 'on' of undefined
+</code></pre>
+
+<p>EDIT 3: I have seemingly isolated the bug to react-router's Navigation mixin, where it calls <code>this.context.makeHref</code>. The React team has deprecated <code>this.context</code> since version .9 so I believe this may be the source of the problems. Thus, any work-around or fix for <code>this.context</code> is welcome.</p>
+","1631855","","1631855","","2014-11-11 18:29:47","2015-05-25 18:25:59","Make react-router not break Jest (reactJs) tests","<javascript><reactjs><react-jsx><jestjs><react-router>","2","1","","",""
+"30356505","1","30877543","","2015-05-20 17:28:51","","2","2583","<p>I am learning Jest &amp; trying to integrated unit tests into my existing ES6 React application. For some reason, <code>React.addons.TestUtils.renderIntoDocument</code> is always returning null. Can anyone see what i am doing wrong?</p>
+
+<p>Many thanks.</p>
+
+<p><strong>package.json</strong></p>
+
+<pre><code>{
+  ""name"": ""test.jest"",
+  ""version"": ""1.0.0"",
+  ""description"": """",
+  ""main"": ""index.js"",
+  ""scripts"": {
+    ""test"": ""jest""
+  },
+  ""author"": """",
+  ""license"": ""ISC"",
+  ""devDependencies"": {
+    ""babel-jest"": ""^5.2.0"",
+    ""jest-cli"": ""^0.4.5""
+  },
+  ""dependencies"": {
+    ""react"": ""^0.13.3""
+  },
+  ""jest"": {
+    ""scriptPreprocessor"": ""&lt;rootDir&gt;/node_modules/babel-jest"",
+    ""unmockedModulePathPatterns"": [
+      ""&lt;rootDir&gt;/node_modules/react""
+    ],
+    ""testFileExtensions"": [
+      ""js"",
+      ""jsx""
+    ],
+    ""moduleFileExtensions"": [
+      ""js"",
+      ""jsx"",
+      ""json""
+    ]
+  }
+}
+</code></pre>
+
+<p><strong>__tests__/foo-test.jsx</strong></p>
+
+<pre><code>/* global describe, it, expect */
+
+'use strict'
+
+import React from 'react/addons'
+
+const { addons: { TestUtils } } = React
+
+describe('Foo', () =&gt; {
+  it('is a react element', () =&gt; {
+    let component = TestUtils.renderIntoDocument(
+      &lt;div&gt;foo&lt;/div&gt;
+    )
+
+    expect(TestUtils.isElement(component)).toBeTruthy()
+  })
+})
+</code></pre>
+
+<p><strong>Results</strong></p>
+
+<pre><code>$ npm test
+
+&gt; test.jest@1.0.0 test /home/markus/Desktop/test.jest
+&gt; jest
+
+Using Jest CLI v0.4.5
+ FAIL  src/__tests__/foo-test.jsx (1.287s)
+● Foo › it is a react element
+  - Expected false to be truthy.
+        at Spec.&lt;anonymous&gt; (/home/markus/Desktop/test.jest/src/__tests__/foo-test.jsx:15:44)
+        at Timer.listOnTimeout [as ontimeout] (timers.js:112:15)
+1 test failed, 0 tests passed (1 total)
+Run time: 1.555s
+npm ERR! Test failed.  See above for more details.
+</code></pre>
+
+<h2>Update</h2>
+
+<p>The <a href=""https://github.com/facebook/jest/tree/master/examples/react-es6"" rel=""nofollow"">ES6 example</a> is also not working. Throws a ton of warnings before failing when it tries to read from a null value. The <a href=""https://github.com/facebook/jest/tree/master/examples/react"" rel=""nofollow"">ES5 example</a>, however, does work. Might be an upstream babel-jest problem?</p>
+
+<p><strong>Results</strong></p>
+
+<pre><code>$ npm test
+
+&gt; @ test /home/markus/Desktop/jest/examples/react-es6
+&gt; node ../../bin/jest.js
+
+Using Jest CLI v0.4.5
+ FAIL  __tests__/CheckboxWithLabel-test.js (1.697s)
+Warning: getDOMNode(...) is deprecated in plain JavaScript React classes. Use React.findDOMNode(component) instead.
+Warning: isMounted(...) is deprecated in plain JavaScript React classes. Instead, make sure to clean up subscriptions and pending requests in componentWillUnmount to prevent memory leaks.
+Warning: replaceProps(...) is deprecated in plain JavaScript React classes. Instead, call React.render again at the top level.
+Warning: replaceState(...) is deprecated in plain JavaScript React classes. Refactor your code to use setState instead (see https://github.com/facebook/react/issues/3236).
+Warning: setProps(...) is deprecated in plain JavaScript React classes. Instead, call React.render again at the top level.
+● CheckboxWithLabel › it changes the text after click
+  - TypeError: Cannot read property 'textContent' of null
+        at Spec.&lt;anonymous&gt; (/home/markus/Desktop/jest/examples/react-es6/__tests__/CheckboxWithLabel-test.js:19:24)
+        at jasmine.Block.execute (/home/markus/Desktop/jest/vendor/jasmine/jasmine-1.3.0.js:1065:17)
+        at jasmine.Queue.next_ (/home/markus/Desktop/jest/vendor/jasmine/jasmine-1.3.0.js:2098:31)
+        at null._onTimeout (/home/markus/Desktop/jest/vendor/jasmine/jasmine-1.3.0.js:2088:18)
+        at Timer.listOnTimeout [as ontimeout] (timers.js:112:15)
+1 test failed, 0 tests passed (1 total)
+Run time: 1.946s
+npm ERR! Test failed.  See above for more details.
+</code></pre>
+","1590365","","1590365","","2015-05-21 12:43:19","2015-06-16 20:28:12","React.addons.TestUtils.renderIntoDocument always returns null","<reactjs><jestjs>","1","0","","",""
+"31499588","1","","","2015-07-19 09:04:17","","0","137","<p>I'm trying to pass a jasmine test for my react component, I would like to test the select all checkbox unchecks when the publish event is fired from one of the checked checkboxs. As not all all of the checkboxes will then be checked, so the select all needs to uncheck. Below is my jasmine test and component, I'm new to testing react components anyhelp much appreciated:</p>
+
+<p><strong>Currently get error, undefined is not an object this.stubs.subscribe</strong></p>
+
+<pre><code>var React = require('react/addons');
+var postal = require('postal');
+var contactChannel = postal.channel(""contact"")
+var SelectAll = require('../../../components/controls/SelectAll');
+var channelStub = require('../../stub/channelStub');
+
+// When subscribe event check checkbox
+
+describe(""Select All Checkbox Specification"", function() {
+
+describe(""Checking deselect response"", function () {
+
+it(""On receive subscribe event uncheck the select all box"", function () {
+
+        // when the select all is created it will create the channel
+        // publish an event to the channel (de-select event)
+
+        instance = TestUtils.renderIntoDocument(&lt;SelectAll /&gt;);
+
+        // publish event to check all checkboxes
+        contactChannel.publish({
+            channel: 'contact',
+            topic: 'selectAll',
+            data: {
+                selectAll: true
+            }});
+
+        var checkbox = TestUtils.findRenderedDOMComponentWithTag(instance, ""input"");
+
+        // publish event to uncheck select all checkbox
+        contactChannel.publish({
+            channel: ""basket"",
+            topic: ""deselectedContact"",
+            data: {}
+        });
+
+        // Checking the module - to see if the checkbox inside is unchecked
+
+        var checkbox = TestUtils.findRenderedDOMComponentWithTag(instance, ""input"");
+
+        var data = this.stubbed.subscribe();
+        // check box checked should be false
+        expect(data.topic === 'deselectedContact');
+        expect(input.checked === false);
+    });
+</code></pre>
+
+<p>React component:</p>
+
+<pre><code>var postal = require('postal');var postal = require('postal');
+var contactChannel = postal.channel(""contact"");
+var React = require('react');
+
+var SelectAll = React.createClass({
+
+getInitialState: function() {
+    return {
+        checked:false
+    };
+},
+
+setUnChecked: function(){
+    this.setState({checked: false});
+},
+
+handler: function(e) {
+
+    var updatedContacts = [],
+        contacts = this.props.data.contacts,
+        topic = 'selectAll',
+        checked = false,
+        channel = 'contact';
+
+    contactChannel.publish({
+        channel: channel,
+        topic: topic,
+        data: {
+            selectAll: event.target.checked
+        }});
+
+        this.setState({checked: event.target.checked});
+},
+
+render: function() {
+
+    return (
+        &lt;div className=""contact-selector""&gt;
+            &lt;input type=""checkbox"" checked={this.state.checked}
+                onChange={this.handler} ref=""checkAll"" /&gt;
+        &lt;/div&gt;
+    );
+},
+
+componentDidMount: function() {
+    var self = this;
+    contactChannel.subscribe(""deselectedContact"", function(data) {
+        self.setUnChecked();
+    });
+}
+
+});
+
+module.exports = SelectAll;
+</code></pre>
+
+<p>ChannelStub:</p>
+
+<pre><code>var lastPublished = {},
+lastTopicSubscribed = '',
+lastCallbackSubscribed;
+
+var ChannelStub = {
+
+publish: function(data) {
+    lastPublished = data;
+},
+
+getLastPublished: function() {
+
+    return lastPublished;
+},
+
+subscribe: function(topic, callback) {
+
+    lastCallbackSubscribed = callback;
+    lastTopicSubscribed = topic;
+}
+
+
+
+};
+
+module.exports = ChannelStub;
+</code></pre>
+","1901521","","1901521","","2015-07-20 07:46:36","2015-07-20 07:46:36","Jasmine react component, test keeps failing","<javascript><unit-testing><jasmine><reactjs>","0","3","","",""
+"39338547","1","","","2016-09-05 22:53:10","","1","585","<p>Tests run, but they are rendering into the same document. On componentDidMount Style component appends CSS text to a style element in head with the class <code>.reactive-style</code> (know this is unorthodox and not idiosyncratic React). If <code>.reactive-style</code> does not already exist then the style element is created and added to head. Testing wise -- for simplicities sake -- I need to render into a new document for each test case.</p>
+
+<p>Tests look like this:</p>
+
+<pre class=""lang-js prettyprint-override""><code>import React from 'react';
+import { findDOMNode, render } from 'react-dom';
+import TestUtils from 'react-addons-test-utils';
+
+const removeNewlines = (string) =&gt; (string.replace(/(\r\n|\n|\r)/gm, ''))
+
+import Style from '../src/index.js';
+
+describe('Style', () =&gt; {
+
+  it('scopes only one root selector if a selector is union root selector', () =&gt; {
+    const myTestUtils = Object.assign({}, TestUtils);
+    const wrapper = myTestUtils.renderIntoDocument(
+      &lt;div&gt;
+        &lt;Style&gt;
+          {`
+            #box.rootClass { color: red; }
+          `}
+
+          &lt;div id=""box"" className=""rootClass"" /&gt;
+        &lt;/Style&gt;
+      &lt;/div&gt;
+    );
+
+    const rootNode = findDOMNode(wrapper).children[0];
+    const styleNode = document.head.querySelector('.reactive-style');
+
+    expect(rootNode.className).toEqual('rootClass _scoped-1830358384');
+    expect( removeNewlines(styleNode.textContent) )
+      .toEqual(` #box._scoped-1356475730.rootClass , ._scoped-1356475730  #box.rootClass { color: red; }`);
+  });
+
+  it('preserves quotes for the CSS property ""content""', () =&gt; {
+    const myTestUtils = Object.assign({}, TestUtils);
+    const wrapper = myTestUtils.renderIntoDocument(
+        &lt;div&gt;
+          &lt;Style&gt;
+            {`
+                .Slide:before { content: "" test ""; }
+                .Slide:after { content: "" ""; }
+
+                .Foo:after {
+                  position: absolute;
+                  content: """";
+                  width: 100%;
+                  height: 100%;
+                  backgroud-color: rgba( 0, 0, 0, .7);
+                  top: 0;
+                  left: 0;
+                  z-index: 1;
+                }
+              `}
+
+            &lt;div className=""Slide"" /&gt;
+          &lt;/Style&gt;
+        &lt;/div&gt;
+    );
+
+    const rootNode = findDOMNode(wrapper).children[0];
+    const styleNode = document.head.querySelector('.reactive-style');
+
+    expect(rootNode.className).toEqual('Slide _scoped-864836516');
+    expect( removeNewlines(styleNode.textContent) )
+      .toEqual(` .Slide._scoped-864836516:before , ._scoped-864836516  .Slide:before { content: ' test '; } .Slide._scoped-864836516:after , ._scoped-864836516  .Slide:after { content: ' '; }._scoped-864836516  .Foo:after { position: absolute; content: ''; width: 100%; height: 100%; backgroud-color: rgba( 0, 0, 0, .7); top: 0; left: 0; z-index: 1; }`);
+  });
+});
+</code></pre>
+
+<p>Current output showing the innerHTML of the target style element in head growing with each test (undesired, want new document for each test case):</p>
+
+<pre><code> FAIL  __tests__/Style.js (0.613s)
+● Style › it scopes only one root selector if a selector is union root selector
+  - Expected ' #box._scoped-1830358384.rootClass , ._scoped-1830358384  #box.rootClass { color: red; }' to equal ' #box._scoped-1356475730.rootClass , ._scoped-1356475730  #box.rootClass { color: red; }'.
+        at jasmine.buildExpectationResult (node_modules/jest-jasmine2/src/index.js:80:44)
+        at Object.eval (__tests__/Style.js:315:5)
+        at Object.&lt;anonymous&gt; (node_modules/jest-jasmine2/src/jasmine-pit.js:35:32)
+        at jasmine2 (node_modules/jest-jasmine2/src/index.js:253:7)
+        at Test.run (node_modules/jest-cli/src/Test.js:44:12)
+        at process._tickCallback (internal/process/next_tick.js:103:7)
+● Style › it preserves quotes for the CSS property ""content""
+  - Expected ' #box._scoped-1830358384.rootClass , ._scoped-1830358384  #box.rootClass { color: red; }' to equal ' .Slide._scoped-864836516:before , ._scoped-864836516  .Slide:before { content: ' test '; } .Slide._scoped-864836516:after , ._scoped-864836516  .Slide:after { content: ' '; }._scoped-864836516  .Foo:after { position: absolute; content: ''; width: 100%; height: 100%; backgroud-color: rgba( 0, 0, 0, .7); top: 0; left: 0; z-index: 1; }'.
+        at jasmine.buildExpectationResult (node_modules/jest-jasmine2/src/index.js:80:44)
+        at Object.eval (__tests__/Style.js:349:5)
+        at Object.&lt;anonymous&gt; (node_modules/jest-jasmine2/src/jasmine-pit.js:35:32)
+        at Object.&lt;anonymous&gt; (node_modules/jest-jasmine2/src/jasmine-pit.js:40:11)
+        at jasmine2 (node_modules/jest-jasmine2/src/index.js:253:7)
+        at Test.run (node_modules/jest-cli/src/Test.js:44:12)
+        at process._tickCallback (internal/process/next_tick.js:103:7)
+2 tests failed, 0 tests passed (2 total in 1 test suite, run time 1.323s)
+</code></pre>
+
+<p>See how the second test includes results from the first? Goal is to avoid that by rendering to a new document.</p>
+
+<p>Have tried several things, like blanking out the innerHTML of the <code>.reactive-style</code> element via <code>document.head.querySelector('.reactive-style').innerHTML = '';</code> but when <code>expect()</code> runs the <code>styleNode.textContent</code> shows as empty so that does not work (presumably because <code>expect()</code> is running async and the <code>innerHTML</code> is cleared synchronously). Cheers and thanks for any assistance. </p>
+","1079731","","1079731","","2016-09-05 22:58:35","2016-09-05 22:58:35","Testing react components componentDidMount, how do I render into a new document after each test?","<reactjs><jasmine><jestjs><reactjs-testutils>","0","0","","",""
+"39371629","1","","","2016-09-07 13:45:24","","2","739","<p>I'm trying to test a connected react component that needs a props.params.id to call action creators. When I try to test that the component is connected to the store I get ""Uncaught TypeError: Cannot read property 'id' of undefined""</p>
+
+<pre><code>ReactDOM.render(
+  &lt;Provider store={store}&gt;
+    &lt;Router history={history}&gt;
+      &lt;Route path=""/"" component={App}&gt;
+        &lt;IndexRoute component={PostsIndex}/&gt;
+        &lt;Route path=""posts/:id"" component={ShowPost}/&gt;
+      &lt;/Route&gt;
+    &lt;/Router&gt;
+  &lt;/Provider&gt;
+  , document.querySelector('.container'));
+
+
+describe('ConnectedShowPost', ()=&gt; {
+    let initialState = {
+      posts: { postsList: postsListData, post: postData, error: '' },
+      comments: {showComments: false},
+      auth: {authenticated: true}
+    };
+
+    store = mockStore(initialState);
+
+    connectedShowPost = TestUtils.renderIntoDocument(&lt;Provider store={store}&gt;&lt;ConnectedShowPost/&gt;&lt;/Provider&gt;);
+    showPost = TestUtils.scryRenderedComponentsWithType(connectedShowPost, ShowPost)[0];
+
+
+    expect(showPost.props.posts.post).toEqual(postData);
+  })
+</code></pre>
+
+<p>I've tried including params in the store but that doesn't work since params is not hooked up to the store when used inside the component.</p>
+
+<p>I've also tried passing it in as an ownProps argument and that didn't work either.</p>
+
+<p>Passing it in to  the ConnectedShowPost component as a props causes all other state items in the store to be undefined..</p>
+
+<p>Also tried to directly set showPost.props.params = {id: '123} which didnt work either..</p>
+
+<p>Any ideas on how to get this test to work?</p>
+","6687615","","","","","2016-09-07 13:45:24","Testing connected react component that needs params","<javascript><reactjs><mocha><redux><karma-mocha>","0","6","","",""
+"39094148","1","","","2016-08-23 06:48:19","","0","118","<p>I was trying to do unit testing for a react component. But when I tried to render it using <code>TestUtils.renderIntoDocument()</code> method jest throws an error </p>
+
+<pre><code>Error: Line 1: Unexpected token ILLEGAL
+    at constructError (node_modules/esprima/esprima.js:2406:21)
+    at createError (node_modules/esprima/esprima.js:2425:17)
+    at unexpectedTokenError (node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (node_modules/esprima/esprima.js:2504:15)
+    at scanPunctuator (node_modules/esprima/esprima.js:842:13)
+    at advance (node_modules/esprima/esprima.js:1621:16)
+    at lex (node_modules/esprima/esprima.js:1690:78)
+    at expect (node_modules/esprima/esprima.js:2520:21)
+    at parseFunctionSourceElements (node_modules/esprima/esprima.js:4827:9)
+    at parseFunctionExpression (node_modules/esprima/esprima.js:5073:16)
+</code></pre>
+
+<p>Poiting to nowhere inmy code. So I tried removing elements one by one and figured that the image component might be causing the probelm.</p>
+
+<pre><code> &lt;span&gt;&lt;input type=""image"" title=""cc"" src={require('../../assets/images/cc.png') }&gt;&lt;/input&gt;&lt;/span&gt;
+</code></pre>
+
+<p>saw an almost similer issue happened in react-native in <a href=""https://github.com/facebook/jest/issues/919"" rel=""nofollow"">this post</a>.
+If anybody can show some light on it. It will be great.!</p>
+
+<p>Thanks</p>
+","3309470","","2102634","","2016-12-08 22:44:18","2016-12-08 22:44:18","Unexpected token ILLEGAL in reactjs - jest eventhough component renders correctly","<reactjs><jestjs><esprima.js>","0","2","","",""
+"31024639","1","","","2015-06-24 10:53:28","","8","8613","<p>I've a react component that makes AJAX call in <code>componentDidMount</code> method. While I try to render it using <code>React.addons.TestUtils</code>, the component gets rendered without making AJAX call. How would I test react component using jest so that it makes AJAX call? Should I need to use phantomJS (or browser like env) as well to provide DOM abilities to react component?</p>
+
+<p><strong>React Component:</strong></p>
+
+<pre><code>return React.createClass({
+
+  componentDidMount : function() {
+    $.ajax({
+    ... makes http request
+    })
+  }
+
+  render : function() {
+    &lt;div&gt;
+      //view logic based on ajax response...
+    &lt;/div&gt;
+  }
+});
+</code></pre>
+
+<p><strong>TestCase:</strong></p>
+
+<pre><code>jest.dontMock(../MyComponent);
+
+var React = require('react/addons');
+
+var TestUtils = React.addons.TestUtils;
+
+var MyComponent = require(../MyComponent);
+
+describe('Sample Test', function(){     
+
+    it('To Render the component', function() {
+
+       var component = &lt;MyComponent /&gt;;
+
+       var DOM = TestUtils.renderIntoDocument(component);
+
+       .... // Some other code... 
+       });
+})
+</code></pre>
+
+
+","5044213","","135503","","2015-06-24 20:16:11","2016-10-31 15:47:05","Unit testing react component that makes ajax calls using JEST","<ajax><unit-testing><reactjs><jestjs><reactjs-testutils>","4","0","3","",""
+"31811881","1","","","2015-08-04 14:21:55","","0","154","<p>I'm writing tests for react. But when I require react, jest just prints <code>Waiting on 1 test...</code>, and then finishes without telling me the result of the test.</p>
+
+<pre><code>jest.dontMock('../src/scripts/components/register/Register.jsx');
+
+describe('Register', function () {
+    it('Should validate', function () {
+        var React = require('react/addons');
+        var Register = require('../src/scripts/components/register/Register.jsx');
+        // var TestUtils = React.addons.TestUtils;
+        //
+        // var register = TestUtils.renderIntoDocument(
+        //     &lt;Register/&gt;
+        // )
+        expect(true).toBe(false);
+    })
+})
+</code></pre>
+","4465497","","","","","2015-08-09 00:48:30","Jest not printing test results after react is imported","<javascript><unit-testing><jasmine><reactjs><jestjs>","1","0","","",""
+"50521307","1","","","2018-05-25 03:57:05","","1","138","<p>Hi I am struggling for a week solving this
+Unexpected token 'import' error.</p>
+
+<p>After tons of searching, now I know that this is a problem of babel-register which is not applying to mocha test, while webpack serve works fine.</p>
+
+<p>At first I had an Unexpected token 'import' error when using antd library 
+and I followed other solutions which told me to set .babelrc(setting node_modules: false) </p>
+
+<p>But now I am getting same Unexpected token 'import' error from my test file. Please help me... This is not a duplicate and I've done almost every solution in the web related to this. I'm pretty sure that
+--require babel-register is not working in mocha test.
+Thank you.</p>
+
+<p>myerror message</p>
+
+<blockquote>
+  <p>CSE_frontend choihongsuk$ npm run test</p>
+  
+  <blockquote>
+    <p>redux-simple-starter@1.0.0 test /Users/choihongsuk/Desktop/-13-SNUCSE-website-SWPP-/CSE_frontend
+    BABEL_ENV=test mocha --require babel-hook --require babel-register --require ./test/test_hel per.js --recursive ./test</p>
+  </blockquote>
+  
+  <p>babel-preset-env: <code>DEBUG</code> option Using targets: {}</p>
+  
+  <p>Modules transform: false</p>
+  
+  <p>Using plugins:   check-es2015-constants {}<br>
+  transform-es2015-arrow-functions {}<br>
+  transform-es2015-block-scoped-functions {}<br>
+  transform-es2015-block-scoping {}   transform-es2015-classes {}<br>
+  transform-es2015-computed-properties {}<br>
+  transform-es2015-destructuring {}   transform-es2015-duplicate-keys {}
+  transform-es2015-for-of {}   transform-es2015-function-name {}<br>
+  transform-es2015-literals {}   transform-es2015-object-super {}<br>
+  transform-es2015-parameters {}   transform-es2015-shorthand-properties
+  {}   transform-es2015-spread {}   transform-es2015-sticky-regex {}<br>
+  transform-es2015-template-literals {}   transform-es2015-typeof-symbol
+  {}   transform-es2015-unicode-regex {}   transform-regenerator {}<br>
+  transform-exponentiation-operator {}   transform-async-to-generator {}
+  syntax-trailing-function-commas {}
+  /Users/choihongsuk/Desktop/-13-SNUCSE-website-SWPP-/CSE_frontend/test/test_helper.js:1
+  (function (exports, require, module, __filename, __dirname) { import
+  _$ from 'jquery';
+                                                                ^^^^^^</p>
+  
+  <p>SyntaxError: Unexpected token import
+      at new Script (vm.js:51:7)
+      at createScript (vm.js:136:10)
+      at Object.runInThisContext (vm.js:197:10)
+      at Module._compile (module.js:613:28)
+      at loader (/Users/choihongsuk/Desktop/-13-SNUCSE-website-SWPP-/CSE_frontend/node_modules/babel-register/lib/node.js:144:5)
+      at Object.require.extensions.(anonymous function) [as .js] (/Users/choihongsuk/Desktop/-13-SNUCSE-website-SWPP-/CSE_frontend/node_modules/babel-register/lib/node.js:154:7)
+      at Module.load (module.js:561:32)
+      at tryModuleLoad (module.js:501:12)
+      at Function.Module._load (module.js:493:3)
+      at Module.require (module.js:593:17)
+      at require (internal/module.js:11:18)
+      at /Users/choihongsuk/Desktop/-13-SNUCSE-website-SWPP-/CSE_frontend/node_modules/mocha/bin/_mocha:366:3
+      at Array.forEach ()
+      at Object. (/Users/choihongsuk/Desktop/-13-SNUCSE-website-SWPP-/CSE_frontend/node_modules/mocha/bin/_mocha:365:10)
+      at Module._compile (module.js:649:30)
+      at Object.Module._extensions..js (module.js:660:10)
+      at Module.load (module.js:561:32)
+      at tryModuleLoad (module.js:501:12)
+      at Function.Module._load (module.js:493:3)
+      at Function.Module.runMain (module.js:690:10)
+      at startup (bootstrap_node.js:194:16)
+      at bootstrap_node.js:666:3 npm ERR! code ELIFECYCLE npm ERR! errno 1 npm ERR! redux-simple-starter@1.0.0 test: <code>BABEL_ENV=test mocha
+  --require babel-hook --require babel-register --require ./test/test_helper.js --recursive ./test</code> npm ERR! Exit status 1 npm
+  ERR! npm ERR! Failed at the redux-simple-starter@1.0.0 test script.
+  npm ERR! This is probably not a problem with npm. There is likely
+  additional logging output above.</p>
+  
+  <p>npm ERR! A complete log of this run can be found in: npm ERR!<br>
+  /Users/choihongsuk/.npm/_logs/2018-05-25T03_45_58_998Z-debug.log</p>
+</blockquote>
+
+<p>package.json</p>
+
+<pre><code>{
+      ""name"": ""redux-simple-starter"",
+      ""version"": ""1.0.0"",
+      ""description"": ""Simple starter package for Redux with React and Babel support"",
+      ""main"": ""index.js"",
+      ""repository"": ""git@github.com:StephenGrider/ReduxSimpleStarter.git"",
+      ""scripts"": {
+        ""start"": ""webpack-dev-server --progress --colors --open --hot"",
+        ""test"": ""BABEL_ENV=test mocha --require babel-hook --require babel-register --require ./test/test_helper.js --recursive ./test"",
+        ""test:watch"": ""npm run test -- --watch""
+      },
+      ""author"": """",
+      ""license"": ""ISC"",
+      ""devDependencies"": {
+        ""babel-core"": ""^6.26.3"",
+        ""babel-loader"": ""^6.4.1"",
+        ""babel-plugin-import"": ""^1.7.0"",
+        ""babel-plugin-transform-class-properties"": ""^6.24.1"",
+        ""babel-plugin-transform-decorators-legacy"": ""^1.3.4"",
+        ""babel-plugin-transform-runtime"": ""^6.23.0"",
+        ""babel-preset-env"": ""^1.7.0"",
+        ""babel-preset-react"": ""^6.24.1"",
+        ""babel-register"": ""^6.26.0"",
+        ""chai"": ""^3.5.0"",
+        ""chai-jquery"": ""^2.0.0"",
+        ""css-loader"": ""^0.28.11"",
+        ""enzyme"": ""^3.3.0"",
+        ""jquery"": ""^2.2.1"",
+        ""jsdom"": ""^8.1.0"",
+        ""mocha"": ""^3.5.3"",
+        ""react-hot-loader"": ""^4.1.3"",
+        ""react-test-renderer"": ""^16.3.2"",
+        ""style-loader"": ""^0.21.0"",
+        ""webpack"": ""^3.4.1"",
+        ""webpack-dev-server"": ""^2.9.7""
+      },
+      ""dependencies"": {
+        ""antd"": ""^3.5.1"",
+        ""axios"": ""^0.18.0"",
+        ""babel-plugin-transform-async-to-generator"": ""^6.24.1"",
+        ""babel-polyfill"": ""^6.26.0"",
+        ""babel-preset-stage-1"": ""^6.1.18"",
+        ""babel-runtime"": ""^6.26.0"",
+        ""bootstrap"": ""^4.1.1"",
+        ""core-js"": ""^2.5.6"",
+        ""lodash"": ""^3.10.1"",
+        ""react"": ""^16.3.2"",
+        ""react-dom"": ""^16.3.2"",
+        ""react-dropzone"": ""^4.2.9"",
+        ""react-redux"": ""^5.0.7"",
+        ""react-router"": ""^2.0.1"",
+        ""react-router-dom"": ""^4.2.2"",
+        ""reactstrap"": ""^6.0.1"",
+        ""redux"": ""4.0.0"",
+        ""redux-form"": ""^7.3.0"",
+        ""redux-promise"": ""^0.5.3""
+      }
+    }
+</code></pre>
+
+<p>.babelrc</p>
+
+<pre><code>{
+  ""presets"": [""react"",[
+    ""env"",
+    {
+      ""modules"": false,
+      ""targets"": {
+        ""node"": ""current""
+      }
+    }
+  ], ""stage-1""
+],
+""env"": {
+  ""test"": {
+    ""presets"": [""react"",
+      [
+        ""env"",
+        {
+          ""modules"": false,
+          ""debug"": true
+        }
+      ],
+      ""stage-1""
+    ]
+  }
+ },
+  ""plugins"": [
+    [""import"",
+      { ""libraryName"": ""antd"",  ""libraryDirectory"": ""es"", ""style"": ""css"" }],
+      ""transform-decorators-legacy"",
+        ""transform-class-properties"",
+        ""transform-async-to-generator"",
+        ""transform-runtime""
+  ]
+}
+</code></pre>
+
+<p>webpack.config</p>
+
+<pre><code>module.exports = {
+  entry: ['./src/index.js', 'babel-register'],
+  output: {
+    path: __dirname,
+    publicPath: '/',
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader',
+      },
+      {
+        test: /\.css$/,
+        use: [ 'style-loader', 'css-loader' ]
+      }
+    ],
+  },
+  resolve: {
+    extensions: ['*', '.js', '.jsx', '.css']
+  },
+  devServer: {
+    historyApiFallback: true,
+    contentBase: './',
+    watchOptions: {
+      aggregateTimeout: 300,
+      poll: 1000
+    }
+  },
+
+};
+</code></pre>
+
+<p>testhelper.js </p>
+
+<pre><code>import _$ from 'jquery';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-dom/test-utils';
+import jsdom from 'jsdom';
+import chai, { expect } from 'chai';
+import chaiJquery from 'chai-jquery';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import reducers from '../src/reducers';
+
+global.document = jsdom.jsdom('&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;');
+global.window = global.document.defaultView;
+global.navigator = global.window.navigator;
+const $ = _$(window);
+
+chaiJquery(chai, chai.util, $);
+
+function renderComponent(ComponentClass, props = {}, state = {}) {
+  const componentInstance =  TestUtils.renderIntoDocument(
+    &lt;Provider store={createStore(reducers, state)}&gt;
+      &lt;ComponentClass {...props} /&gt;
+    &lt;/Provider&gt;
+  );
+
+  return $(ReactDOM.findDOMNode(componentInstance));
+}
+
+$.fn.simulate = function(eventName, value) {
+  if (value) {
+    this.val(value);
+  }
+  TestUtils.Simulate[eventName](this[0]);
+};
+
+export {renderComponent, expect};
+</code></pre>
+","8584068","","","","","2018-05-25 03:57:05","babel-register not working in mocha test, nodejs react","<node.js><reactjs><mocha><babel><babel-register>","0","0","","",""

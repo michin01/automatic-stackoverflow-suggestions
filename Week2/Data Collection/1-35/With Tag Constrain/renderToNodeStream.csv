@@ -1,0 +1,174 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"49544507","1","","","2018-03-28 21:31:15","","0","20","<p>I'm writing an SSR project with react but have one problem and it's when I'm going from another route to a route initialAction not called but if directly open that route or refresh the page initialAction called!</p>
+
+<p>For example in the index page I choose a category and going to the category page and initialAction called in this page after that I choose a product from a category going to product page but initalAction not called.</p>
+
+<p>My <code>server.js</code> file is:</p>
+
+<pre><code>import React from 'react';
+import streamString from 'node-stream-string';
+import { StaticRouter, matchPath } from 'react-router-dom';
+import express from 'express';
+import { renderToNodeStream } from 'react-dom/server';
+import { Provider } from ""react-redux"";
+import serialize from ""serialize-javascript"";
+
+import App from './App';
+import routes from './routes';
+import configureStore from './store';
+
+const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
+
+const server = express();
+
+server
+  .disable('x-powered-by')
+  .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
+  .get('/*', (req, res, next) =&gt; {
+
+    const store = configureStore();
+
+    const promises = routes.reduce((acc, route) =&gt; {
+        const match = matchPath(req.url, route);
+
+      if (match &amp;&amp; route.component &amp;&amp; route.component.initialAction) {
+        acc.push(Promise.resolve(store.dispatch(route.component.initialAction({match}))));
+      }
+      return acc;
+    }, []);
+
+
+    Promise.all(promises)
+    .then(() =&gt; {
+      const context = {};
+      const markup = renderToNodeStream(
+        &lt;Provider store={store}&gt;
+          &lt;StaticRouter location={req.url} context={context}&gt;
+            &lt;App /&gt;
+          &lt;/StaticRouter&gt;
+        &lt;/Provider&gt;
+      );
+
+      if (context.url) {
+        res.redirect(context.url);
+      } else {
+        const initialData = store.getState();
+        const stream = streamString`
+        &lt;!doctype html&gt;
+        &lt;html lang=""""&gt;
+          &lt;head&gt;
+          &lt;meta http-equiv=""X-UA-Compatible"" content=""IE=edge"" /&gt;
+          &lt;meta charset=""utf-8"" /&gt;
+              ${assets.client.css
+                ? `&lt;link rel=""stylesheet"" href=""${assets.client.css}""&gt;`
+                : ''}
+              ${process.env.NODE_ENV === 'production'
+                ? `&lt;script src=""${assets.client.js}"" defer&gt;&lt;/script&gt;`
+                : `&lt;script src=""${assets.client.js}"" defer crossorigin&gt;&lt;/script&gt;`}
+              &lt;script&gt;window.__initialData__ = ${serialize(initialData)}&lt;/script&gt;
+          &lt;/head&gt;
+          &lt;body&gt;
+              &lt;div id=""root""&gt;${markup}&lt;/div&gt;
+                &lt;footer id=""footer""&gt;&lt;/footer&gt;             
+          &lt;/body&gt;
+        &lt;/html&gt;`
+        stream.pipe(res)
+      }
+
+    }).catch(next);
+  });
+
+export default server;
+</code></pre>
+
+<p>and my <code>routes.js</code> file is:</p>
+
+<pre><code>import Index from ""./pages/index""
+import Category from ""./pages/Category"";
+import Products from ""./pages/Products"";
+import Search from ""./pages/Search"";
+
+const routes = [
+  {
+        path: ""/"",
+        exact: true,
+        component: Index
+  },
+  {
+        path: ""/tag/:name"",
+        component: Category
+  },
+  {
+        path: ""/product/:name"",
+        component: Products
+  },
+  {
+        path: ""/search/:name"",
+        component: Search
+  }
+];
+
+export default routes;
+</code></pre>
+","6558042","","","","","2018-03-28 21:31:15","initalAction not called in ssr react","<javascript><reactjs><redux><react-router><serverside-rendering>","0","1","","",""
+"48676976","1","","","2018-02-08 03:17:16","","1","60","<p>I tried to replace <code>renderToString</code> with <code>renderToNodeStream</code> in my React SSR.
+The browser ended up stuck waiting for the stream to start (stuck in loading, but nothing ever arrived).</p>
+
+<p>I have Helmet, styled-components, and node-cache on the server-side logic.
+After removing all of them, leaving just the bare essentials </p>
+
+<pre><code>onPageLoad(sink =&gt; {
+
+
+    let preloadedData = {}
+
+    let visitorGeoDetails = undefined;
+
+
+
+    let ip = dummyIP[""HK""];
+
+
+
+    visitorGeoDetails = geoip.lookup(ip);
+
+    visitorGeoDetails.ip = ip;
+
+
+
+
+
+    console.info(`rendering page on server for ${ip}...`);
+
+
+
+
+    const setPreloadedContent = (key, value) =&gt; {
+        preloadedData[key] = value;
+    }
+
+    sink.renderIntoElementById(""react-app"", renderToNodeStream(
+      &lt;App target=""server"" location={sink.request.url.path} visitorGeoDetails={visitorGeoDetails} setPreloadedContent={setPreloadedContent} /&gt;));
+
+
+    preloadedData['visitorGeoDetails'] = visitorGeoDetails;
+
+
+
+    sink.appendToBody(`
+        &lt;script&gt;
+          window.__PRELOADED_DATA__ = ${JSON.stringify(preloadedData)};
+        &lt;/script&gt;
+      `);
+
+  });
+</code></pre>
+
+<p>The problem still remains.</p>
+
+<p>Is there any other thing I need to do when switching over to <code>renderToNodeStream</code> ?</p>
+
+<p>PS: I see the server ran through the React Components (and if there were any warnings from propTypes, they also showed up in the server terminal console log when a browser try to access the site).</p>
+
+<p><a href=""https://i.stack.imgur.com/awCxB.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/awCxB.png"" alt=""enter image description here""></a></p>
+","1234260","","1234260","","2018-02-08 03:46:46","2018-02-08 03:46:46","Meteor 1.6.1 + renderToNodeStream = Browser not loading the stream","<reactjs><meteor>","0","0","","",""

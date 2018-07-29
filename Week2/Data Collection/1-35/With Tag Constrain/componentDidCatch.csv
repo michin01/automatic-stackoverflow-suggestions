@@ -1,0 +1,1886 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"46835391","1","46836669","","2017-10-19 17:12:51","","2","488","<p>I started an app using <a href=""https://github.com/facebookincubator/create-react-app"" rel=""nofollow noreferrer"">create-react-app</a>, and I have this <a href=""https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html#introducing-error-boundaries"" rel=""nofollow noreferrer"">Error Boundary</a> component:</p>
+
+<pre><code>import React from 'react'
+
+export default class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  componentDidCatch(error, info) {
+    console.log('shouldnt I see this logged??')
+
+    this.setState({ hasError: true });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return &lt;h1&gt;Something went wrong.&lt;/h1&gt;;
+    }
+
+    return this.props.children;
+  }
+}
+</code></pre>
+
+<p>and I use it in this App component:</p>
+
+<pre><code>import React from 'react'
+import ErrorBoundary from './ErrorBoundary'
+
+
+class App extends React.Component {
+  render() {
+    return (
+      &lt;ErrorBoundary&gt;
+        &lt;div&gt;
+          &lt;button onClick={() =&gt; { throw new Error('lets throw an error') }}&gt;
+            Click to throw error
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/ErrorBoundary&gt;
+    );
+  }
+}
+
+export default App;
+</code></pre>
+
+<p>I am expecting that if I click the button in <code>App</code>, the thrown error should be caught and I should see this logged from <code>ErrorBoundary</code>: ""shouldnt I see this logged??"".  But I don't see that logged and it breaks the app:</p>
+
+<p><a href=""https://i.stack.imgur.com/raQDE.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/raQDE.png"" alt=""enter image description here""></a> </p>
+
+<p>Am I misunderstanding something?</p>
+","4043955","","4043955","","2017-10-19 17:22:45","2017-10-19 20:49:44","React 16 Error Boundary component (using componentDidCatch) shows uncaught error","<reactjs><create-react-app>","1","2","","",""
+"47939765","1","47939935","","2017-12-22 10:17:57","","1","137","<p>I'm trying to use <code>flow</code>, <code>babel</code> and <code>rollup</code>, but my code breaks when adding flow. I have tried the <code>rollup-plugin-flow</code> and the different <code>babel-..-..</code> flow plugins (current implementation), but I'm still getting the same error.</p>
+
+<p>When I check the console. I get the following: ()I can't figure out what I'm missing)</p>
+
+<p>Thanks in advanced.</p>
+
+<pre class=""lang-bash prettyprint-override""><code>(!) Missing exports
+https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module
+src/components/ErrorBoundary/ErrorBoundary.js
+createElement is not exported by node_modules/react/index.js
+26:       if (this.state.errorInfo) {
+27:
+28:         return React.createElement(
+                         ^
+29:           'div',
+30:           null,
+</code></pre>
+
+<p><strong>rollup.config.dev.js</strong></p>
+
+<pre class=""lang-js prettyprint-override""><code>import babel from 'rollup-plugin-babel';
+import cjs from 'rollup-plugin-commonjs';
+import livereload from 'rollup-plugin-livereload';
+import replace from 'rollup-plugin-replace';
+import resolve from 'rollup-plugin-node-resolve';
+import serve from 'rollup-plugin-serve';
+import scss from 'rollup-plugin-scss';
+import visualize from 'rollup-plugin-visualizer';
+
+export default {
+  input: 'src/index.js',
+  output: {
+    file: 'dist/bundle.js',
+    format: 'cjs',
+    sourcemap: true
+  },
+  plugins: [
+    babel({
+      babelrc: false,
+      exclude: [
+      'node_modules/**',
+      '**/*.scss'
+      ],
+      presets: [
+        [ ""env"", { ""modules"": false } ],
+        ""react""
+      ],
+      ""plugins"": [ [""external-helpers""], [""transform-flow-strip-types""], [""syntax-flow""] ]
+    }),
+    replace({ 'process.env.NODE_ENV': JSON.stringify('development') }),
+    scss({
+      output: 'dist/style.css'
+    }),
+    resolve(),
+    cjs({
+      include: 'node_modules/**',
+    }),
+...ommited_code
+}
+</code></pre>
+
+<p><strong>ErrorBoundary.js</strong></p>
+
+<pre class=""lang-jsx prettyprint-override""><code>// @flow
+import * as React from 'react';
+
+class ErrorBoundary extends React.Component { //&lt;= it breaks here
+  constructor(props) {
+    super(props);
+    this.state = { error: null, errorInfo: null };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    this.setState({ error: error, errorInfo: errorInfo })
+  }
+
+  render() {
+    const { children } = this.props;
+
+    if (this.state.errorInfo) {
+
+      return (
+        &lt;div&gt;
+          &lt;h2&gt;Oops something crashed 😢&lt;/h2&gt;
+            &lt;details style={{whiteSpace: 'pre-wrap', color: 'red' }}&gt;
+              {this.state.error &amp;&amp; this.state.error.toString()}
+              &lt;br /&gt;
+              {this.state.errorInfo.componentStack}
+            &lt;/details&gt;
+        &lt;/div&gt;
+      );
+    }
+    return children;
+  }
+}
+
+export default ErrorBoundary;
+</code></pre>
+","4367242","","2622314","","2018-03-17 12:27:16","2018-03-17 12:27:16","Flow rollup, react and babel TypeError: Super expression must either be null or a function, not undefined","<reactjs><babel><flowtype><rollup>","1","0","","",""
+"49639730","1","49640287","","2018-04-03 21:57:42","","2","269","<p>I'm trying to send the user to a generic error page when the App breaks, thing is I'm trying with the <a href=""https://reactjs.org/docs/error-boundaries.html"" rel=""nofollow noreferrer"">ErrorBoundary</a> method and then rendering out the Redirect;</p>
+
+<pre><code>export default class ErrorBoundary extends Component {
+    state = { has_error: false }
+
+    componentDidCatch(error, info)
+        this.setState({ has_error: true });
+    }
+
+
+    render() {
+        if (this.state.has_error)
+            return &lt;Redirect to=""/somewhere/else"" /&gt;
+        }
+        return this.props.children;
+    }
+};
+</code></pre>
+
+<p>And then using the ErrorBoundary to wrap all the routes and sub components inside the Router</p>
+
+<pre><code>&lt;Router history={history}&gt;
+    &lt;ErrorBoundary&gt;
+        &lt;Header /&gt;
+        &lt;Switch&gt;
+            &lt;Route exact path=""/"" component={Home} /&gt;
+            &lt;Route
+                path=""/createManager/:managerId""
+                component={CreateManager}
+            /&gt;
+            &lt;Route path=""/login"" component={LoginComp} /&gt;
+            &lt;Route path=""/test"" component={Test} /&gt;
+            &lt;Route path=""/register"" component={RegisterAccount} /&gt;
+            &lt;Route component={NotFound} /&gt;
+        &lt;/Switch&gt;
+        &lt;Footer /&gt;
+    &lt;/ErrorBoundary&gt;
+&lt;/Router&gt;
+</code></pre>
+
+<p>The componentDidCatch is never triggered, thus, never leaving the current error page, neither in the dev nor prod version. How can I send the user to a X route when the App breaks or tries to throw an error? </p>
+
+<p>In order to trigger an error, I leave one Component with an empty prop, and later on click trying to use the function that should be passed in the prop.</p>
+","6553898","","6553898","","2018-04-03 22:24:45","2018-04-04 01:49:17","Redirect to error page ReactJS and react-router","<javascript><reactjs><ecmascript-6><react-router><react-dom>","1","11","","",""
+"47772482","1","","","2017-12-12 12:19:32","","3","247","<p>I am attempting to create a 'fail whale' page that pops up whenever the app crashes.</p>
+
+<p>To do this I am attempting to use 'error boundaries' along with the new componentDidCatch lifecycle method.
+<a href=""https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html"" rel=""nofollow noreferrer"">https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html</a></p>
+
+<p>I am having no success so far and no matter what, the error crashes the app.</p>
+
+<p>Here is the reproduction code: </p>
+
+<pre><code>import React, { Component } from 'react';
+import { View, Text } from 'react-native';
+
+class InnerComponent extends Component {
+  render() {
+    throw new Error('why isn\'t this working')
+    return(
+      &lt;View&gt;
+        &lt;Text&gt;Why is this rendering?&lt;/Text&gt;
+      &lt;/View&gt;
+      )
+  }
+}
+
+class ErrorBoundary extends Component {
+    constructor(props) {
+      super(props)
+      this.state = { hasError: false }
+    }
+
+    componentDidCatch(error, info) {
+      this.setState({ hasError: true })
+      console.log(error, info)
+    }
+
+    render() {
+      if (this.state.hasError) {
+        return (
+          &lt;View&gt;
+            &lt;Text&gt;Why is this not rendering?&lt;/Text&gt;
+          &lt;/View&gt;
+        )
+      }
+      return this.props.children
+    }
+}
+
+export default class App extends Component {
+  render() {
+    return (
+      &lt;ErrorBoundary&gt;
+        &lt;InnerComponent/&gt;
+      &lt;/ErrorBoundary&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>Here is a snack I made with the same issues:
+<a href=""https://snack.expo.io/BynlDr6-z"" rel=""nofollow noreferrer"">https://snack.expo.io/BynlDr6-z</a></p>
+
+<p>What am I doing wrong here?</p>
+
+<p>Thanks!</p>
+","6108226","","","","","2017-12-12 12:19:32","Why isn't componentDidCatch not preventing app crashes?","<javascript><reactjs><react-native>","0","4","","",""
+"48291943","1","48292391","","2018-01-17 00:30:34","","0","127","<p>I'm new to react-native and I'm trying to build an application connected to a ruby on rails backend.</p>
+
+<p>I have an index view in which I retrieve a list of lunches, I would like that when I click on one of them, I go to that presentation. so I created a specific view in which I redo an api call to retrieve the lunch data and then I display this one. 
+The problem is that it tries to read the data first and then it makes the api call after that while the method is in a <code>componentWillMount()</code> and the api call is done after that because I see it in the logs.</p>
+
+<p>INDEX.js</p>
+
+<pre><code>import React from 'react';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableHighlight } from 'react-native'
+import { Card, ListItem, Button } from 'react-native-elements'
+import { Actions } from 'react-native-router-flux';
+
+export default class IndexLunches extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      lunches: []
+    };
+    this.show = this.show.bind(this)
+  }
+  fetchLunches() {
+    fetch('http://192.168.1.24:3000/api/v1/lunches', {
+      method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+    })
+    .then((response) =&gt; {
+      if (response.ok) {
+        console.log('RESPONSE OK : GET LUNCHES')
+        var lunches = JSON.parse(response._bodyText);
+        var headers = response.headers
+        console.log(lunches)
+        console.log(headers)
+        this.setState({lunches: lunches})
+
+      } else {
+        alert(""Erreur pendant la réceptions des lunchs voir les logs"")
+        console.log(response)
+      }
+
+    })
+    .catch(function(error) {
+      console.log('There has been a problem with your fetch operation: ' + error.message);
+      // ADD THIS THROW error
+        throw error;
+      })
+    .done();
+
+  }
+
+  show(id) {
+    Actions.show_lunch({lunch_id: id})
+  }
+
+  lunchCard() {
+    lunches = this.state.lunches
+    return lunches.map((lunch, i) =&gt; {
+      return(
+        &lt;TouchableHighlight key={i} onPress={() =&gt; this.show(lunch.id)}&gt;
+          &lt;View 
+            // key={i}
+            // Error here because react auto execute onPress on load
+            &gt;
+            &lt;Image
+              style={{flex: 1, height: 150}}
+              source={{ uri: lunch.photos[0].url }}
+            /&gt;
+            &lt;Text&gt;Titre du lunch : {lunch.title}&lt;/Text&gt;
+            &lt;View&gt;
+              &lt;Text&gt;id : {lunch.id}&lt;/Text&gt;
+            &lt;/View&gt;
+        &lt;/View&gt;
+        &lt;/TouchableHighlight&gt;
+      );
+    });
+  }
+  // Its called before render component
+  componentWillMount() {
+    this.fetchLunches();
+  }
+  render () {
+    return (
+      &lt;ScrollView&gt;
+        &lt;Text style={styles.title} &gt; Liste des lunchs &lt;/Text&gt;
+        &lt;View&gt;
+          { this.lunchCard() }
+        &lt;/View&gt;
+      &lt;/ScrollView&gt;
+    )
+  }
+}
+
+const styles = StyleSheet.create({
+  title: {
+    color: ""#0000FF"",
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  text: {
+
+  }
+})
+</code></pre>
+
+<p>Show.js</p>
+
+<pre><code>import React from 'react';
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native'
+import { Card, ListItem, Button } from 'react-native-elements'
+
+export default class ShowLunch extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      lunch: {},
+      lunch_id: this.props.navigation.state.params.lunch_id
+    };
+  }
+  fetchLunch() {
+    let id = this.state.lunch_id
+    fetch(`http://192.168.1.24:3000/api/v1/lunches/${id}`, {
+      method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+    })
+    .then((response) =&gt; {
+      if (response.ok) {
+        console.log(`RESPONSE OK : GET LUNCH, ID: ${id}` )
+        var lunch = JSON.parse(response._bodyText);
+        var headers = response.headers
+        console.log(lunch.lunch)
+        console.log(headers)
+        this.setState({lunch: lunch.lunch})
+
+      } else {
+        alert(""Erreur pendant la réceptions du lunch voir les logs"")
+        console.log(response)
+      }
+
+    })
+    .catch(function(error) {
+      console.log('There has been a problem with your fetch operation: ' + error.message);
+      // ADD THIS THROW error
+        throw error;
+      })
+    .done();
+
+  }
+
+  lunchView() {
+    lunch = this.state.lunch
+    console.log(""ENTER IN LUNCH VIEW"")
+    console.log(lunch)
+    return(
+        &lt;View key=""lunch""&gt;
+          &lt;Image
+            style={{flex: 1, height: 150}}
+            source={{ uri: lunch.photos[0].url }}
+          /&gt;
+          &lt;Text&gt;Titre du lunch : {lunch.title}&lt;/Text&gt;
+          &lt;View&gt;
+            &lt;Text&gt;id : {lunch.id}&lt;/Text&gt;
+          &lt;/View&gt;
+      &lt;/View&gt;
+    );
+  }
+  // Called before render component
+  componentWillMount() {
+    this.fetchLunch();
+  }
+  render () {
+    return (
+      &lt;ScrollView&gt;
+        &lt;Text style={styles.title} &gt;Lunch : &lt;/Text&gt;
+        &lt;View&gt;
+          { this.lunchView() }
+        &lt;/View&gt;
+      &lt;/ScrollView&gt;
+    )
+  }
+}
+
+const styles = StyleSheet.create({
+  title: {
+    color: ""#0000FF"",
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  text: {
+
+  }
+})
+</code></pre>
+
+<p>Console.log</p>
+
+<pre><code>LOGIN SUCCESSFULL
+Login.js:62 VALIDATE TOKEN SUCCESSFULL
+Login.js:63 Response {type: ""default"", status: 200, ok: true, statusText: undefined, headers: Headers, …}
+Login.js:65 {…}
+IndexLunches.js:24 RESPONSE OK : GET LUNCHES
+IndexLunches.js:27 (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+IndexLunches.js:28 Headers {map: {…}}
+ShowLunch.js:48 ENTER IN LUNCH VIEW
+ShowLunch.js:49 {}
+ExceptionsManager.js:65 TypeError: Cannot read property '0' of undefined
+
+This error is located at:
+    in ShowLunch (at navigationStore.js:319)
+    in Wrapped (at SceneView.js:31)
+    in SceneView (at CardStack.js:412)
+    in RCTView (at View.js:113)
+    in View (at CardStack.js:411)
+    in RCTView (at View.js:113)
+    in View (at CardStack.js:410)
+    in RCTView (at View.js:113)
+    in View (at createAnimatedComponent.js:134)
+    in AnimatedComponent (at Card.js:26)
+    in Card (at PointerEventsContainer.js:55)
+    in Container (at CardStack.js:454)
+    in RCTView (at View.js:113)
+    in View (at CardStack.js:383)
+    in RCTView (at View.js:113)
+    in View (at CardStack.js:382)
+    in CardStack (at CardStackTransitioner.js:97)
+    in RCTView (at View.js:113)
+    in View (at Transitioner.js:192)
+    in Transitioner (at CardStackTransitioner.js:49)
+    in CardStackTransitioner (at StackNavigator.js:60)
+    in Unknown (at createNavigator.js:52)
+    in Navigator (at createNavigationContainer.js:210)
+    in NavigationContainer (at Router.js:70)
+    in App (at Router.js:91)
+    in Router (at LunchRouter.js:31)
+    in LunchRouter (at App.js:16)
+    in RCTView (at View.js:113)
+    in View (at App.js:14)
+    in App (created by AwakeInDevApp)
+    in RCTView (at View.js:113)
+    in View (created by AwakeInDevApp)
+    in AwakeInDevApp (at registerRootComponent.js:34)
+    in RootErrorBoundary (at registerRootComponent.js:33)
+    in ExpoRootComponent (at renderApplication.js:35)
+    in RCTView (at View.js:113)
+    in View (at AppContainer.js:102)
+    in RCTView (at View.js:113)
+    in View (at AppContainer.js:122)
+    in AppContainer (at renderApplication.js:34)
+handleException @ ExceptionsManager.js:65
+ReactNativeFiberErrorDialog @ ReactNativeFiber-dev.js:231
+logCapturedError @ ReactNativeFiber-dev.js:19
+captureError @ ReactNativeFiber-dev.js:2649
+performWork @ ReactNativeFiber-dev.js:2601
+batchedUpdates @ ReactNativeFiber-dev.js:2756
+batchedUpdates @ ReactNativeFiber-dev.js:202
+batchedUpdatesWithControlledComponents @ ReactNativeFiber-dev.js:209
+_receiveRootNodeIDEvent @ ReactNativeFiber-dev.js:3559
+receiveTouches @ ReactNativeFiber-dev.js:3572
+__callFunction @ MessageQueue.js:302
+(anonymous) @ MessageQueue.js:116
+__guard @ MessageQueue.js:265
+callFunctionReturnFlushedQueue @ MessageQueue.js:115
+(anonymous) @ debuggerWorker.js:72
+ExceptionsManager.js:73 TypeError: TypeError: Cannot read property '0' of undefined
+
+This error is located at:
+    in ShowLunch (at navigationStore.js:319)
+    in Wrapped (at SceneView.js:31)
+    in SceneView (at CardStack.js:412)
+    in RCTView (at View.js:113)
+    in View (at CardStack.js:411)
+    in RCTView (at View.js:113)
+    in View (at CardStack.js:410)
+    in RCTView (at View.js:113)
+    in View (at createAnimatedComponent.js:134)
+    in AnimatedComponent (at Card.js:26)
+    in Card (at PointerEventsContainer.js:55)
+    in Container (at CardStack.js:454)
+    in RCTView (at View.js:113)
+    in View (at CardStack.js:383)
+    in RCTView (at View.js:113)
+    in View (at CardStack.js:382)
+    in CardStack (at CardStackTransitioner.js:97)
+    in RCTView (at View.js:113)
+    in View (at Transitioner.js:192)
+    in Transitioner (at CardStackTransitioner.js:49)
+    in CardStackTransitioner (at StackNavigator.js:60)
+    in Unknown (at createNavigator.js:52)
+    in Navigator (at createNavigationContainer.js:210)
+    in NavigationContainer (at Router.js:70)
+    in App (at Router.js:91)
+    in Router (at LunchRouter.js:31)
+    in LunchRouter (at App.js:16)
+    in RCTView (at View.js:113)
+    in View (at App.js:14)
+    in App (created by AwakeInDevApp)
+    in RCTView (at View.js:113)
+    in View (created by AwakeInDevApp)
+    in AwakeInDevApp (at registerRootComponent.js:34)
+    in RootErrorBoundary (at registerRootComponent.js:33)
+    in ExpoRootComponent (at renderApplication.js:35)
+    in RCTView (at View.js:113)
+    in View (at AppContainer.js:102)
+    in RCTView (at View.js:113)
+    in View (at AppContainer.js:122)
+    in AppContainer (at renderApplication.js:34)
+    at ShowLunch.lunchView (ShowLunch.js:54)
+    at ShowLunch.proxiedMethod (createPrototypeProxy.js:44)
+    at ShowLunch.render (ShowLunch.js:72)
+    at ShowLunch.proxiedMethod (createPrototypeProxy.js:44)
+    at finishClassComponent (ReactNativeFiber-dev.js:1667)
+    at updateClassComponent (ReactNativeFiber-dev.js:1659)
+    at beginWork (ReactNativeFiber-dev.js:1786)
+    at performUnitOfWork (ReactNativeFiber-dev.js:2528)
+    at workLoop (ReactNativeFiber-dev.js:2554)
+    at Object._invokeGuardedCallback (ReactNativeFiber-dev.js:73)
+reactConsoleErrorHandler @ ExceptionsManager.js:73
+console.error @ YellowBox.js:71
+componentDidCatch @ RootErrorBoundary.js:71
+proxiedMethod @ createPrototypeProxy.js:44
+commitErrorHandling @ ReactNativeFiber-dev.js:2675
+commitAllLifeCycles @ ReactNativeFiber-dev.js:2462
+_invokeGuardedCallback @ ReactNativeFiber-dev.js:73
+invokeGuardedCallback @ ReactNativeFiber-dev.js:47
+commitAllWork @ ReactNativeFiber-dev.js:2485
+workLoop @ ReactNativeFiber-dev.js:2555
+performWorkCatchBlock @ ReactNativeFiber-dev.js:2587
+_invokeGuardedCallback @ ReactNativeFiber-dev.js:73
+invokeGuardedCallback @ ReactNativeFiber-dev.js:47
+performWork @ ReactNativeFiber-dev.js:2604
+batchedUpdates @ ReactNativeFiber-dev.js:2756
+batchedUpdates @ ReactNativeFiber-dev.js:202
+batchedUpdatesWithControlledComponents @ ReactNativeFiber-dev.js:209
+_receiveRootNodeIDEvent @ ReactNativeFiber-dev.js:3559
+receiveTouches @ ReactNativeFiber-dev.js:3572
+__callFunction @ MessageQueue.js:302
+(anonymous) @ MessageQueue.js:116
+__guard @ MessageQueue.js:265
+callFunctionReturnFlushedQueue @ MessageQueue.js:115
+(anonymous) @ debuggerWorker.js:72
+ShowLunch.js:24 RESPONSE OK : GET LUNCH, ID: 5
+ShowLunch.js:27 {id: 5, title: ""Coconut, Beef and Winter melon "", description: ""[""Propre subline nom origines sans vers."", ""Italiq…rent mille qui."", ""Pour nostalgique fin chemin.""]"", portion: 4, supply: ""Aucun"", …}
+ShowLunch.js:28 Headers {map: {…}}
+ExceptionsManager.js:73 Warning: Can only update a mounted or mounting component. This usually means you called setState, replaceState, or forceUpdate on an unmounted component. This is a no-op.
+
+Please check the code for the ShowLunch component.
+</code></pre>
+
+<p>I tried several things with the bind (this) or the arrows functions but I don't understand.</p>
+","8213274","","","","","2018-01-17 01:30:33","react-native function in map","<reactjs><react-native><jsx>","1","0","","",""
+"49230031","1","","","2018-03-12 07:24:23","","0","63","<p>In my react JS web application, I use the error boundary to catch errors in the component tree using the componentDidCatch(error, info) function.</p>
+
+<p>But the error information (info.componentStack) which I receive in the development server and production(build) server are totally different. The development server shows the correct error message. But in the production server I can see the trimmed error message. Please see the below image.</p>
+
+<p><a href=""https://i.stack.imgur.com/jlC7C.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/jlC7C.png"" alt=""error message in production build""></a></p>
+
+<p>Can you please help to solve this issue?
+Do I miss any configuration for the production build to receive the proper error information using error boundary?</p>
+","547634","","","","","2018-03-12 07:51:20","Production build of React application showing trimmed componentStack when I use componentDidCatch","<reactjs>","1","0","","",""
+"51369838","1","","","2018-07-16 20:43:48","","0","21","<p>I want to put a phone icon along with phone number on my flat list. Right now, I am only displaying the phone number. My manager is asking me to put the phone icon along with when the user swipes the phone icon then the call can be placed I have the following code to display the phone number. </p>
+
+<pre><code>import React, { Component } from 'react';
+
+import { AppRegistry, StyleSheet, FlatList, Text, View, Alert, TouchableOpacity, Linking } from 'react-native';
+import ServiceDetails from '../reducers/ServiceDetails.json';
+
+export default class ServiceListDetails extends Component {
+
+  FlatListItemSeparator = () =&gt; {
+    return (
+      &lt;View
+        style={{
+          height: .5,
+          width: ""100%"",
+          backgroundColor: ""#607D8B"",
+        }}
+      /&gt;
+    );
+  }
+
+
+_renderItem = ({item}) =&gt; {
+
+
+ return(
+            &lt;View &gt;
+                &lt;Text style={styles.Address1}&gt;{item.addr} &lt;/Text&gt;
+                &lt;Text style={styles.Address1}&gt;{item.phone}&lt;/Text&gt;
+           &lt;/View&gt;
+           );
+           }
+
+componentDidCatch
+render()
+  {
+   return(
+
+     &lt;View&gt;
+         &lt;FlatList
+          ItemSeparatorComponent = {this.FlatListItemSeparator}
+          renderItem={this._renderItem}
+          keyExtractor={(item, index) =&gt; index}
+    /&gt;
+
+
+     &lt;/View&gt;
+  )
+  }
+  }
+</code></pre>
+
+<p>Right now, I can see </p>
+
+<pre><code>410 Test Drive
+(912) 404-5555
+_________________
+213 Test drive1
+(999) 222-1111
+</code></pre>
+
+<p>I want to put the phone icon and make it swipeable so that user can make the call from their phone.</p>
+
+<p>any help will be highly appreciated.</p>
+","5775000","","","","","2018-07-17 20:22:55","Phone icon with phone number on react Native page","<reactjs><react-native>","1","0","","",""
+"50356449","1","50503076","","2018-05-15 17:51:06","","2","145","<p>I have a Sharepoint Framework webpart which basically has a property side bar where I can select the Sharepoint List, and based on the selection it will render the list items from that list into an Office UI DetailsList Component.</p>
+
+<p>When I debug the REST calls are all fine, however the problem is I never get any data rendered on the screen. </p>
+
+<p>so If I select GenericList it should query Generic LIst, if I select Directory it should query the Directory list, however when I select Directory it still says that the selection is GenericList, not directory.</p>
+
+<p>This is my webpart code</p>
+
+<pre><code>import * as React from ""react"";
+import * as ReactDom from ""react-dom"";
+import { Version } from ""@microsoft/sp-core-library"";
+import {
+  BaseClientSideWebPart,
+  IPropertyPaneConfiguration,
+  PropertyPaneTextField,
+  PropertyPaneDropdown,
+  IPropertyPaneDropdownOption,
+  IPropertyPaneField,
+  PropertyPaneLabel
+} from ""@microsoft/sp-webpart-base"";
+
+import * as strings from ""FactoryMethodWebPartStrings"";
+import FactoryMethod from ""./components/FactoryMethod"";
+import { IFactoryMethodProps } from ""./components/IFactoryMethodProps"";
+import { IFactoryMethodWebPartProps } from ""./IFactoryMethodWebPartProps"";
+import * as lodash from ""@microsoft/sp-lodash-subset"";
+import List from ""./components/models/List"";
+import { Environment, EnvironmentType } from ""@microsoft/sp-core-library"";
+import IDataProvider from ""./components/dataproviders/IDataProvider"";
+import MockDataProvider from ""./test/MockDataProvider"";
+import SharePointDataProvider from ""./components/dataproviders/SharepointDataProvider"";
+
+export default class FactoryMethodWebPart extends BaseClientSideWebPart&lt;IFactoryMethodWebPartProps&gt; {
+  private _dropdownOptions: IPropertyPaneDropdownOption[];
+  private _selectedList: List;
+  private _disableDropdown: boolean;
+  private _dataProvider: IDataProvider;
+  private _factorymethodContainerComponent: FactoryMethod;
+
+  protected onInit(): Promise&lt;void&gt; {
+    this.context.statusRenderer.displayLoadingIndicator(this.domElement, ""Todo"");
+
+    /*
+    Create the appropriate data provider depending on where the web part is running.
+    The DEBUG flag will ensure the mock data provider is not bundled with the web part when you package the
+     solution for distribution, that is, using the --ship flag with the package-solution gulp command.
+    */
+    if (DEBUG &amp;&amp; Environment.type === EnvironmentType.Local) {
+      this._dataProvider = new MockDataProvider();
+    } else {
+      this._dataProvider = new SharePointDataProvider();
+      this._dataProvider.webPartContext = this.context;
+    }
+
+    this.openPropertyPane = this.openPropertyPane.bind(this);
+
+    /*
+    Get the list of tasks lists from the current site and populate the property pane dropdown field with the values.
+    */
+    this.loadLists()
+      .then(() =&gt; {
+        /*
+         If a list is already selected, then we would have stored the list Id in the associated web part property.
+         So, check to see if we do have a selected list for the web part. If we do, then we set that as the selected list
+         in the property pane dropdown field.
+        */
+        if (this.properties.spListIndex) {
+          this.setSelectedList(this.properties.spListIndex.toString());
+          this.context.statusRenderer.clearLoadingIndicator(this.domElement);
+        }
+      });
+
+    return super.onInit();
+  }
+
+  // render method of the webpart, actually calls Component
+  public render(): void {
+    const element: React.ReactElement&lt;IFactoryMethodProps &gt; = React.createElement(
+      FactoryMethod,
+      {
+        spHttpClient: this.context.spHttpClient,
+        siteUrl: this.context.pageContext.web.absoluteUrl,
+        listName: this._dataProvider.selectedList === undefined ? ""GenericList"" : this._dataProvider.selectedList.Title,
+        dataProvider: this._dataProvider,
+        configureStartCallback: this.openPropertyPane
+      }
+    );
+
+    // reactDom.render(element, this.domElement);
+    this._factorymethodContainerComponent = &lt;FactoryMethod&gt;ReactDom.render(element, this.domElement);
+
+  }
+
+  // loads lists from the site and fill the dropdown.
+  private loadLists(): Promise&lt;any&gt; {
+    return this._dataProvider.getLists()
+      .then((lists: List[]) =&gt; {
+        // disable dropdown field if there are no results from the server.
+        this._disableDropdown = lists.length === 0;
+        if (lists.length !== 0) {
+          this._dropdownOptions = lists.map((list: List) =&gt; {
+            return {
+              key: list.Id,
+              text: list.Title
+            };
+          });
+        }
+      });
+  }
+
+  protected get dataVersion(): Version {
+    return Version.parse(""1.0"");
+  }
+
+  protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any): void {
+    /*
+    Check the property path to see which property pane feld changed. If the property path matches the dropdown, then we set that list
+    as the selected list for the web part.
+    */
+    if (propertyPath === ""spListIndex"") {
+      this.setSelectedList(newValue);
+    }
+
+    /*
+    Finally, tell property pane to re-render the web part.
+    This is valid for reactive property pane.
+    */
+    super.onPropertyPaneFieldChanged(propertyPath, oldValue, newValue);
+  }
+
+  // sets the selected list based on the selection from the dropdownlist
+  private setSelectedList(value: string): void {
+    const selectedIndex: number = lodash.findIndex(this._dropdownOptions,
+      (item: IPropertyPaneDropdownOption) =&gt; item.key === value
+    );
+
+    const selectedDropDownOption: IPropertyPaneDropdownOption = this._dropdownOptions[selectedIndex];
+
+    if (selectedDropDownOption) {
+      this._selectedList = {
+        Title: selectedDropDownOption.text,
+        Id: selectedDropDownOption.key.toString()
+      };
+
+      this._dataProvider.selectedList = this._selectedList;
+    }
+  }
+
+
+  // we add fields dynamically to the property pane, in this case its only the list field which we will render
+  private getGroupFields(): IPropertyPaneField&lt;any&gt;[] {
+    const fields: IPropertyPaneField&lt;any&gt;[] = [];
+
+    // we add the options from the dropdownoptions variable that was populated during init to the dropdown here.
+    fields.push(PropertyPaneDropdown(""spListIndex"", {
+      label: ""Select a list"",
+      disabled: this._disableDropdown,
+      options: this._dropdownOptions
+    }));
+
+    /*
+    When we do not have any lists returned from the server, we disable the dropdown. If that is the case,
+    we also add a label field displaying the appropriate message.
+    */
+    if (this._disableDropdown) {
+      fields.push(PropertyPaneLabel(null, {
+        text: ""Could not find tasks lists in your site. Create one or more tasks list and then try using the web part.""
+      }));
+    }
+
+    return fields;
+  }
+
+  private openPropertyPane(): void {
+    this.context.propertyPane.open();
+  }
+
+  protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
+    return {
+      pages: [
+        {
+          header: {
+            description: strings.PropertyPaneDescription
+          },
+          groups: [
+            {
+              groupName: strings.BasicGroupName,
+              /*
+              Instead of creating the fields here, we call a method that will return the set of property fields to render.
+              */
+              groupFields: this.getGroupFields()
+            }
+          ]
+        }
+      ]
+    };
+  }
+}
+</code></pre>
+
+<p>This is my component code</p>
+
+<pre><code>//#region Imports
+import * as React from ""react"";
+import styles from ""./FactoryMethod.module.scss"";
+import  { IFactoryMethodProps } from ""./IFactoryMethodProps"";
+import {
+  IDetailsListItemState,
+  IDetailsNewsListItemState,
+  IDetailsDirectoryListItemState,
+  IDetailsAnnouncementListItemState,
+  IFactoryMethodState
+} from ""./IFactoryMethodState"";
+import { IListItem } from ""./models/IListItem"";
+import { IAnnouncementListItem } from ""./models/IAnnouncementListItem"";
+import { INewsListItem } from ""./models/INewsListItem"";
+import { IDirectoryListItem } from ""./models/IDirectoryListItem"";
+import { escape } from ""@microsoft/sp-lodash-subset"";
+import { SPHttpClient, SPHttpClientResponse } from ""@microsoft/sp-http"";
+import { ListItemFactory} from ""./ListItemFactory"";
+import { TextField } from ""office-ui-fabric-react/lib/TextField"";
+import {
+  DetailsList,
+  DetailsListLayoutMode,
+  Selection,
+  buildColumns,
+  IColumn
+} from ""office-ui-fabric-react/lib/DetailsList"";
+import { MarqueeSelection } from ""office-ui-fabric-react/lib/MarqueeSelection"";
+import { autobind } from ""office-ui-fabric-react/lib/Utilities"";
+import PropTypes from ""prop-types"";
+//#endregion
+
+export default class FactoryMethod extends React.Component&lt;IFactoryMethodProps, IFactoryMethodState&gt; {
+  constructor(props: IFactoryMethodProps, state: any) {
+    super(props);
+    this.setInitialState();
+  }
+
+
+  // lifecycle help here: https://staminaloops.github.io/undefinedisnotafunction/understanding-react/
+  //#region Mouting events lifecycle
+  // the data returned from render is neither a string nor a DOM node.
+  // it's a lightweight description of what the DOM should look like.
+  // inspects this.state and this.props and create the markup.
+  // when your data changes, the render method is called again.
+  // react diff the return value from the previous call to render with
+  // the new one, and generate a minimal set of changes to be applied to the DOM.
+  public render(): React.ReactElement&lt;IFactoryMethodProps&gt; {
+    if (this.state.hasError) {
+      // you can render any custom fallback UI
+      return &lt;h1&gt;Something went wrong.&lt;/h1&gt;;
+    } else {
+      switch(this.props.listName) {
+          case ""GenericList"":
+            // tslint:disable-next-line:max-line-length
+            return &lt;this.ListMarqueeSelection items={this.state.DetailsListItemState.items} columns={this.state.columns} /&gt;;
+          case ""News"":
+            // tslint:disable-next-line:max-line-length
+            return &lt;this.ListMarqueeSelection items={this.state.DetailsNewsListItemState.items} columns={this.state.columns}/&gt;;
+          case ""Announcements"":
+            // tslint:disable-next-line:max-line-length
+            return &lt;this.ListMarqueeSelection items={this.state.DetailsAnnouncementListItemState.items} columns={this.state.columns}/&gt;;
+          case ""Directory"":
+            // tslint:disable-next-line:max-line-length
+            return &lt;this.ListMarqueeSelection items={this.state.DetailsDirectoryListItemState.items} columns={this.state.columns}/&gt;;
+          default:
+            return null;
+      }
+    }
+  }
+
+  public componentDidCatch(error: any, info: any): void {
+    // display fallback UI
+    this.setState({ hasError: true });
+    // you can also log the error to an error reporting service
+    console.log(error);
+    console.log(info);
+  }
+
+
+
+  // componentDidMount() is invoked immediately after a component is mounted. Initialization that requires DOM nodes should go here.
+  // if you need to load data from a remote endpoint, this is a good place to instantiate the network request.
+  // this method is a good place to set up any subscriptions. If you do that, don’t forget to unsubscribe in componentWillUnmount().
+  // calling setState() in this method will trigger an extra rendering, but it is guaranteed to flush during the same tick.
+  // this guarantees that even though the render() will be called twice in this case, the user won’t see the intermediate state.
+  // use this pattern with caution because it often causes performance issues. It can, however, be necessary for cases like modals and
+  // tooltips when you need to measure a DOM node before rendering something that depends on its size or position.
+   public componentDidMount(): void {
+    this._configureWebPart = this._configureWebPart.bind(this);
+    this.readItemsAndSetStatus();
+  }
+
+  //#endregion
+  //#region Props changes lifecycle events (after a property changes from parent component)
+  // componentWillReceiveProps() is invoked before a mounted component receives new props.
+  // if you need to update the state in response to prop
+  // changes (for example, to reset it), you may compare this.props and nextProps and perform state transitions
+  // using this.setState() in this method.
+  // note that React may call this method even if the props have not changed, so make sure to compare the current
+  // and next values if you only want to handle changes.
+  // this may occur when the parent component causes your component to re-render.
+  // react doesn’t call componentWillReceiveProps() with initial props during mounting. It only calls this
+  // method if some of component’s props may update
+  // calling this.setState() generally doesn’t trigger componentWillReceiveProps()
+  public componentWillReceiveProps(nextProps: IFactoryMethodProps): void {
+    if(nextProps.listName !== this.props.listName) {
+      this.readItemsAndSetStatus();
+    }
+  }
+
+  //#endregion
+  //#region private methods
+  private _configureWebPart(): void {
+    this.props.configureStartCallback();
+  }
+
+  public setInitialState(): void {
+    this.state = {
+      hasError: false,
+      status: this.listNotConfigured(this.props)
+        ? ""Please configure list in Web Part properties""
+        : ""Ready"",
+      columns:[],
+      DetailsListItemState:{
+        items:[]
+      },
+      DetailsNewsListItemState:{
+        items:[]
+      },
+      DetailsDirectoryListItemState:{
+        items:[]
+      },
+      DetailsAnnouncementListItemState:{
+        items:[]
+      },
+    };
+  }
+
+  // reusable inline component
+  private ListMarqueeSelection = (itemState: {columns: IColumn[], items: IListItem[] }) =&gt; (
+      &lt;div&gt;
+          &lt;DetailsList
+            items={ itemState.items }
+            columns={ itemState.columns }
+            setKey=""set""
+            layoutMode={ DetailsListLayoutMode.fixedColumns }
+            selectionPreservedOnEmptyClick={ true }
+            compact={ true }&gt;
+          &lt;/DetailsList&gt;
+      &lt;/div&gt;
+  )
+
+  // read items using factory method pattern and sets state accordingly
+  private readItemsAndSetStatus(): void {
+    this.setState({
+      status: ""Loading all items...""
+    });
+
+    const factory: ListItemFactory = new ListItemFactory();
+    factory.getItems(this.props.spHttpClient, this.props.siteUrl, this.props.listName)
+    .then((items: any[]) =&gt; {
+
+      var myItems: any = null;
+      switch(this.props.listName) {
+          case ""GenericList"":
+              myItems = items as IListItem[];
+              break;
+          case ""News"":
+              myItems = items as INewsListItem[];
+              break;
+          case ""Announcements"":
+              myItems = items as IAnnouncementListItem[];
+              break;
+          case ""Directory"":
+              myItems = items as IDirectoryListItem[];
+              break;
+      }
+
+      const keyPart: string = this.props.listName === ""GenericList"" ? """" : this.props.listName;
+        // the explicit specification of the type argument `keyof {}` is bad and
+        // it should not be required.
+        this.setState&lt;keyof {}&gt;({
+          status: `Successfully loaded ${items.length} items`,
+          [""Details"" + keyPart + ""ListItemState""] : {
+            myItems
+          },
+          columns: buildColumns(myItems)
+        });
+    });
+  }
+
+  private listNotConfigured(props: IFactoryMethodProps): boolean {
+    return props.listName === undefined ||
+      props.listName === null ||
+      props.listName.length === 0;
+  }
+
+  //#endregion
+}
+</code></pre>
+
+<p>I think the rest of the code is not neccesary</p>
+
+<p>Update
+SharepointDataProvider.ts</p>
+
+<pre><code>import {
+    SPHttpClient,
+    SPHttpClientBatch,
+    SPHttpClientResponse
+  } from ""@microsoft/sp-http"";
+  import { IWebPartContext } from ""@microsoft/sp-webpart-base"";
+  import List from ""../models/List"";
+  import IDataProvider from ""./IDataProvider"";
+
+  export default class SharePointDataProvider implements IDataProvider {
+      private _selectedList: List;
+      private _lists: List[];
+      private _listsUrl: string;
+      private _listItemsUrl: string;
+      private _webPartContext: IWebPartContext;
+
+      public set selectedList(value: List) {
+        this._selectedList = value;
+        this._listItemsUrl = `${this._listsUrl}(guid'${value.Id}')/items`;
+      }
+
+      public get selectedList(): List {
+        return this._selectedList;
+      }
+
+      public set webPartContext(value: IWebPartContext) {
+        this._webPartContext = value;
+        this._listsUrl = `${this._webPartContext.pageContext.web.absoluteUrl}/_api/web/lists`;
+      }
+
+      public get webPartContext(): IWebPartContext {
+        return this._webPartContext;
+      }
+
+      // get all lists, not only tasks lists
+      public getLists(): Promise&lt;List[]&gt; {
+        // const listTemplateId: string = '171';
+        // const queryString: string = `?$filter=BaseTemplate eq ${listTemplateId}`;
+        // const queryUrl: string = this._listsUrl + queryString;
+        return this._webPartContext.spHttpClient.get(this._listsUrl, SPHttpClient.configurations.v1)
+          .then((response: SPHttpClientResponse) =&gt; {
+            return response.json();
+          })
+          .then((json: { value: List[] }) =&gt; {
+            return this._lists = json.value;
+          });
+      }
+    }
+</code></pre>
+
+<p>Idataprovider.ts</p>
+
+<pre><code>import { IWebPartContext } from ""@microsoft/sp-webpart-base"";
+import List from ""../models/List"";
+import {IListItem} from ""../models/IListItem"";
+
+interface IDataProvider {
+  selectedList: List;
+  webPartContext: IWebPartContext;
+  getLists(): Promise&lt;List[]&gt;;
+}
+
+export default IDataProvider;
+</code></pre>
+","1014217","","1014217","","2018-05-15 18:25:54","2018-05-24 07:07:09","not proper use of react lifecycle","<javascript><reactjs><typescript><sharepoint><spfx>","2","7","","",""
+"47489699","1","47489839","","2017-11-25 19:21:35","","1","561","<p>I can't seem to trigger componentDidCatch in my code, even though I am purposefully throwing an error inside of my constructor function, so I know I'm not throwing the error on an event handler. My concern is that I did not successfully update my project to React 16, which is why componentDidCatch is not working. Could it be that I have not successfuly upgraded to React 16, or am I misusing Error Boundaries? </p>
+
+<p>Here are posts I have already reviewed and used to get this far: </p>
+
+<ol>
+<li><p><a href=""https://stackoverflow.com/questions/36897434/error-handling-in-react-best-practices"">Error handling in React best practices</a></p></li>
+<li><p><a href=""https://stackoverflow.com/questions/46835391/react-16-error-boundary-component-using-componentdidcatch-shows-uncaught-error"">React 16 Error Boundary component (using componentDidCatch) shows uncaught error</a></p></li>
+<li><p><a href=""https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html#introducing-error-boundaries"" rel=""nofollow noreferrer"">Introducing Error Boundaries</a></p></li>
+</ol>
+
+<p>App.js</p>
+
+<pre><code>import React, { Component } from 'react'
+import axios from 'axios'
+
+import ErrorBoundary from './components/ErrorBoundary'
+import Home from './components/Home'
+import Login from './components/Login'
+
+class App extends Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      loggedIn: false,
+      hasError: false
+    }
+    // This is where I am throwing my Error
+    throw new Error('this should be caught')
+  }
+
+  componentWillMount () {
+    axios.get(this.url, {
+      withCredentials: true
+    })
+    .then((response) =&gt; {
+      if (response.status === 200) { 
+        if (response.data.isAuthenticated) {
+          this.setState({ loggedIn: true })
+        } else if (!response.data.isAuthenticated) {
+          this.setState({ loggedIn: false })
+        } 
+      }
+    })
+    .catch((error) =&gt; {
+      this.setState(state =&gt; ({ ...state, hasErrors: true }))
+      throw new Error(""We couldn't get a response from the server."")
+    })
+  }
+
+  render () {
+    if (!this.state.loggedIn &amp;&amp; !this.state.hasErrors) {
+      return (
+        &lt;div className='login-container'&gt;
+          // I am setting an Error Boundary
+          &lt;ErrorBoundary&gt;
+            &lt;Login url={this.url} /&gt;
+          &lt;/ErrorBoundary&gt;
+        &lt;/div&gt;
+      )
+    } else if (this.state.loggedIn &amp;&amp; !this.state.hasErrors) {
+      return (
+        &lt;div&gt;
+          // I am setting an Error Boundary
+          &lt;ErrorBoundary&gt;
+            &lt;Home url={this.url} /&gt;
+          &lt;/ErrorBoundary&gt;
+        &lt;/div&gt;
+      )
+    } else { 
+      return &lt;h1&gt;Something has gone wrong.&lt;/h1&gt;
+    }
+  }
+}
+
+export default App
+</code></pre>
+
+<p>ErrorBoundary.js</p>
+
+<pre><code>import React, { Component } from 'react'
+
+class ErrorBoundary extends Component {
+  constructor (props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  componentDidCatch (error, info) {
+    this.setState(state =&gt; ({ ...state, hasError: true }))
+  }
+
+  render () {
+    if (this.state.hasError) {
+      return &lt;h1&gt;Something went wrong.&lt;/h1&gt;
+    }
+    return this.props.children
+  }
+}
+
+export default ErrorBoundary
+</code></pre>
+
+<p>package.json</p>
+
+<pre><code>{
+  ""name"": ""spotify-analyzer-frontend"",
+  ""version"": ""0.1.0"",
+  ""private"": true,
+  ""dependencies"": {
+    ""babel-eslint"": ""^7.2.3"",
+    ""dotenv"": ""^4.0.0"",
+    ""flexbox-react"": ""^4.4.0"",
+    ""highcharts"": ""^5.0.14"",
+    ""material-ui-search-bar"": ""^0.4.0"",
+    ""prop-types"": ""^15.6.0"",
+    ""react"": ""^16.1.1"",
+    ""react-dom"": ""^16.1.1"",
+    ""react-flexbox-grid"": ""^2.0.0"",
+    ""react-highcharts"": ""^12.0.0"",
+    ""react-jss"": ""^8.0.0"",
+    ""react-scripts"": ""1.0.11"",
+    ""react-tap-event-plugin"": ""^2.0.1"",
+    ""standard"": ""^10.0.3""
+  },
+  ""scripts"": {
+    ""start"": ""react-scripts start"",
+    ""build"": ""react-scripts build"",
+    ""test"": ""react-scripts test --env=jsdom"",
+    ""eject"": ""react-scripts eject""
+  },
+  ""proxy"": ""https://spotify-viz-api.herokuapp.com"",
+  ""devDependencies"": {
+    ""axios"": ""^0.16.2"",
+    ""babel-eslint"": ""^8.0.2"",
+    ""babel-jest"": ""^21.0.0"",
+    ""css.escape"": ""^1.5.1"",
+    ""enzyme"": ""^3.2.0"",
+    ""enzyme-adapter-react-16"": ""^1.1.0"",
+    ""eslint"": ""^4.5.0"",
+    ""eslint-plugin-react"": ""^7.3.0"",
+    ""jest"": ""^21.0.1"",
+    ""material-ui"": ""^0.19.1"",
+    ""regenerator-runtime"": ""^0.11.0"",
+    ""standard"": ""^10.0.3""
+  },
+  ""standard"": {
+    ""ignore"": [
+      ""__tests__/**.test.js""
+    ]
+  }
+}
+</code></pre>
+
+<p>node_modules/react/package.json</p>
+
+<pre><code>    {
+  ""_args"": [
+    [
+      {
+        ""raw"": ""react@next"",
+        ""scope"": null,
+        ""escapedName"": ""react"",
+        ""name"": ""react"",
+        ""rawSpec"": ""next"",
+        ""spec"": ""next"",
+        ""type"": ""tag""
+      },
+      ""/Users/maecapozzi/Desktop/Codes/spotify-analyzer-frontend""
+    ]
+  ],
+  ""_from"": ""react@next"",
+  ""_id"": ""react@16.1.1"",
+  ""_inCache"": true,
+  ""_location"": ""/react"",
+  ""_nodeVersion"": ""8.6.0"",
+  ""_npmOperationalInternal"": {
+    ""host"": ""s3://npm-registry-packages"",
+    ""tmp"": ""tmp/react-16.1.1.tgz_1510589592482_0.18714527692645788""
+  },
+  ""_npmUser"": {
+    ""name"": ""gaearon"",
+    ""email"": ""dan.abramov@gmail.com""
+  },
+  ""_npmVersion"": ""5.5.1"",
+  ""_phantomChildren"": {},
+  ""_requested"": {
+    ""raw"": ""react@next"",
+    ""scope"": null,
+    ""escapedName"": ""react"",
+    ""name"": ""react"",
+    ""rawSpec"": ""next"",
+    ""spec"": ""next"",
+    ""type"": ""tag""
+  },
+  ""_requiredBy"": [
+    ""#USER"",
+    ""/""
+  ],
+  ""_resolved"": ""https://registry.npmjs.org/react/-/react-16.1.1.tgz"",
+  ""_shasum"": ""d5c4ef795507e3012282dd51261ff9c0e824fe1f"",
+  ""_shrinkwrap"": null,
+  ""_spec"": ""react@next"",
+  ""_where"": ""/Users/maecapozzi/Desktop/Codes/spotify-analyzer-frontend"",
+  ""browserify"": {
+    ""transform"": [
+      ""loose-envify""
+    ]
+  },
+  ""bugs"": {
+    ""url"": ""https://github.com/facebook/react/issues""
+  },
+  ""dependencies"": {
+    ""fbjs"": ""^0.8.16"",
+    ""loose-envify"": ""^1.1.0"",
+    ""object-assign"": ""^4.1.1"",
+    ""prop-types"": ""^15.6.0""
+  },
+  ""description"": ""React is a JavaScript library for building user interfaces."",
+  ""devDependencies"": {},
+  ""directories"": {},
+  ""dist"": {
+    ""integrity"": ""sha512-FQfiFfk2z2Fk87OngNJHT05KyC9DOVn8LPeB7ZX+9u5+yU1JK6o5ozRlU3PeOMr0IFkWNvgn9jU8/IhRxR1F0g=="",
+    ""shasum"": ""d5c4ef795507e3012282dd51261ff9c0e824fe1f"",
+    ""tarball"": ""https://registry.npmjs.org/react/-/react-16.1.1.tgz""
+  },
+  ""engines"": {
+    ""node"": ""&gt;=0.10.0""
+  },
+  ""files"": [
+    ""LICENSE"",
+    ""README.md"",
+    ""index.js"",
+    ""cjs/"",
+    ""umd/""
+  ],
+  ""homepage"": ""https://reactjs.org/"",
+  ""keywords"": [
+    ""react""
+  ],
+  ""license"": ""MIT"",
+  ""main"": ""index.js"",
+  ""maintainers"": [
+    {
+      ""name"": ""acdlite"",
+      ""email"": ""acdlite@me.com""
+    },
+    {
+      ""name"": ""sophiebits"",
+      ""email"": ""npm@sophiebits.com""
+    },
+    {
+      ""name"": ""flarnie"",
+      ""email"": ""flarnie.npm@gmail.com""
+    },
+    {
+      ""name"": ""gaearon"",
+      ""email"": ""dan.abramov@gmail.com""
+    },
+    {
+      ""name"": ""trueadm"",
+      ""email"": ""dg@domgan.com""
+    },
+    {
+      ""name"": ""brianvaughn"",
+      ""email"": ""briandavidvaughn@gmail.com""
+    },
+    {
+      ""name"": ""fb"",
+      ""email"": ""opensource+npm@fb.com""
+    }
+  ],
+  ""name"": ""react"",
+  ""optionalDependencies"": {},
+  ""readme"": ""ERROR: No README data found!"",
+  ""repository"": {
+    ""type"": ""git"",
+    ""url"": ""git+https://github.com/facebook/react.git""
+  },
+  ""version"": ""16.1.1""
+}
+</code></pre>
+","5074163","","5074163","","2017-11-25 19:29:54","2017-11-25 19:41:02","componentDidCatch is not triggered even when I throw an error in my constructor","<javascript><reactjs><error-handling><ecmascript-6>","1","3","","",""
+"51144304","1","","","2018-07-02 22:10:53","","0","51","<p>I'd like to report an error when my apps crash to firebase directly from a react app, I've have enabled client logging according to <a href=""https://stackoverflow.com/questions/22419073/how-do-i-turn-on-logging-in-the-firebase-javascript-client"">this answer</a>.</p>
+
+<p><a href=""https://firebase.google.com/docs/reference/js/firebase.database#.enableLogging"" rel=""nofollow noreferrer"">firebase.database.enableLogging(true);</a></p>
+
+<p>I have created a component to handle errors, like this:</p>
+
+<pre><code>import React, { Component } from 'react';
+
+class ErrorBoundary extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            hasError: false
+        };
+    }
+
+    componentDidCatch(error, info) {
+        this.setState({
+            hasError: true
+        });
+        //how to log the error to firebase console?
+        console.error(new Error(error, info))
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return &lt;h1&gt;Something went wrong.&lt;/h1&gt;;
+        }
+        return this.props.children;
+    }
+
+}
+
+export default ErrorBoundary;
+</code></pre>
+
+<p>I'm wondering how can I log the error from the client?, I've read about how to do it but using <a href=""https://firebase.google.com/docs/functions/reporting-errors"" rel=""nofollow noreferrer"">nodejs</a> but not with just plain javascript (react)</p>
+
+<p>Any ideas?</p>
+","690413","","209103","","2018-07-03 00:15:40","2018-07-03 00:15:40","Report error from react to firebase console","<javascript><reactjs><firebase><firebase-database>","0","0","1","",""
+"49130876","1","49137655","","2018-03-06 12:28:56","","1","554","<p>I have a page which uses different components which is loaded using react router.
+Is it possible to integrate error boundary in each component as shown in the below code when I use the react router to route to different pages?</p>
+
+<p>My target is to show errors particularly for individual components so that other components should work in case there is an error in one component.</p>
+
+<p>Please see my code below:</p>
+
+<h2>index.js</h2>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+
+import App from './App';
+import registerServiceWorker from './registerServiceWorker';
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('root'));
+
+registerServiceWorker();
+</code></pre>
+
+<h2>App.js</h2>
+
+<pre><code>import React, { Component } from 'react';
+import {BrowserRouter as Router, Route, Link } from 'react-router-dom';
+//import ErrorBoundary from ""./errorboundary"";
+import MyComponent1 from './component1';
+import MyComponent2 from './component2';
+
+class App extends Component {
+render() {
+return (
+&lt;Router&gt;
+&lt;div style={{ backgroundColor: 'green' }}&gt;
+&lt;div style={{ backgroundColor: '#f0f0ae', height: '30px' }}&gt;
+&lt;Link to='/'&gt;Link 1&lt;/Link&gt; &amp;#160;&amp;#160;
+&lt;Link to='/comp1'&gt;Link 2&lt;/Link&gt; &amp;#160;&amp;#160;
+&lt;Link to='/comp2'&gt;Link 3&lt;/Link&gt; &amp;#160;&amp;#160;
+&lt;/div&gt;
+
+&lt;div style={{ backgroundColor: '#ffc993', height: '150px' }}&gt;
+&lt;Route path='/' exact render={() =&gt; &lt;MyComponent1 title=""Component 1"" /&gt;} /&gt;
+&lt;Route path='/comp1' render={() =&gt; &lt;MyComponent1 title=""Component 1 Again"" /&gt;} /&gt;
+&lt;Route path='/comp2' render={() =&gt; &lt;MyComponent2 title=""Component 2"" /&gt;} /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/Router&gt;
+);
+}
+}
+
+export default App;
+</code></pre>
+
+<p>This is one of the component in which I want to use Error Boundary.</p>
+
+<h2>component1.js</h2>
+
+<pre><code>import React, { Component } from 'react';
+import ErrorBoundary from ""./errorboundary"";
+
+class MyComponent1 extends Component {
+state = {
+boom: false,
+};
+
+throwError = () =&gt; this.setState({ boom: true });
+
+render() {
+const { title } = this.props;
+
+if(this.state.boom) {
+throw new Error(`${title} throw an error!`);
+}
+
+return (
+&lt;ErrorBoundary&gt;
+&lt;input type='button' onClick={this.throwError} value={title} /&gt;
+&lt;/ErrorBoundary&gt;
+)
+}
+}
+
+export default MyComponent1;
+</code></pre>
+
+<p>This is another component in which I want to use the Error Boundary.</p>
+
+<h2>component2.js</h2>
+
+<pre><code>import React, { Component } from 'react';
+import ErrorBoundary from ""./errorboundary"";
+
+class MyComponent2 extends Component {
+state = {
+boom: false,
+};
+
+throwError = () =&gt; this.setState({ boom: true });
+
+render() {
+const { title } = this.props;
+
+if(this.state.boom) {
+throw new Error(`${title} throw an error!`);
+}
+
+return (
+&lt;ErrorBoundary&gt;
+&lt;input type='button' onClick={this.throwError} value={title} /&gt;
+&lt;/ErrorBoundary&gt;
+)
+}
+}
+
+export default MyComponent2;
+</code></pre>
+
+<p>This is my customized error message using error boundary when there is an error in each component.</p>
+
+<h2>errorboundary.js</h2>
+
+<pre><code>import React, { Component } from 'react';
+
+class ErrorBoundary extends Component {
+constructor(props) {
+super(props);
+this.state = { error: null, errorInfo: null };
+
+if(this.props.showError === false)
+{
+this.state.error = null;
+this.state.errorInfo = null;
+}
+}
+
+componentDidCatch = (error, info) =&gt; {
+console.log(""error did catch"");
+this.setState({error: error, errorInfo: info });        
+}
+
+render() {
+if(this.state.errorInfo) {
+return (
+&lt;div style={{ backgroundColor: '#ffcc99', color: 'white', width: '500px', height: '60px' }}&gt;
+An Error Occurred !
+&lt;/div&gt;
+);
+}
+else {
+return this.props.children;
+}
+}
+}
+
+export default ErrorBoundary;
+</code></pre>
+
+<p>Can anyone please help me? I am a newbie in React JS.</p>
+","547634","","","","","2018-03-06 18:28:05","How to integrate Error Boundary in Components routed using react-router","<reactjs><react-router>","1","0","","",""
+"50489452","1","50495014","","2018-05-23 13:16:18","","0","46","<p>I'm trying to make a simple authentication system in my Single Page Application.
+I want to disable all routes execpt <code>/login</code> for guest.
+The way to know if the user is authenticated or a guest it's to know if there are an <code>access_token</code> in the <code>localStorage</code>.</p>
+
+<p>When I'm starting the app the <code>Main</code> component is started. The component define the routes and know if the user is authenticated by check the <code>localStorage</code>.</p>
+
+<p>The default route (<code>/</code>) is for render the <code>Home</code> component but, like this <a href=""https://reacttraining.com/react-router/web/example/auth-workflow"" rel=""nofollow noreferrer"" title=""example"">example</a> of <strong>react router</strong> the <code>Home</code> component is protected by a <code>PrivateRoute</code> object.</p>
+
+<p>The <code>PrivateRoute</code> object check if the user is authenticated. If yes, <code>Home</code> component is rendered, else the user is redirected to the <code>login</code>component at <code>/login</code>.</p>
+
+<p>The <code>Login</code> component redirect the user to <code>/</code> in case of success and execute a callback to give the <code>access_token</code>.</p>
+
+<p>The <code>Main</code> component define the callback, It's about to save the <code>access_token</code> in the <code>localStorage</code> and change the <code>state</code> for declare the user as authenticated. And now, the user can access the <code>Home</code> component.</p>
+
+<p>My problem is, the <code>PrivateRoute</code> system always the check the user as a guest so it's always a redirection to <code>/login</code>. But when the are an <code>access_token</code> in <code>localStorage</code> the <code>Login</code> component redirect to the <code>Home</code> protected by the <code>PrivateRoute</code> and this is an infite loop despite the <code>handleLogin</code> callback.</p>
+
+<p>Can you find a solution ?</p>
+
+<hr>
+
+<p><strong>Main.jsx</strong></p>
+
+<pre class=""lang-js prettyprint-override""><code>import React, {Component} from 'react';
+import ReactDOM from 'react-dom';
+import {BrowserRouter, Link, Redirect, Route} from ""react-router-dom"";
+import {Login} from ""./Login""
+import {Home} from ""./Home"";
+
+
+class Main extends Component {
+    constructor(props) {
+        super(props);
+
+        this.handleLogout = this.handleLogout.bind(this);
+        this.handleLogin = this.handleLogin.bind(this);
+        this.state = {authed: localStorage.getItem('access_token') !== null};
+    }
+
+    componentDidCatch(error, info) {
+    }
+
+    handleLogout(event) {
+        event.preventDefault();
+        localStorage.removeItem('access_token');
+        this.setState({authed: false});
+    }
+
+    handleLogin(token) {
+        localStorage.setItem('access_token', token);
+        this.setState({authed: token !== null});
+    }
+
+    render() {
+        const PrivateRoute = ({component: Component, ...rest}) =&gt; (
+            &lt;Route {...rest} render={props =&gt;
+                this.state.authed()
+                    ? (&lt;Component {...props} /&gt;)
+                    : (&lt;Redirect to=""/login""/&gt;)
+            }
+            /&gt;
+        );
+
+        const LoginLogout = () =&gt; {
+            return this.state.authed
+                ? (&lt;button onClick={this.handleLogout}&gt;Logout&lt;/button&gt;)
+                : (&lt;Link to=""/login""&gt;Login&lt;/Link&gt;);
+        };
+
+        return (
+            &lt;BrowserRouter&gt;
+                &lt;div&gt;
+                    &lt;ul&gt;
+                        &lt;li&gt;
+                            &lt;Link to=""/""&gt;Home&lt;/Link&gt;
+                        &lt;/li&gt;
+                        &lt;li&gt;
+                            &lt;LoginLogout/&gt;
+                        &lt;/li&gt;
+                    &lt;/ul&gt;
+
+                    &lt;Route path=""/login"" component={() =&gt; &lt;Login handleLogin={this.handleLogin}/&gt;}/&gt;
+                    &lt;PrivateRoute exact path=""/"" component={Home}/&gt;
+
+                &lt;/div&gt;
+            &lt;/BrowserRouter&gt;
+        );
+    }
+}
+
+if (document.getElementById('main')) {
+    ReactDOM.render(&lt;Main/&gt;, document.getElementById('main'));
+}
+</code></pre>
+
+<p><strong>Login.jsx</strong></p>
+
+<pre class=""lang-js prettyprint-override""><code>import React, {Component} from 'react';
+import {Redirect} from ""react-router-dom"";
+
+export class Login extends Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            email: '',
+            password: '',
+            redirect: localStorage.getItem('access_token') !== null,
+            token: null,
+            loading: false,
+            error: null
+        };
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    componentWillUnmount() {
+        this.props.handleLogin(this.state.token);
+    }
+
+    handleInputChange(event) {
+        const target = event.target;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
+
+        this.setState({
+            [name]: value
+        });
+    }
+
+    handleSubmit(event) {
+        event.preventDefault();
+        this.setState({
+            error: null,
+            loading: true
+        });
+        axios.post('/api/login', {
+            'client_id': '3',
+            'email': this.state.email,
+            'password': this.state.password,
+            'confirm_password': this.state.password
+        }).then((response) =&gt; {
+            let token = response.data.access_token;
+            this.setState({
+                redirect: true,
+                token: token,
+                loading: false
+            });
+        }, (error) =&gt; {
+            console.error('error', error.response.data);
+            this.setState({
+                error: error.response.data,
+                loading: false
+            });
+        });
+    }
+
+    render() {
+
+        if (this.state.redirect)
+            return (&lt;Redirect to={""/""}/&gt;);
+
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label htmlFor=""email""&gt;Email :&lt;/label&gt;
+                &lt;input type=""text"" name=""email"" id=""email"" value={this.state.email} onChange={this.handleInputChange}
+                       disabled={this.state.loading}/&gt;
+                &lt;label htmlFor=""password""&gt;Password :&lt;/label&gt;
+                &lt;input type=""password"" name=""password"" id=""password"" value={this.state.password}
+                       onChange={this.handleInputChange} disabled={this.state.loading}/&gt;
+                &lt;button type=""submit""
+                        disabled={this.state.loading}&gt;{this.state.loading ? ""..."" : ""Se connecter""}&lt;/button&gt;
+                {this.state.error &amp;&amp; (
+                    &lt;div&gt;
+                        &lt;p&gt;Erreur : {JSON.stringify(this.state.error)}&lt;/p&gt;
+                    &lt;/div&gt;
+                )}
+            &lt;/form&gt;
+        );
+    }
+}
+</code></pre>
+","3203320","","","","","2018-05-23 18:20:50","react - react router - privateRoute - infinite loop","<javascript><reactjs><react-router><infinite-loop>","1","4","","",""
+"46888714","1","","","2017-10-23 11:53:35","","0","348","<p>As per the new <a href=""https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html"" rel=""nofollow noreferrer"">react 16 release doc</a> it says</p>
+
+<p><strong>""React 16 prints all errors that occurred during rendering to the console in development, even if the application accidentally swallows them.""</strong></p>
+
+<p>I have a <strong>Parent</strong> component and a <strong>Child</strong> component. I have triggered an error in then block of promise. But it will call catch method of the promise, componentDidCatch of parent is not getting called. I am not sure whether this the expected behaviour.</p>
+
+<p>Here is the jsfiddle <a href=""https://jsfiddle.net/john1jan/Luktwrdm/14/"" rel=""nofollow noreferrer"">https://jsfiddle.net/john1jan/Luktwrdm/14/</a></p>
+
+<pre><code>class Parent extends React.Component {  
+  constructor(props){
+    super(props);
+    this.state={hasError:false}
+  }
+
+  render() {
+    if(this.state.hasError){
+      return &lt;div&gt;Something went wrong&lt;/div&gt;
+    }
+
+    return (
+      &lt;div&gt;
+        &lt;h1&gt;I am parent&lt;/h1&gt;
+        &lt;Child&gt;&lt;/Child&gt;
+      &lt;/div&gt;
+    );
+  }
+  componentDidCatch(error,errorInfo){
+    this.setState({
+      hasError:true
+    })
+  }
+}
+
+class Child extends React.Component {
+
+  render() {
+    return (
+      &lt;div&gt;
+        &lt;h1&gt;I am child&lt;/h1&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  componentDidMount(){
+    fetch(""https://jsonplaceholder.typicode.com/posts"").then((response) =&gt; {
+      throw new Error(""I am the error in promise"");
+    }).catch((error)=&gt;{
+      console.log(""Error caught in catch"",error);
+    })
+    ;
+  }
+}
+
+ReactDOM.render(&lt;Parent name=""world""/&gt;, 
+document.getElementById('container'));
+</code></pre>
+","1066839","","2030321","","2017-10-23 12:34:08","2018-06-29 20:53:18","componentDidCatch is not getting called when there is an error in promise","<reactjs><react-fiber>","2","4","","",""

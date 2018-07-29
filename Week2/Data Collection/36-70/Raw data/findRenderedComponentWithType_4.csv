@@ -1,0 +1,135 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"38706566","1","39260323","","2016-08-01 19:21:24","","0","191","<pre><code>  - TypeError: Cannot read property 'addStyleRule' of undefined
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/build/plotcss.js:61:15)
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/src/plotly.js:30:1)
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/src/core.js:15:14)
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/lib/core.js:9:18)
+    at Object.&lt;anonymous&gt; (node_modules/plotly.js/lib/index.js:15:12)
+
+    at emitTwo (events.js:106:13)
+    at process.emit (events.js:191:7)
+    at process.nextTick (internal/child_process.js:719:12)
+    at _combinedTickCallback (internal/process/next_tick.js:67:7)
+    at process._tickCallback (internal/process/next_tick.js:98:9)
+</code></pre>
+
+<p>My react project uses plotly and it is having trouble with plotly when running a jest test</p>
+
+<p>My test code looks like such:</p>
+
+<pre><code>import React from 'react'
+import ReactDOM from 'react-dom'
+import TestUtils from 'react-addons-test-utils'
+
+import AppBar from ""./index""
+import Navigation from ""../navigation/""
+
+// Use real modules for testing.
+jest.unmock(""./index"")
+jest.unmock(""./brand"")
+
+describe(""AppBar"", () =&gt; {
+  let component = &lt;AppBar /&gt;
+  let element = TestUtils.renderIntoDocument(component)
+  let node = ReactDOM.findDOMNode(element)
+
+  it(""renders the navigation to screen"", () =&gt; {
+    let el = TestUtils.findRenderedComponentWithType(element, Navigation)
+    expect(el).toBeDefined()
+  })
+})
+</code></pre>
+
+<p>I figure that mocking plotly has something to do with the addStyleRule of undefined error but I haven't quite pinned down as to what needs to be mocked/unmocked for this particular case of using an external library</p>
+","1557887","","2102634","","2016-12-08 22:46:56","2016-12-08 22:46:56","Plotly error when running jest test for react","<javascript><reactjs><plotly><jestjs>","1","0","","",""
+"35138975","1","37112001","","2016-02-01 19:45:15","","7","1760","<p>I am trying to test drive react native code using <a href=""http://www.schibsted.pl/2015/10/testing-react-native-components-with-jest/"">this</a> guide. The react native is overridden by reactjs to enable shallow rendering and testing using jestjs.</p>
+
+<p>Even though I am able test shallow rendered components (checking its presence and children), I am unable to test touch events.</p>
+
+<pre><code>handleTouch() {
+ this.setState({ showDescription: !this.state.showDescription });
+}
+
+
+render() {
+const description = this.state.showDescription ? (&lt;Text style={styles.description}&gt;{this.props.entry.description}&lt;/Text&gt;) : null;
+return (
+  &lt;TouchableNativeFeedback onPress={() =&gt; this.handleTouch()}&gt;
+    &lt;View style={styles.rowContainer}&gt;
+      &lt;View style={styles.row}&gt;
+      &lt;/View&gt;
+      {description}
+    &lt;/View&gt;
+  &lt;/TouchableNativeFeedback&gt;
+ )
+}
+</code></pre>
+
+<p>I'm trying to test if on touch of <code>TouchableNativeFeedback</code>, <code>description</code> tag is rendered. The reactjs <a href=""https://facebook.github.io/react/docs/test-utils.html#simulate"">TestUtils</a> provides <code>Simulate</code> but it didn't work. </p>
+
+<p>This is my spec setup:</p>
+
+<pre><code>beforeEach(function() {
+    profileView = TestUtils.renderIntoDocument(&lt;ProfileEntryView entry={entry}/&gt;);
+    var touchableNativeFeedback = TestUtils.findRenderedComponentWithType(profileView, TouchableNativeFeedback);
+    TestUtils.Simulate.onTouchEnd(touchableNativeFeedback);
+});
+</code></pre>
+
+<p>How will I test UI interactions using reactjs <code>TestUtils</code> for react-native?</p>
+","3804420","","3804420","","2016-03-15 10:11:36","2016-12-29 09:40:06","Unit testing touch events in react native","<tdd><ecmascript-6><react-native><jestjs>","1","0","3","",""
+"36434002","1","","","2016-04-05 18:15:55","","3","365","<p>Updating to the latest .d.ts definitions for react-addons-test-utils has broken compilation for our test code. In this function:</p>
+
+<pre><code>import * as TestUtils from 'react-addons-test-utils';
+import MyReactComponent from 'blabla'
+
+let buildComponent = () =&gt; {
+    const root = TestUtils.renderIntoDocument(&lt;MyReactComponent/&gt;);
+    return TestUtils.findRenderedComponentWithType(root, MyReactComponent);
+}
+</code></pre>
+
+<p>Passing <code>root</code> to the last function here causes <code>error TS2345: Argument of type 'Component&lt;any, {}&gt; | Element | void' is not assignable to parameter of type 'Component&lt;any, any&gt;'.</code> </p>
+
+<p>Fine, I can cast:</p>
+
+<pre><code>let buildComponent = () =&gt; {
+    const root = TestUtils.renderIntoDocument(&lt;MyReactComponent/&gt;);
+    return TestUtils.findRenderedComponentWithType(root as React.Component&lt;any, any&gt;, MyReactComponent);
+}
+</code></pre>
+
+<p>But now passing <code>MyReactComponent</code> on the last line causes <code>error TS2345: Argument of type 'typeof MyReactComponent' is not assignable to parameter of type 'ComponentClass&lt;{}&gt; &amp; (new () =&gt; MyReactComponent) &amp; (new () =&gt; { props: any; })'.</code></p>
+
+<p>Apparently it expects a <code>ClassType&lt;any, T, C&gt;</code> where <code>C extends ComponentClass&lt;{}&gt;</code>, and somehow my <code>class MyReactComponent extends React.Component&lt;IMyReactComponentProps, IMyReactComponentState&gt;</code> doesn't fit the bill, but how, I don't understand.</p>
+","154766","","","","","2016-08-16 19:31:15","New compilation errors with react-addons-test-utils","<reactjs><typescript>","3","0","1","",""
+"37783296","1","37784472","","2016-06-13 06:45:06","","0","354","<p>I have a <a href=""https://facebook.github.io/react/"" rel=""nofollow"">react</a> ""wrapper"" component that is supposed to wrap its child. Here is the relevant part:</p>
+
+<pre><code>export class Wrapper extends Component {   
+    render(){
+        return (&lt;div&gt;{ this.props.children }&lt;/div&gt;);
+    }
+}
+</code></pre>
+
+<p>I am trying to use <a href=""https://facebook.github.io/jest/"" rel=""nofollow""><code>jest</code></a> to test if the rendered child is indeed what has been provided to this wrapper.
+Here is what I tried;</p>
+
+<pre><code>describe('SwapWrapper', () =&gt; {
+    it('contains its child', () =&gt; {
+        const potentialChild = (&lt;AMockedComponent/&gt;);
+        const wrapper = TestUtils.renderIntoDocument(
+            &lt;Wrapper&gt;{potentialChild}&lt;/Wrapper&gt;
+        );
+        const realChild = TestUtils.findRenderedComponentWithType(wrapper, AMockedComponent);
+        expect(realChild).toBe(potentialChild); // Obviously does not work.
+    });
+});
+</code></pre>
+
+<p>It obviously does not work. <a href=""https://facebook.github.io/react/blog/2015/12/18/react-components-elements-and-instances.html"" rel=""nofollow""><code>realChild</code> is a component instance while <code>potentialChild</code> is a component element</a>.</p>
+
+<p>Currently, the only things I have been able to do is to create <code>potentialChild</code> with a property and to check that <code>realChild</code> does contain this property.</p>
+
+<p>Is there a more valid way to check if <code>realChild</code> corresponds in fact to the <code>potentialChild</code> that has been provided?</p>
+","2212031","","2102634","","2016-12-08 23:00:21","2016-12-08 23:00:21","Test if a react component's child is in fact the provided child with jest","<javascript><reactjs><jestjs>","1","2","","",""

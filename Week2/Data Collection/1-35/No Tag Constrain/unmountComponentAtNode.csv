@@ -1,0 +1,1168 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"36859798","1","36860099","","2016-04-26 08:47:29","","0","2754","<p>I practice react<br>
+I met this error :  <code>Uncaught ReferenceError: ReactDOM is not defined</code><br>
+when type <code>ReactDOM.unmountComponentAtNode(document.body)</code> on chrome console </p>
+
+<p>Please help me check the problem<br>
+I try the code on JSbin and works well,so I think it's webpack problem,but I have no idea .  </p>
+
+<p>And I notice there are many way write <code>React.render</code> part when I google ,what's the difference?? which one is correct??  </p>
+
+<pre><code>React.render(&lt;App name='Vipul' /&gt;,document.body); 
+ReactDOM.render(&lt;App name='Vipul' /&gt;,document.body);
+React.renderComponents(&lt;App name='Vipul' /&gt;,document.body);
+</code></pre>
+
+<p>Here is my code: </p>
+
+<p><strong>main.jsx</strong></p>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+
+console.log('Start')
+var App = React.createClass({
+  render: function(){
+    console.log('render');
+    return &lt;h1 onClick={this.toggleState}&gt;Hello&lt;/h1&gt;
+  },
+  componentWillUnmount: function(){
+  //在console執行 ReactDOM.unmountComponentAtNode(document.body)
+    console.log('componentWillUnmount');
+  },
+
+  toggleState: function(){
+    this.setState({status: !this.state.status})
+  }
+
+});
+
+ReactDOM.render(&lt;App name='Vipul' /&gt;,document.body);
+</code></pre>
+
+<p><strong>webpack.config.js</strong> </p>
+
+<pre><code>var WebpackNotifierPlugin = require('webpack-notifier');
+
+module.exports = {
+    entry: ""./src/main.js"",
+    output: {
+        filename: ""./dist/bundle.js""
+//        filename: ""./public/dist/bundle.js""
+    },
+    plugins: [
+
+    new WebpackNotifierPlugin()
+
+  ],
+    module: {
+        loaders: [
+            {
+                test: /\.jsx?$/,
+                exclude: /node_modules/,
+                loader: ""babel-loader"",
+                query: {
+                    presets: ['es2015', 'react']
+                }
+            }
+        ]
+    },devtool: 'source-map'
+};
+</code></pre>
+","2492364","","","","","2016-04-26 08:59:46","ReactDOM.unmountComponentAtNode: Uncaught ReferenceError: ReactDOM is not defined","<reactjs><webpack>","2","0","1","",""
+"27227792","1","27236097","","2014-12-01 11:49:33","","17","42139","<p>I'm fairly new at react.js, so any help is greatly appreciated.</p>
+
+<p>I have this: <a href=""http://jsfiddle.net/rzjyhf91/"">http://jsfiddle.net/rzjyhf91/</a></p>
+
+<p>Wherein I have made 2 components: an image and a button.</p>
+
+<p>The goal is to remove the image with a click of the button, I use <code>unmountComponentAtNode</code> for that, but it does not work:</p>
+
+<pre><code>var App = React.createClass({
+  render: function() {
+    return (
+    &lt;div&gt;&lt;MyImage /&gt;&lt;RemoveImageButton /&gt;&lt;/div&gt;
+    );
+  }
+});
+
+var MyImage = React.createClass({
+  render: function() {
+    return (
+      &lt;img id=""kitten"" src={'http://placekitten.com/g/200/300'} /&gt;
+    );
+  }
+});
+
+var RemoveImageButton = React.createClass ({
+  render: function() {
+    return (
+      &lt;button onClick={this.handleClick}&gt;remove image&lt;/button&gt;
+    )
+  },
+  handleClick: function(){
+    React.unmountComponentAtNode(document.getElementById('kitten'));   
+  }
+});
+
+React.render(&lt;App /&gt;, document.body);
+</code></pre>
+
+<p>How can I remove a react component from another component?</p>
+","1517261","","3204551","","2015-04-02 14:12:12","2018-06-28 15:44:07","react.js: removing a component","<javascript><reactjs>","3","2","5","",""
+"47784831","1","","","2017-12-13 02:55:56","","1","138","<p>I need to do event bubbling through the deep nested components ,  I tried to do some thing like below</p>
+
+<pre><code>   import {ReactDOM,render, unmountComponentAtNode} from 'react-dom';
+
+  .........
+  .........
+
+  componentDidMount() {
+    ReactDOM.findDOMNode(this).addEventListener('click', (event) =&gt; {
+    event.stopPropagation();
+  }, false)
+}
+</code></pre>
+
+<p>I got the following error</p>
+
+<pre><code>bundle.js:45 Uncaught TypeError: Cannot read property 'findDOMNode' of undefined
+</code></pre>
+","1355249","","","","","2017-12-13 08:03:34","Cannot read property 'findDOMNode' of undefined when using stopPropagation - reactJs","<javascript><reactjs><event-bubbling><react-dom>","1","0","","",""
+"29656743","1","29663840","","2015-04-15 17:22:15","","0","241","<p>my backbone collection collection doesn't populate when i just pass it in as props to a react component. I have tried first fetching the collection using componentDidmount and componentWillMount, but that still didn't populate the collection. If I test the code by setting a window variable pointing to DecksIndex and in the console tools call getInstance() and then fetch
+,the data loads fine. my code is as follows:</p>
+
+<pre><code> //router.js
+var DeckComponent = require(""./views/deck.jsx"")
+var DecksIndex = React.createFactory(require(""./views/decks.jsx""))
+var decksCollection = require(""./component/collections/decks.js"");
+
+module.exports = Backbone.Router.extend({
+
+    initialize: function(){
+        this.rootEl = document.getElementById('container');
+    },
+
+    routes: {
+        """":""index"",
+        ""decks/:id"":""deckShow""
+    },
+
+    index: function(){
+
+        var decks = new DecksIndex({decks: decksCollection.getInstance()});
+        this._swapView(decks)
+        console.log(""hooray!"")
+    },
+
+    deckShow: function(id){
+        //var deck = Flashcards.Collections.decks.getOrFetch(id);
+        var showDeck = new DeckComponent();
+        this._swapView(showDeck);
+    },
+
+    _swapView: function(view){
+        if (this.currentView) {
+            React.unmountComponentAtNode(this.rootEl);
+        }
+        this.currentView = view
+        React.render(view, document.getElementById('container'));
+    }   
+
+});
+
+
+//decks.js
+
+var deck = require('../models/deck.js')
+var decks = Backbone.Collection.extend({
+  url: ""/api/decks"",
+  model: deck,
+  getOrFetch: function(id){
+        var model = this.get(id);
+        var that = this;
+        if (model) {
+            model.fetch();
+        }else{
+            model = new deck({id: id})
+            model.fetch({
+                success: function(){
+                    that.add(model)
+                }
+            })
+        }
+        return model;
+    },
+
+    parse: function (data) {
+        debugger;
+        return data.objects
+    },
+
+});
+
+decks.getInstance = _.memoize(function () {
+  return new decks();
+});
+
+module.exports = decks;
+
+//decks.jsx
+var DecksList = React.createClass({
+
+    render: function() {
+
+            return (
+              &lt;div className=""deck-list""&gt;
+              {
+                this.props.decks.map(function (deck) {
+                    var title = deck.name
+                    debugger;
+                  return (
+                    &lt;div key={deck.id} className=""note-summary""&gt;
+                      {title}
+                    &lt;/div&gt;
+                  );
+                })
+              }
+              &lt;/div&gt;
+            );
+      }
+});
+
+module.exports = DecksList;
+</code></pre>
+","3769323","","1455016","","2015-04-21 22:28:10","2015-04-21 22:28:10","I am having trouble passing in my backbone collection in to a react component","<javascript><backbone.js><reactjs>","1","5","","",""
+"39995030","1","","","2016-10-12 09:23:34","","0","57","<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>var routeMap = {
+    ""/login"": Login,
+    ""/place"": Place,
+    ""/article"": Arcticle
+};
+function initBar(url){
+    if(document.getElementById('bar')){
+        ReactDOM.unmountComponentAtNode(document.getElementById('bar'));
+    }
+    var Bar;
+    if(url==""/login""){
+        Bar = null;
+    }else{
+        Bar = &lt;NavBar items={itemArray} /&gt;;
+    }
+
+    if(Bar){
+        ReactDOM.render(
+            &lt;div&gt;
+                {Bar}
+            &lt;/div&gt;,
+            document.getElementById('bar')
+        )
+    }
+}
+ReactDOM.render(
+        // &lt;h1&gt;Hello, world!&lt;/h1&gt;,
+        &lt;div id=""container""&gt;
+           &lt;Router path='/' component={routeMap[url]} &gt;
+            {
+                Object.keys(routeMap).map(function (item) {
+                    return (
+                        &lt;Router path={item} component={routeMap[item]} onEnter={item}/&gt;
+                    )
+                })
+            }
+        &lt;/Router&gt;
+        &lt;/div&gt;,
+        document.getElementById('content')
+    );</code></pre>
+</div>
+</div>
+</p>
+
+<p>the onEnter event only work when the component init, when I change the url from /login to /place, the onEnter event didn't work. If anywhere is wrong?I am learning react by myself.</p>
+","4786580","","","","","2016-10-12 09:23:34","when I change the url, react-router onEnter function didn't work","<react-router>","0","6","","",""
+"48623313","1","48728814","","2018-02-05 13:06:50","","5","352","<p>I built my application wir create-react-app. In the recent version of it, it adds one line in the bootstrapped test setup in Jest to unmount the component (see <code>ReactDOM.unmountComponentAtNode(div)</code>).</p>
+
+<pre><code>import ReactDOM from 'react-dom';
+import App from './App';
+
+it('renders without crashing', () =&gt; {
+  const div = document.createElement('div');
+  ReactDOM.render(&lt;App /&gt;, div);
+  ReactDOM.unmountComponentAtNode(div);
+});
+</code></pre>
+
+<p>It causes a warning when I run the test for my App component.</p>
+
+<p><strong>Warning: Can only update a mounted or mounting component. This usually means you called setState, replaceState, or forceUpdate on an unmounted component. This is a no-op.</strong></p>
+
+<p>My guess: It happens because I have an asynchronous request in <code>componentDidMount()</code>:</p>
+
+<pre><code>fetchFoo(bar) {
+  fetch(SOME_URL)
+    .then(response =&gt; response.json())
+    .then(result =&gt; this.setState({ result }))
+    .catch(error =&gt; this.setState({ error }));
+}
+</code></pre>
+
+<p>If this is the case, how do I wait in the test for the asynchronous request to finally unmount the component again? I know that I could remove the one liner in the Jest test which causes this, but rather I would like to fix it. </p>
+
+<ul>
+<li><a href=""https://github.com/the-road-to-learn-react/the-road-to-learn-react/issues/101"" rel=""noreferrer"">Here you can find the issue</a>.</li>
+</ul>
+","1189762","","","","","2018-02-11 15:59:21","ReactDOM.unmountComponentAtNode() in Test causes Warning","<reactjs>","2","0","1","",""
+"49784990","1","49804860","","2018-04-11 21:55:14","","0","87","<p>I have seen the very similar post:
+<a href=""https://stackoverflow.com/questions/43771517/using-jest-to-test-a-link-from-react-router-v4"">Using Jest to test a Link from react-router v4</a>
+but I'm having different errors, and all kinds of them when trying to use CRA and React Router.</p>
+
+<p>If the test script is <code>""test"": ""react-scripts test --env=jsdom""</code>, I get this error preventing the tests from running:</p>
+
+<pre><code>2017-06-28 14:14 node[6612] (FSEvents.framework) FSEventStreamStart: register_with_server: ERROR: f2d_register_rpc() =&gt; (null) (-22)
+Error: Error watching file for changes: EMFILE
+at exports._errnoException (util.js:1018:11)
+at FSEvent.FSWatcher._handle.onchange (fs.js:1420:11)
+</code></pre>
+
+<p>One solution I've found but I haven't been able to get it to work is to install/reinstall a library called watchman. (<a href=""https://github.com/facebook/react-native/issues/10028"" rel=""nofollow noreferrer"">https://github.com/facebook/react-native/issues/10028</a>) but trying to install watchman is throwing out errors as well.</p>
+
+<p>Another solution I found (<a href=""https://github.com/jest-community/vscode-jest/issues/125"" rel=""nofollow noreferrer"">https://github.com/jest-community/vscode-jest/issues/125</a>) was to change that test script to <code>""test"": ""jest""</code>, and then I get this error:</p>
+
+<pre><code>src/App.test.js: Unexpected token (7:18)
+         5 | it('renders without crashing', () =&gt; {
+         6 |   const div = document.createElement('div');
+      &gt;  7 |   ReactDOM.render(&lt;App /&gt;, div);
+           |                   ^
+         8 |   ReactDOM.unmountComponentAtNode(div);
+         9 | });
+        10 |
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        1.646s
+Ran all test suites.
+npm ERR! Test failed.  See above for more details.
+</code></pre>
+
+<p>After going way back in my commit history to find where the test suite initially had problems, I found a different set of errors.
+The first of the errors happens after installing react-router-dom and adding this one liner to App.js</p>
+
+<pre><code>&lt;Link to=""/""&gt;Scratch&lt;/Link&gt;
+</code></pre>
+
+<p>I get this error:</p>
+
+<pre><code>  console.error node_modules/fbjs/lib/warning.js:33
+    Warning: Failed context type: The context `router` is marked as required in`Link`, but its value is `undefined`.
+        in Link (at App.js:13)
+        in NavbarBrand (at App.js:12)
+        in div (created by NavbarHeader)
+        in NavbarHeader (at App.js:11)
+        in div (created by Grid)
+        in Grid (created by Navbar)
+        in nav (created by Navbar)
+        in Navbar (created by Uncontrolled(Navbar))
+        in Uncontrolled(Navbar) (at App.js:10)
+        in div (at App.js:9)
+        in App (at App.test.js:7)
+
+  console.error node_modules/react-dom/cjs/react-dom.development.js:9627
+    The above error occurred in the &lt;Link&gt; component:
+        in Link (at App.js:13)
+        in NavbarBrand (at App.js:12)
+        in div (created by NavbarHeader)
+        in NavbarHeader (at App.js:11)
+        in div (created by Grid)
+        in Grid (created by Navbar)
+        in nav (created by Navbar)
+        in Navbar (created by Uncontrolled(Navbar))
+        in Uncontrolled(Navbar) (at App.js:10)
+        in div (at App.js:9)
+        in App (at App.test.js:7)
+</code></pre>
+
+<p>Everything that I'm trying seems to be yielding different errors, I don't know the correct way to set this up, and since I'm still new to React I'm not very familiar with any of these messages, and the solutions I'm finding online don't seem to be working.</p>
+","7102316","","7102316","","2018-04-12 20:51:31","2018-04-12 20:53:58","Why does React Router break create-react-app tests? How to fix this?","<javascript><reactjs><testing><react-router><create-react-app>","1","0","0","",""
+"42093066","1","42094100","","2017-02-07 14:59:10","","0","109","<p>I need to start react js project without <code>react-router</code>, but I cannot setup hot module replacement without that one, please can you help me.<br>
+My server </p>
+
+<pre><code>const app = express()
+
+// Apply gzip compression
+app.use(compress())
+
+if (project.env === 'development') {
+  const compiler = webpack(webpackConfig)
+
+   debug('Enabling webpack dev and HMR middleware')
+   app.use(require('webpack-dev-middleware')(compiler, {
+   publicPath  : webpackConfig.output.publicPath,
+   contentBase : project.paths.client(),
+   hot         : true,
+   quiet       : project.compiler_quiet,
+   noInfo      : project.compiler_quiet,
+   lazy        : false,
+   stats       : project.compiler_stats
+ }))
+ app.use(require('webpack-hot-middleware')(compiler, {
+   path: '/__webpack_hmr'
+ }))
+} else {
+    ....
+}
+</code></pre>
+
+<p>My application entry point. </p>
+
+<pre><code>const MOUNT_NODE = document.getElementById('root')
+
+let render = () =&gt; {
+   ReactDOM.render(
+    &lt;App store={store} /&gt;,
+    MOUNT_NODE)
+ }
+
+ if (__DEV__) {
+    if (module.hot) {
+      // Development render functions
+      const renderApp = render
+      const renderError = (error) =&gt; {
+      const RedBox = require('redbox-react').default
+
+      ReactDOM.render(&lt;RedBox error={error} /&gt;, MOUNT_NODE)
+    }
+
+    // Wrap render in try/catch
+   render = () =&gt; {
+      try {
+         renderApp()
+      } catch (error) {
+         console.error(error)
+         renderError(error)
+      }
+   }
+
+  // Setup hot module replacement
+   module.hot.accept('./App', () =&gt;
+     setImmediate(() =&gt; {
+        ReactDOM.unmountComponentAtNode(MOUNT_NODE)
+        render()
+     })
+   )
+ }
+</code></pre>
+
+<p>}</p>
+
+<p>Where <code>./App</code> is simple component wrapping my application inside provider. </p>
+
+<pre><code>shouldComponentUpdate = () =&gt; false;
+
+ render () {
+    return (
+    &lt;Provider store={this.props.store}&gt;
+       &lt;RootComponent /&gt;
+    &lt;/Provider&gt;  )
+ }
+</code></pre>
+
+<p>And the main problem is - that when I save this, or child file, HMR rebuilding and nothing changed, but even, I use router, and pass as entry point of application, instead of simple component - its working fine.</p>
+
+<pre><code>export const createRoutes = (store) =&gt; ({
+  path        : '/',
+  component   : CoreLayout,
+  indexRoute  : { onEnter: (nextState, replace) =&gt; replace('/songs') },
+  childRoutes : [
+    ...
+ ]
+ })
+</code></pre>
+
+<p>What I am doing wrong?</p>
+","6252161","","6252161","","2017-02-07 15:15:15","2017-02-07 15:46:58","Webpack react HMR without router","<reactjs><webpack><redux><ecmascript-7><hot-module-replacement>","1","0","","",""
+"51088515","1","","","2018-06-28 17:27:20","","0","20","<p>So I am making a ReactJS app which includes reactstrap, react-router and react-router-bootstrap. The problem is that when I test components which contain LinkContainer, the following error occurs, making my unit tests fail:</p>
+
+<blockquote>
+  <p>console.error node_modules\prop-types\checkPropTypes.js:19
+        Warning: Failed context type: The context <code>router</code> is marked as required in <code>LinkContainer</code>, but its value is <code>undefined</code>.
+            in LinkContainer (at Header.js:27)</p>
+</blockquote>
+
+<p>Could anyone please help me out? This is the code, in header.js for example:</p>
+
+<pre><code>import { LinkContainer } from ""react-router-bootstrap"";
+import { ROUTE_POKEDEX } from ""../../constants/constants"";
+
+export default class Header extends Component {
+  constructor(props) {
+    super(props);
+
+    this.toggle = this.toggle.bind(this);
+    this.state = {
+      isOpen: false
+    };
+  }
+
+  toggle() {
+    this.setState({
+      isOpen: !this.state.isOpen
+    });
+  }
+
+  render() {
+    return (
+      &lt;Container fluid className=""header""&gt;
+        &lt;Navbar expand=""md""&gt;
+          &lt;LinkContainer to={ROUTE_POKEDEX}&gt;
+            &lt;NavbarBrand&gt;Pokédex&lt;/NavbarBrand&gt;
+          &lt;/LinkContainer&gt;
+          &lt;NavbarToggler onClick={this.toggle} /&gt;
+        &lt;/Navbar&gt;
+      &lt;/Container&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>test.js</p>
+
+<pre><code>import Header from ""./Header"";
+
+it(""renders without crashing"", () =&gt; {
+  const div = document.createElement(""div"");
+  ReactDOM.render(&lt;Header /&gt;, div);
+  ReactDOM.unmountComponentAtNode(div);
+});
+
+it(""has valid snapshot"", () =&gt; {
+  const tree = renderer.create(&lt;Header /&gt;).toJSON();
+  expect(tree).toMatchSnapshot();
+});
+</code></pre>
+","9481547","","","","","2018-06-28 17:27:20","Test fails when using LinkContainer from react-router-bootstrap","<javascript><reactjs><react-router><react-router-bootstrap>","0","0","","",""
+"50823024","1","50823331","","2018-06-12 17:50:58","","0","49","<p>Does anyone know how to resolve this linting issue? It's claiming that I'm not using the TasksComponent. Thanks!</p>
+
+<blockquote>
+  <p>'TasksComponent' is assigned a value but never used. (no-unused-vars)</p>
+</blockquote>
+
+<pre><code>describe('root tests', () =&gt; {
+
+    it('renders without crashing', () =&gt; {
+        const TasksComponent = TasksWithData(Tasks);
+        const root = document.createElement('root');
+        ReactDOM.render(&lt;TasksComponent {...taskconfig} /&gt;, root);
+        ReactDOM.unmountComponentAtNode(root);
+    });
+
+});
+</code></pre>
+
+<p>This is my .eslintrc file:</p>
+
+<pre><code>module.exports = {
+    ""env"": {
+        ""browser"": true,
+        ""es6"": true,
+        ""jest"": true
+    },
+    ""extends"": ""eslint:recommended"",
+    ""parserOptions"": {
+        ""ecmaFeatures"": {
+            ""experimentalObjectRestSpread"": true,
+            ""jsx"": true
+        },
+        ""sourceType"": ""module""
+    },
+    ""plugins"": [
+        ""react""
+    ],
+    ""rules"": {
+        ""indent"": [
+            ""error"",
+            4
+        ],
+        ""quotes"": [
+            ""warn"",
+            ""single""
+        ],
+        ""semi"": [
+            ""error"",
+            ""always""
+        ]
+    }
+};
+</code></pre>
+","9824961","","9824961","","2018-06-12 18:21:15","2018-06-12 18:21:15","ESLint throwing no-unused-vars for reactjs data component","<reactjs><eslint><react-component><eslintrc>","1","0","","",""
+"50946950","1","","","2018-06-20 11:16:49","","0","7","<p>I want to destroy the root Preact DOM node. I initially render my component as follows:</p>
+
+<pre><code>import { h, render } from 'preact';
+import App from ""./components/App"";
+
+render(&lt;App /&gt;, document.querySelector(""#app"");
+</code></pre>
+
+<p>How do I destroy <code>App</code>? Do I simply unmount the <code>#app</code> DOM node, or does Preact offer a method similar to React's <a href=""https://reactjs.org/docs/react-dom.html#unmountcomponentatnode"" rel=""nofollow noreferrer""><code>unmountComponentAtNode()</code></a> method?</p>
+","1639675","","","","","2018-06-20 11:16:49","How to destroy root Preact node?","<javascript><reactjs><preact>","0","0","","",""
+"32494407","1","","","2015-09-10 06:11:52","","3","2084","<p>I'm working through a TodoMVC example for the <a href=""http://rackt.github.io/redux/"" rel=""nofollow"">Redux</a> ecosystem. I've completed working code for the example and am now working through the creation of tests for each of the elements of the application.</p>
+
+<p>For actions and reducers, the testing is very straightforward, but for the components, writing tests has proven somewhat more challenging.</p>
+
+<p>My general component architecture looks like this:</p>
+
+<pre><code>Home.js
+      \-App.js
+              \-TodoList.js
+                          \-TodoItem.js
+                                       \-TodoInput.js
+</code></pre>
+
+<p>Writing the unit tests for TodoInput.js has been relatively straightforward:</p>
+
+<p>TodoInput.js:</p>
+
+<pre><code>handleChange(e) {
+    this.setState({ text: e.target.value });
+  }
+
+...
+
+  render() {
+
+    return (
+      &lt;input type=""text"" autoFocus='true'
+            className={classnames({
+              edit: this.props.editing,
+              'new-todo': this.props.newTodo
+             })}
+            value={this.state.text}
+            placeholder={this.props.placeholder}
+            onKeyDown={this.handleKeyDown.bind(this)}
+            onBlur={this.handleBlur.bind(this)}
+            onChange={this.handleChange.bind(this)}&gt;
+      &lt;/input&gt;
+    );
+  }
+</code></pre>
+
+<p>TodoInput-test.js:</p>
+
+<pre><code>const mockedTodo = {
+  text: 'abc123',
+  complete: false
+};
+
+
+it(`should update text from user input`, () =&gt; {
+      const component = TestUtils.renderIntoDocument(
+        &lt;TodoInput
+          text = {mockedTodo.text}
+          editing = {false}
+          onSave = {_.noop}
+        /&gt;
+      );
+
+      const inputComponent = TestUtils.findRenderedDOMComponentWithTag(component, 'input');
+
+      expect(React.findDOMNode(inputComponent).value).toBe(mockedTodo.text);
+
+      TestUtils.Simulate.change(React.findDOMNode(inputComponent), {target: {value: ""newValue""}});
+
+      expect(React.findDOMNode(inputComponent).value).toBe(""newValue"");
+
+      React.unmountComponentAtNode(React.findDOMNode(component));
+});
+</code></pre>
+
+<p>But for TodoItem.js, testing has been a little trickier.</p>
+
+<p>The render code branches based on whether or not an <code>editing</code> flag has been set on the item:</p>
+
+<p>TodoItem.js:</p>
+
+<pre><code>import React, { Component, PropTypes } from 'react';
+import TodoInput from './TodoInput';
+import classnames from 'classnames';
+
+export default class TodoItem extends Component {
+
+  static propTypes = {
+    todo: PropTypes.object.isRequired,
+    editTodo: PropTypes.func.isRequired,
+    markTodoAsComplete: PropTypes.func.isRequired,
+    deleteTodo: PropTypes.func.isRequired
+  }
+
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
+      editing: false
+    };
+  }
+
+  handleDoubleClick() {
+    this.setState({ editing: true });
+  }
+
+
+  handleSave(id, text) {
+    if (text.length === 0) {
+      this.props.deleteTodo(id);
+    } else {
+      this.props.editTodo(id, text);
+    }
+    this.setState({ editing: false });
+  }
+
+  render() {
+    const {todo, markTodoAsComplete, deleteTodo} = this.props;
+    let element;
+
+    if (this.state.editing) {
+      element = (
+        &lt;TodoInput text={todo.text}
+                       editing={this.state.editing}
+                       onSave={(text) =&gt; this.handleSave(todo.id, text)} /&gt;
+      );
+    } else {
+      element = (
+        &lt;div className='view'&gt;
+          &lt;label onDoubleClick={this.handleDoubleClick.bind(this)}&gt;
+            {todo.text}
+          &lt;/label&gt;
+          &lt;input className='markComplete'
+                 type='checkbox'
+                 checked={todo.complete}
+                 onChange={() =&gt; markTodoAsComplete(todo)} /&gt;
+          &lt;button className='destroy'
+                  onClick={() =&gt; deleteTodo(todo)} /&gt;
+        &lt;/div&gt;
+      );
+    }
+
+    return (
+      &lt;li className={classnames({
+        completed: todo.complete,
+        editing: this.state.editing
+      })}&gt;
+        {element}
+      &lt;/li&gt;
+    )
+  }
+}
+</code></pre>
+
+<p>I'm a little stumped on how to go about writing a test that, for instance, would verify that a double-click on the component had successfully set the state to <code>editing: true</code>. </p>
+
+<p>Typically, I have my tests divided into two parts, ""rendering"" and ""events"", i.e. for TodoItem-test.js:</p>
+
+<pre><code>import React, { addons } from 'react/addons';
+import _ from 'lodash';
+import expect from 'expect';
+const { TestUtils } = addons;
+
+import TodoItem from '../TodoItem';
+
+describe('TodoItem', () =&gt; {
+
+  const mockedTodo = {
+    text: 'abc123',
+    complete: false
+  };
+
+describe('rendering', () =&gt; {
+    let component;
+
+    before(() =&gt; {
+      component = TestUtils.renderIntoDocument(
+        &lt;TodoItem
+          todo={mockedTodo}
+          editTodo={_.noop}
+          markTodoAsComplete={_.noop}
+          deleteTodo={_.noop}
+        /&gt;
+      );
+    });
+
+    afterEach(() =&gt; {
+      React.unmountComponentAtNode(React.findDOMNode(component));
+    });
+
+    it('should render the element', () =&gt; {
+      const liComponent = TestUtils.findRenderedDOMComponentWithTag(component, 'li');
+
+      expect(liComponent).toExist();
+    });
+
+    it('should render text in label', () =&gt; {
+      const labelComponent = TestUtils.findRenderedDOMComponentWithTag(component, 'label');
+
+      expect(labelComponent).toExist();
+      expect(React.findDOMNode(labelComponent).textContent).toEqual('abc123');
+    });
+  });
+
+ describe('events', () =&gt; {
+  ...
+
+});
+</code></pre>
+
+<p>but in this case, I want to see if double-clicking on the component leads to the following:</p>
+
+<ol>
+<li>the component state should now have an <code>editing</code> flag associated with it</li>
+<li>the <code>element</code> should have changed, and <code>TodoItem.js</code> should now render a <code>&lt;TodoInput/&gt;</code> component instead.</li>
+</ol>
+
+<p>What is the most efficient way to structure a test against this expected behavior? I am thinking that I should do two things:</p>
+
+<p>First, test to see if a double-click on the component adds the expected <code>""editing: true""</code> flag. <strong>I am not sure how to do this</strong>. If I set up a test as follows:</p>
+
+<pre><code>describe('events', () =&gt; {
+    let component;
+    let deleteTodoCallback = sinon.stub();
+
+    beforeEach(() =&gt; {
+      component = TestUtils.renderIntoDocument(
+        &lt;TodoItem
+          todo={mockedTodo}
+          editTodo={_.noop}
+          markTodoAsComplete={_.noop}
+          deleteTodo={deleteTodoCallback}
+        /&gt;
+      );
+    });
+
+    afterEach(() =&gt; {
+      React.unmountComponentAtNode(React.findDOMNode(component));
+    });
+
+    it(`should change the editing state to be true if a user double-clicks
+          on the todo`, () =&gt; {
+
+        const liComponent = TestUtils.findRenderedDOMComponentWithTag(component, 'li');
+
+        // expect the editing flag to be false
+
+        TestUtils.Simulate.doubleClick(React.findDOMNode(liComponent));
+
+        // expect the editing flag to be true
+
+    });
+  });
+</code></pre>
+
+<p><strong>how do I go about testing to ensure that the editing flag has been set?</strong> <code>liComponent.props.editing</code> returns <code>undefined.</code></p>
+
+<p>Second, have a <code>context(""if the component is editing mode"")</code> that tests to make sure that the following has been rendered correctly:</p>
+
+<pre><code>  &lt;li className={classnames({
+    completed: todo.complete,
+    editing: this.state.editing
+  })}&gt;
+      &lt;TodoInput text={todo.text}
+                   editing={this.state.editing}
+                   onSave={(text) =&gt; this.handleSave(todo.id, text)} /&gt;
+  &lt;/li&gt;
+</code></pre>
+
+<p>I'm also not sure how I would go about testing this rigorously as well.</p>
+","972253","","218196","","2015-09-10 15:48:14","2015-09-10 16:37:57","unit testing a react component with mocha","<javascript><unit-testing><reactjs><redux>","1","0","2","",""
+"27042456","1","","","2014-11-20 14:48:01","","0","623","<p>I am using a react-bootstrap modal for login.
+The user hits 'Log in' and a request is sent to our server.
+If the login fails - we set the state - LOGIN_FAILED</p>
+
+<p>At this point the react application re-renders.</p>
+
+<p>The reason the login failed is available in state as an error message e.g. ""Incorrect username or password"". Since the modal is already active, we re-render it with the error message below the 'Log in' button.</p>
+
+<p>This works fine - apart from the very first time you use the modal(or after refreshing the page)</p>
+
+<p>In this case the modal disappears.</p>
+
+<p>I debugged it and see this code is executed and the modal gets unmounted:</p>
+
+<p><strong>OverlayMixin.js</strong></p>
+
+<pre><code>componentWillUnmount: function () {
+    this._unrenderOverlay();
+    if (this._overlayTarget) {
+      this.getContainerDOMNode()
+        .removeChild(this._overlayTarget);
+      this._overlayTarget = null;
+    }
+  },
+</code></pre>
+
+<p>.
+.
+.</p>
+
+<pre><code>_unrenderOverlay: function () {
+    React.unmountComponentAtNode(this._overlayTarget);
+    this._overlayInstance = null;
+  },
+</code></pre>
+
+<p>Has anyone come across this before? I am considering using a OverlayMixin to see if it makes any difference but would like to know the root cause.</p>
+
+<p>Any help appreciated.</p>
+
+<p>Here is the LoginModal react component:</p>
+
+<pre><code>var LoginModal = React.createClass({
+
+propTypes:{
+    errorText: React.PropTypes.string,
+    onRequestHide: React.PropTypes.func,
+    state: React.PropTypes.string
+},
+
+getInitialState: function() {
+    return {
+        fbNotAuthorisedOn: false,
+       fbLoginErrorOn: false,
+        valid: false,
+        showErrors: false
+    };
+},
+
+componentWillReceiveProps: function(nextProps) {
+    if(this.props.state === 'LOGIN_FAILED'){
+        this.setState({
+          showErrors: true
+        });
+    }
+},
+
+_onSubmit: function(e) {
+    if(e &amp;&amp; typeof e !== 'undefined') {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    var email = this.refs.email.getValue();
+    var password = this.refs.password.getValue();
+
+    UserAPIUtils.login(email, password);
+},
+
+_onKeyDown: function(event) {
+    if (event.keyCode === AppConstants.ENTER_KEY_CODE &amp;&amp; this.state.valid) {
+        this._onSubmit(event);
+    }
+},
+
+_handleHide: function() {
+    this.refs.loginModal.props.onRequestHide();
+},
+
+_handleFBNotAuthorised: function(message) {
+    Router.transitionTo('facebook-error', { errorMessage:      AppConstants.FACEBOOK_INSUFFICENT_PERMISSIONS_ERROR });
+},
+
+_handleFBLoginError: function(errorMessage) {
+    Router.transitionTo('facebook-error', { errorMessage: errorMessage});
+},
+
+_onChange: function(){
+    if(this.refs.email.getValue() &amp;&amp; this.refs.password.getValue()){
+        this.setState({valid:true});
+    }else{
+        this.setState({valid:false});
+    }
+},
+
+render: function () {
+var errorText = '';
+if(this.state.showErrors){
+    if(this.props.errorText){
+        errorText = this.props.errorText;
+    }else{
+        errorText = 'Login failed, please try again';
+    }
+}
+
+return this.transferPropsTo(
+    &lt;Modal className=""signPopUpModal""
+        title=""Log In""
+        backdrop={true}
+        animation={true}
+        ref=""loginModal""
+        id=""loginModal""
+        className=""signPopUpModal""&gt;
+          &lt;div className=""modal-body""&gt;
+            &lt;form role=""form"" onSubmit={this._onSubmit}&gt;
+                &lt;Input id=""email""
+                    ref=""email""
+                    type=""email""
+                    placeholder=""Enter your email address""
+                    groupClassName=""group-class""
+                    wrapperClassName=""wrapper-class""
+                    labelClassName=""label-class""
+                    addonBefore={Glyphicon({glyph:'user'})}
+                    onKeyDown={this._onKeyDown}
+                    onChange={this._onChange}/&gt;
+                &lt;Input id=""password"" type=""password"" ref=""password""
+                    placeholder=""Enter your password""
+                    groupClassName=""group-class""
+                    wrapperClassName=""wrapper-class""
+                    labelClassName=""label-class""
+                    addonBefore={Glyphicon({glyph:'lock'})}
+                    onKeyDown={this._onKeyDown}
+                    onChange={this._onChange}/&gt;
+            &lt;div className=""row""&gt;
+                {errorText}
+            &lt;/div&gt;
+            &lt;div className=""row""&gt;
+              &lt;div className=""col-md-3 col-xs-6""&gt;
+                &lt;div className=""remember-me link""&gt;
+                    &lt;input type=""checkbox""&gt;Remember me&lt;/input&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div className=""col-md-3 col-md-offset-6 col-xs-6""&gt;
+                &lt;div className=""pass link""&gt;
+                    &lt;ResetPasswordModalTrigger modal={this.transferPropsTo(&lt;ResetPasswordModal
+                        closeLoginHandler={this._handleHide} /&gt;)}&gt;
+                        &lt;a href=""#""&gt;Forgot Password?&lt;/a&gt;
+                    &lt;/ResetPasswordModalTrigger&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div className=""row""&gt;
+              &lt;Button id=""loginBtn"" type=""submit""
+                    ref=""loginButton""
+                    disabled={!this.state.valid}
+                    block={true}
+                    className=""btn-highlight col-md-12""&gt;Log in&lt;/Button&gt;
+            &lt;/div&gt;
+            &lt;div className=""row""&gt;
+              &lt;p className=""or""&gt;or&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div className=""row""&gt;
+                &lt;FacebookLogin  closeLoginHandler={this._handleHide}
+                                onNotAuthorizedResponse={this._handleFBNotAuthorised}
+                                onErrorResponse={this._handleFBLoginError} /&gt;
+            &lt;/div&gt;
+            &lt;div className=""row signup""&gt;
+                &lt;p&gt;Don't have an account?
+                &lt;RegisterModalTrigger modal={&lt;RegisterModal closeLoginHandler={this._handleHide} /&gt;}&gt;
+                    &lt;a href=""#""&gt;Sign Up&lt;/a&gt;
+                &lt;/RegisterModalTrigger&gt;
+            &lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    &lt;/Modal&gt;
+);
+
+}
+});
+
+module.exports = LoginModal ;`
+</code></pre>
+","3350887","","717383","","2015-03-27 15:30:04","2015-03-27 15:30:04","reactjs bootstrap modal does not re-render the first time","<modal-dialog><render><reactjs><react-bootstrap>","1","1","","",""
+"28955140","1","32047873","","2015-03-10 02:24:19","","2","2748","<p>Code:</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=""en""&gt;
+&lt;head&gt;
+    &lt;meta charset=""utf-8""&gt;
+    &lt;meta name=description content=""""&gt;
+    &lt;meta name=viewport content=""width=device-width, initial-scale=1""&gt;
+    &lt;title&gt;Component Lifecycle: Mounting&lt;/title&gt;
+    &lt;link rel=""stylesheet"" type=""text/css"" href=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.css""&gt;
+    &lt;script src=""https://cdnjs.cloudflare.com/ajax/libs/react/0.13.0-beta.1/react.min.js""&gt;&lt;/script&gt;
+    &lt;script src=""https://cdnjs.cloudflare.com/ajax/libs/react/0.13.0-beta.1/JSXTransformer.js""&gt;&lt;/script&gt;
+    &lt;style type=""text/css""&gt;
+        body{margin: 25px;}
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;button onClick=""render()""&gt;Render&lt;/button&gt;
+    &lt;button onClick=""unmount()""&gt;Unmount&lt;/button&gt;
+    &lt;hr /&gt;
+    &lt;div id=""panel""&gt;&lt;/div&gt;
+
+    &lt;script type=""text/jsx;harmony=true""&gt;
+    /** @jsx React.DOM */
+    var APP = React.createClass({
+        update:function() {
+            var newVal = this.props.val + 1;
+            this.setProps({val:newVal});
+        },
+        componentWillMount:function() {
+            this.setState({m:2});
+            if (this.props.val === 0) {
+                this.btnStyle = {'color' : 'red'};
+            }
+        },
+        render: function() {
+            console.log(""hello world"");
+            return &lt;button 
+                        style={this.btnStyle}
+                        onClick={this.update}&gt;
+                        {this.props.val*this.state.m}
+                    &lt;/button&gt;
+        },
+        componentDidMount:function(rootNode) {
+            this.inc = setInterval(this.update, 500);
+        },
+        componentWillUnMount:function() {
+            console.log(""goodbye cruel world!"");
+            clearInterval(this.inc);
+        }
+    });
+    window.render = function() {
+        React.render(
+            &lt;APP val={0} /&gt;,
+            document.getElementById('panel')
+        );  
+    };
+
+    window.unmount = function() {
+        React.unmountComponentAtNode(
+            document.getElementById('panel')
+        );  
+    };
+
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>My result:</p>
+
+<p><img src=""https://i.stack.imgur.com/v5Tgz.png"" alt=""enter image description here""></p>
+
+<p>As you can see, somehow the unmount is not being called in order for me to clearInterval. Everything else is working though.</p>
+
+<p>Where did I go wrong?</p>
+","80353","","","","","2015-08-17 10:16:47","componentWillUnMount not being called for reactjs 0.13","<javascript><reactjs>","1","0","0","",""
+"35485741","1","","","2016-02-18 15:34:57","","2","768","<p>Once again, what seems like the most trivial of tasks has brought my project to a halt. Here is my situation:</p>
+
+<p>I'm using react.js inside an ASP.NET 4.5 MVC 6 SPA. I have designed such that I have three main areas where I use react: a top menu, a side menu and a main content area. Because of the timing and loading requirements of the different areas, i have 3 separate react component hierarchies, one for each major section. Perhaps that is part of the issue right there, but somewhere i got the idea that this is allowable. </p>
+
+<p>So at a point, I pull a list of top menu nodes from a web service, and bind them to a top menu react component, then do the same for the side menu. When someone clicks on one of the menu items, it loads new data into the content panel area, and these are react components which i load into a div.</p>
+
+<p>Everything works as expected to a point, until i attempt to unload the component in the content panel, before i load a new one into it. When i call <code>ReactDOM.unmountComponentAtNode()</code> passing in my div I get the following: </p>
+
+<p><code>Uncaught Error: Invariant Violation: ReactMount: Two valid but unequal nodes with the same</code>data-reactid<code>: .0(…)</code></p>
+
+<p>I have a couple of qualms at this point: </p>
+
+<ul>
+<li>first off i don't understand why it seems to be looking everywhere in the DOM for react nodes, when I've passed in a specific element i want unmounted. within the scope of the DOM element i've specified there's only one react component; i would expect that to suffice.</li>
+<li><p>secondly, my many attempts to set specific keys on the top-level react components have failed. I read and understand the advice/rule that you have to set the key from outside the component as you create it, and not directly on the elements from inside, so my components are created as: </p>
+
+<p><code>ReactDom.render(&lt;ManageCommunitiesContainer brandData={mcmData} key=""manageComms"" /&gt;, $(""#reactRoot"")[0]);</code></p></li>
+</ul>
+
+<p>i've added unique keys to each of the three top-level components i'm using, and yet when i inspect them in the react plug-in for chrome's developer tools, all 3 have the same <code>data-reactid</code>, which is simply '.0'.</p>
+
+<p>I have set keys on child objects from inside react within loops with no issues. But on my top-level components added via javascript nothing i do results in them having meaningful run-time values...what does a person have to do to assign unique keys to root components, and thus be able to un-mount them later? because i can't un-mount them, they're piling up in memory. </p>
+
+<p>thanks.</p>
+","2403744","","674326","","2016-02-18 16:08:47","2016-02-23 05:21:56","Unable to set the key for react.js components","<javascript><reactjs><react-jsx>","2","0","1","",""

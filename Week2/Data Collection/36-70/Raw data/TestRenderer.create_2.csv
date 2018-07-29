@@ -1,0 +1,49 @@
+Title,Tags,Body
+"`react-apollo` `MockedProvider` requires timeout?","<javascript><react-apollo><apollo-client>","<p>I'm using <code>jest</code> with react-apollo's <code>MockedProvider</code> and I'm having trouble because the <code>MockedProvider</code> seems to be behaving asynchronously. </p>
+
+<p>Given the following simple component: </p>
+
+<p><code>const Component = () =&gt; &lt;Query query={query}&gt;(({loading, data }) =&gt; if(loading) return 'loading' else if (data) return 'data' else return 'nothing'&lt;/Query&gt;</code></p>
+
+<p>This test: </p>
+
+<pre><code>it('', done =&gt; {
+    const renderer = TestRenderer.create(
+      &lt;MockedProvider mocks={myMock} &gt;
+        &lt;Component/&gt;
+      &lt;/MockedProvider&gt;
+    )
+
+  expect(renderer.toJSON()).toMatchSnapshot()
+</code></pre>
+
+<p>shows a snapshot of: <code>loading</code> </p>
+
+<p>but if I add a simple timeout of 1 ms: </p>
+
+<pre><code>  it('', done =&gt; {
+    const renderer = TestRenderer.create(
+      &lt;MockedProvider mocks={myMock} &gt;
+        &lt;Component/&gt;
+      &lt;/MockedProvider&gt;
+    )
+
+    setTimeout(() =&gt; {
+      expect(renderer.toJSON()).toMatchSnapshot()
+      done()
+    }, 1);
+</code></pre>
+
+<p>I get a snapshot of: <code>data</code></p>
+
+<p>Is there a more elegant way to get around this? </p>
+"
+"react-test-renderer How to Create a Component With Context?","<reactjs>","<p>The Api for react-test-render says:</p>
+
+<p>TestRenderer.create(element, options);</p>
+
+<p>What are valid options for create?
+Can I use it to set a component's context?</p>
+
+<p><a href=""https://reactjs.org/docs/test-renderer.html#reference"" rel=""nofollow noreferrer"">https://reactjs.org/docs/test-renderer.html#reference</a></p>
+"

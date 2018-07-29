@@ -1,0 +1,164 @@
+Title,Tags,Body
+"Simulating text entry with reactJs TestUtils","<javascript><unit-testing><reactjs><reactjs-testutils>","<p>I want to be able to simulate a user typing into a text box using reactjs so that I can test my validation status messages.</p>
+
+<p>I have a react component which validates on keyUp</p>
+
+<p>Below is a simple example of what I've tried.</p>
+
+<pre><code>nameInput.props.value = 'a';
+React.addons.TestUtils.Simulate.keyUp(nameInput);
+React.addons.TestUtils.findRenderedDOMComponentWithClass(component, 'has-error');
+</code></pre>
+
+<p>This doesn't seem to change the value of the bound textbox when I debug in the validator</p>
+
+<pre><code>React.addons.TestUtils.Simulate.keyUp(nameInput, {key: 'a'});
+React.addons.TestUtils.findRenderedDOMComponentWithClass(component, 'has-error');
+</code></pre>
+
+<p>This doesn't either.</p>
+
+<p>Could someone point me on the right track, the second is inline with the documentation I could find around simulate (<a href=""http://facebook.github.io/react/docs/test-utils.html"" rel=""nofollow noreferrer"">http://facebook.github.io/react/docs/test-utils.html</a>), the first makes sense to me (set the actual textbox value then fake an event)</p>
+"
+"calling setState on a reactjs component with test utils not re-rendering component","<reactjs><jestjs>","<p>I have the following code in a jest based test:</p>
+
+<pre><code>it('will show the hero loop if there is one', function() {
+
+    var React = require('react/addons');
+    var ShowsDetailHeader = require('../../../../routes/shows/components/ShowsDetailHeader.jsx');
+    var mockData = require('../../../../mock/episodeDetailData');
+    mockData.data.show.assets._webHeroVideoUrl = 'https://test.video.com';
+
+    var Subject = require('../../../../mock/stubRouterContext')(ShowsDetailHeader,  {
+      show: mockData.data.show
+    });
+
+    var TestUtils = React.addons.TestUtils;
+
+    var showsHeader = TestUtils.renderIntoDocument(
+      &lt;Subject /&gt;
+    );
+
+    showsHeader.setState({
+      showVideo: true
+    });
+
+    var videoClass = TestUtils.findRenderedDOMComponentWithClass(showsHeader, 'flex-video').getDOMNode().getAttribute('class');
+
+    expect(videoClass.indexOf('in')).toBe(-1);
+
+    console.log(videoClass);
+
+
+  });
+</code></pre>
+
+<p>My previous test tests the initial state of the component. I now want to call setState to check the component after a state change. The videoClass i'm logging here stays the same. I am on react 0.12. and latest jest 0.4.0.</p>
+
+<p>Any ideas on how to test what happens after set state?</p>
+"
+"How to mock functions, and test that they're called, when passed as props in react components?","<javascript><unit-testing><reactjs><jestjs>","<p>I'm following the example from this stackoverflow answer - <a href=""https://stackoverflow.com/questions/25533036/test-a-react-component-function-with-jest"">Test a React Component function with Jest</a>. I have an example component and test set up. The component works correctly when loaded into App.js. </p>
+
+<p>Component - </p>
+
+<pre><code>import React, { PropTypes, Component } from 'react';
+
+export default class ExampleModule extends Component {
+  static propTypes = {
+    onAction: PropTypes.func,
+  }
+
+  static defaultProps = {
+  onAction: () =&gt; { console.log(""In onAction""); }
+}
+
+doAction = () =&gt; {
+  // do something else
+  console.log('In do action');
+  this.props.onAction();
+}
+
+render() {
+  return(
+    &lt;div&gt;
+      &lt;button className='action-btn' onClick=  {this.doAction.bind(this)}&gt;Do action&lt;/button&gt;
+    &lt;/div&gt;
+  )
+}
+}
+</code></pre>
+
+<p>And here's the test - </p>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-addons-test-utils';
+import ExampleComponent from './ExampleModule.js';
+
+let Example;
+
+describe('Example component', function() {
+  beforeEach(function() {
+    Example = TestUtils.renderIntoDocument(&lt;ExampleComponent /&gt;);
+  })
+
+  it('calls props functions', function() {
+    Example.doAction = jest.genMockFunction();
+    let actionBtn = TestUtils.findRenderedDOMComponentWithClass(Example, 'action-btn');
+    TestUtils.Simulate.click(actionBtn);
+    expect(Example.doAction).toBeCalled();
+  })
+
+  it('doAction calls onAction', function() {
+    expect(Example.props.onAction).not.toBeCalled();
+    Example.doAction();
+    expect(Example.props.onAction).toBeCalled();
+  })
+})
+</code></pre>
+
+<p>However, I get the following error - </p>
+
+<pre><code>FAIL  src/App/components/Example/ExampleModule.test.js
+  Console
+
+    console.log src/App/components/Example/ExampleModule.js:14
+      In do action
+    console.log src/App/components/Example/ExampleModule.js:24
+      In onAction
+
+  Example component › calls props functions
+
+    Expected the mock function to be called.
+
+      at Object.&lt;anonymous&gt; (src/App/components/Example/ExampleModule.test.js:17:30)
+      at process._tickCallback (node.js:369:9)
+
+  Example component › doAction calls onAction
+
+    toBeCalled matcher can only be used on a spy or mock function.
+
+      at Object.&lt;anonymous&gt; (src/App/components/Example/ExampleModule.test.js:21:40)
+      at process._tickCallback (node.js:369:9)
+</code></pre>
+
+<p>I can see the console.logs in the <code>doAction</code> and <code>onAction</code> are being called even when I want to mock out <code>doAction</code>. 
+Also, I'm unable to mock out <code>onAction</code>. I get this error - </p>
+
+<pre><code>TypeError: Cannot assign to read only property 'onAction' of #&lt;Object&gt;
+</code></pre>
+
+<p>I've tried <code>jest.fn()</code> but got the same errors. </p>
+
+<p>How do I mock these functions and test them?</p>
+
+<p>EDIT:</p>
+
+<p>I was able to mock <code>doAction</code> by using jest.fn() in the following way - </p>
+
+<pre><code>let mockFn = jest.fn();
+Example.doAction = mockFn()
+</code></pre>
+
+<p>However, I'm still unable to mock <code>Example.props.onAction</code>.</p>
+"
