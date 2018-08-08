@@ -1,0 +1,78 @@
+Title,Tags,Body
+"Using react jest to test component created in requireJS, throwing error: ReferenceError: define is not defined","<reactjs><backbone.js><requirejs><jestjs>","<p>We are now creating component with reactJS inside backbone/requireJS project, below is a simple component I created:</p>
+
+<pre><code>define(function(require) {
+    var React = require('react');
+    var Step1Comp =   React.createClass({
+        render: function() {
+            return &lt;div&gt;Step1&lt;/div&gt;
+        }
+    });
+    return Step1Comp;
+});
+</code></pre>
+
+<p>And this is the test:</p>
+
+<pre><code>'use strict';
+jest.unmock('../../public/js/Step1Comp');
+
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-dom';
+import Step1Comp from '../../public/js/Step1Comp';
+
+describe('a test testing comp', ()=&gt;{
+    it('render comp', ()=&gt;{
+        window.define={};
+        var step1Comp = TestUtils.renderIntoDocument(&lt;Step1Comp /&gt;);
+        expect(TestUtils.isCompositeComponent(step1Comp)).toBeTruthy();
+
+    });
+});
+</code></pre>
+
+<p>when we are running jest, I got this error:</p>
+
+<pre><code>Test suite failed to run
+ReferenceError: define is not defined
+</code></pre>
+
+<p>The component has to be within define, as the main project is written in requireJS, and we have to wrap it in define so that this comp can be loaded with other component.</p>
+
+<p>I have tried to add window['define']={} in the test to mock the define function, but it is useless.</p>
+
+<p>Can anyone help me to resolve this issue?</p>
+
+<p>Thanks in advance.</p>
+
+<p>Update now as below:</p>
+
+<pre><code>jest.mock('define', () =&gt; {
+});
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-dom';
+import Step1Comp from '../../public/js/app/create-quote/components/comps/details/step1/Step1Comp';
+
+describe('a test testing comp', ()=&gt;{
+    it('render comp', ()=&gt;{
+        var step1Comp = TestUtils.renderIntoDocument(&lt;Step1Comp /&gt;);
+        expect(TestUtils.isCompositeComponent(step1Comp)).toBeTruthy();
+    });
+});
+</code></pre>
+
+<p>But when I run jest, still same error:</p>
+
+<pre><code>&gt; NGCSC@1.0.0 test-faked /Users/frankhe/myjuniper-new/myjuniper/ngcsc-ui
+&gt; jest
+
+ FAIL  __tests__/test_comp/test.jest.js
+  ● Test suite failed to run
+
+    ReferenceError: define is not defined
+</code></pre>
+"

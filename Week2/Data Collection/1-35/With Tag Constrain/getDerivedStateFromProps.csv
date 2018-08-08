@@ -1,0 +1,1168 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"49673143","1","49677858","","2018-04-05 13:04:30","","11","3485","<p>I use <strong>React 16.3.1</strong> and <strong>next.js</strong>.<br />
+And I put <strong>getDerivedStateFromProps</strong> inside the class extending <strong>PureComponent</strong>.</p>
+
+<p>Here is the code:</p>
+
+<blockquote>
+  <p>Header.js</p>
+</blockquote>
+
+<pre><code>import { PureComponent } from 'react'
+...
+
+export default class Header extends PureComponent {
+  constructor (props) {
+    super(props)
+
+    this.colorAnimationProps = {
+      animationDuration: '0.4s',
+      animationFillMode: 'forwards'
+    }
+
+    this.colorAnimationStyle = {
+      toColor: {
+        animationName: 'toColor',
+        ...this.colorAnimationProps
+      },
+      toTransparent: {
+        animationName: 'toTransparent',
+        ...this.colorAnimationProps
+      }
+    }
+
+    this.state = {
+      colorAnimation: {},
+      headerModal: null
+    }
+  }
+
+  componentDidMount () {
+    if (this.props.isColor) {
+      this.setState({colorAnimation: this.colorAnimationStyle.toColor})
+    }
+  }
+
+  static getDerivedStateFromProps (nextProps, prevState) {
+    console.log('should go here')
+    if (nextProps.isColor) {
+      return {colorAnimation: this.colorAnimationStyle.toColor}
+    }
+    return {colorAnimation: this.colorAnimationStyle.toTransparent}
+  }
+
+  render () {
+    ...
+  }
+}
+</code></pre>
+
+<p>And here is the parent that modifies the prop:</p>
+
+<blockquote>
+  <p>index.js</p>
+</blockquote>
+
+<pre><code>import { PureComponent } from 'react'
+
+...
+import Header from '../components/Header'
+import Layout from '../components/Layout'
+import { withReduxSaga } from '../redux/store'
+
+class Index extends PureComponent {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      isHeaderColor: false
+    }
+  }
+
+  componentDidMount () {
+    if (window.pageYOffset &gt; 50) {
+      this.setState({isHeaderColor: true})
+    }
+
+    window.addEventListener('scroll', (e) =&gt; {
+      if (window.pageYOffset &gt; 50) {
+        this.setState({isHeaderColor: true})
+      } else {
+        this.setState({isHeaderColor: false})
+      }
+    })
+  }
+
+  render () {
+    return (
+      &lt;Layout url={this.props.url}&gt;
+        &lt;Header isColor={this.state.isHeaderColor} /&gt;
+        ...
+      &lt;/Layout&gt;
+    )
+  }
+}
+
+export default withReduxSaga(Index)
+</code></pre>
+
+<p>My problem is: getDerivedStateFromProps is not called when the prop changes. At least, it should do console.log, but it doesn't.</p>
+
+<p>Can anybody here help me?</p>
+","1333432","","1333432","","2018-04-05 16:06:29","2018-06-09 09:03:29","getDerivedStateFromProps is not called","<reactjs><next.js><react-16>","2","5","","",""
+"49684141","1","","","2018-04-06 02:05:03","","0","363","<p>I am waiting for the redux store to be populated so that I can reload a React Native screen but am having issues refreshing the page upon this redux state being updated.</p>
+
+<p>Specifically, I am working with wix's react-native-navigation library and have started a tab based app. I push the login screen from the first screen of the tabs and don't pop it back until successful login/signup. Because of this set up, all default tab screens load before the login flow is complete and I can obtain a user authorization token. When I receive this authorization token I want to refresh one of the screens because I can now make requests with this token.</p>
+
+<p>Here is currently what I have:</p>
+
+<p>AuthActions.js:</p>
+
+<pre><code>export const facebookLogin = (id, token) =&gt; { 
+//""token"" here isn't the token i need -  i know, confusing
+    return dispatch =&gt; {
+        fetch('https://somethingsomething.com/auth/facebook/'+id+'/'+token)
+        .then((response) =&gt; response.json())
+        .then((responseJson) =&gt; {
+            console.log(responseJson.token); // &lt; - This is the token I need 
+            return facebookSuccess(dispatch, responseJson);
+        })
+        .catch((error) =&gt; {
+            console.log(error);
+            return facebookFail(dispatch);
+        });
+    };
+};
+
+
+const facebookSuccess = (dispatch, data) =&gt; {
+    dispatch({
+        type: FACEBOOK_LOGIN_SUCCESS,
+        payload: data
+    });
+};
+</code></pre>
+
+<p>AuthReducer.js </p>
+
+<pre><code>export default (state = INITIAL_STATE, action) =&gt; {
+    switch (action.type) {
+        case FACEBOOK_LOGIN_SUCCESS:
+        console.log(action.payload.token); //Successfully logged here
+            return {
+                ...state,
+                ...INITIAL_STATE,
+                firstName: action.payload.user.firstName,
+                lastName: action.payload.user.lastName,
+                user: action.payload.user.id,
+                profilePicture: action.payload.user.profilePic,
+                authorization: action.payload.token
+                };
+        default:
+                ...
+     }
+}
+</code></pre>
+
+<p>In ComponentIWantToReRender.js:</p>
+
+<pre><code>getDerivedStateFromProps(nextProps, prevState) {
+    console.log(""Hello is anyone there?"");
+    console.log(nextProps);
+    console.log(prevState);
+    //Never called - supposed to update when new props received
+}
+
+
+const mapStateToProps = state =&gt; {
+        const { ha, foo, bar } = state.groove;
+        const { user, authorization } = state.auth;
+        return {
+            ha,
+            foo,
+            bar,
+            user,
+            authorization, //this is the ever so special token i need
+        };
+};
+
+export default connect(mapStateToProps, { unrelatedFunctionName })(ComponentIWantToReRender);
+</code></pre>
+
+<p>In ComponentIWantToReRender.js if I log this.props.authorization during the render process it comes up undefined. This is because it hasn't been set up yet through the login process/redux. I need to wait until it's ready but am unsure how to do that. Does anyone have any advice or insight?</p>
+","8464291","","8464291","","2018-04-06 04:31:06","2018-04-06 04:31:06","How to wait for redux to change prop - getDerivedStateFromProps","<javascript><react-native><redux>","0","6","","",""
+"49578114","1","","","2018-03-30 16:42:43","","0","108","<p>In <a href=""https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops"" rel=""nofollow noreferrer"">react docs</a> they write:</p>
+
+<blockquote>
+  <p>getDerivedStateFromProps is invoked after a component is instantiated
+  as well as when it receives new props.</p>
+</blockquote>
+
+<p>Does <strong>instantiated</strong> means the same as mounted?</p>
+
+<p>So I'm asking if</p>
+
+<p><code>import { renderToString } from 'react-dom/server';</code></p>
+
+<p>will call this hook.</p>
+","4443323","","","","","2018-03-30 16:42:43","is getDerivedStateFromProps called during Server-side rendering?","<reactjs>","0","2","","",""
+"49617486","1","49618535","","2018-04-02 19:24:33","","25","12707","<p>It looks like <code>componentWillReceiveProps</code> is going to be completely phased out in coming releases, in favor of a new lifecycle method <code>getDerivedStateFromProps</code>.</p>
+
+<p><a href=""https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops"" rel=""noreferrer"">https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops</a></p>
+
+<p>Upon inspection, it looks like you are now unable to make a direct comparison between <code>this.props</code> and <code>nextProps</code>, like you can in <code>componentWillReceiveProps</code>. Is there any way around this?</p>
+
+<p>Also, it now returns an object. Am I correct to assume that the return value is essentially <code>this.setState</code>?</p>
+
+<p>Below is an example I found online
+<a href=""https://github.com/reactjs/rfcs/blob/master/text/0006-static-lifecycle-methods.md#state-derived-from-propsstate"" rel=""noreferrer"">https://github.com/reactjs/rfcs/blob/master/text/0006-static-lifecycle-methods.md#state-derived-from-propsstate</a></p>
+
+<p><strong>Before</strong></p>
+
+<pre><code>class ExampleComponent extends React.Component {
+  state = {
+    derivedData: computeDerivedState(this.props)
+  };
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.someValue !== nextProps.someValue) {
+      this.setState({
+        derivedData: computeDerivedState(nextProps)
+      });
+    }
+  }
+}
+</code></pre>
+
+<p><strong>After</strong></p>
+
+<pre><code>class ExampleComponent extends React.Component {
+  // Initialize state in constructor,
+  // Or with a property initializer.
+  state = {};
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (prevState.someMirroredValue !== nextProps.someValue) {
+      return {
+        derivedData: computeDerivedState(nextProps),
+        someMirroredValue: nextProps.someValue
+      };
+    }
+
+    // Return null to indicate no change to state.
+    return null;
+  }
+}
+</code></pre>
+","4385889","","458193","","2018-06-10 13:33:19","2018-06-21 09:44:40","How to use lifecycle method getDerivedStateFromProps as opposed to componentWillReceiveProps","<javascript><reactjs><lifecycle>","3","0","4","",""
+"49724015","1","","","2018-04-09 00:06:58","","0","88","<p>How to initialize state with dynamic key based on props? The props is a data fetched from external source (async). So the props will change when the data is succesfully downloaded. Consider a component like this. </p>
+
+<p>edit: I want to make the state dynamic because I want to generate a dialog (pop up) based on the item that is clicked. the <code>DialogContainer</code> is basically that. <code>visible</code> prop will make that dialog visible, while <code>onHide</code> prop will hide that dialog. I use <a href=""https://react-md.mlaursen.com/components/dialogs"" rel=""nofollow noreferrer"">react-md library</a>.</p>
+
+<pre><code>class SomeComponent extends React.Component {
+  constructor() {
+    super();
+    this.state = {};
+    // the key and value will be dynamically generated, with a loop on the props
+    // something like:
+    for (const item of this.props.data) {
+      this.state[`dialog-visible-${this.props.item.id}`] = false}
+    }
+  }
+
+  show(id) {
+    this.setState({ [`dialog-visible-${id}`]: true });
+  }
+
+  hide(id) {
+    this.setState({ [`dialog-visible-${id}`]: false });
+  }
+
+  render() {
+    return (
+      &lt;div&gt;
+        {this.props.data.map((item) =&gt; {
+          return (
+            &lt;div&gt;
+              &lt;div key={item.id} onClick={this.show(item.id)}&gt;
+                &lt;h2&gt; Show Dialog on item-{item.id}&lt;/h2&gt;
+              &lt;/div&gt;
+              &lt;DialogContainer
+                visible={this.state[`dialog-visible-${item.id}`]}
+                onHide={this.hide(item.id)}
+              &gt;
+                &lt;div&gt;
+                  &lt;h1&gt; A Dialog that will pop up &lt;/h1&gt;
+                &lt;/div&gt;
+              &lt;/DialogContainer&gt;
+            &lt;/div&gt;
+          );
+        })}
+      &lt;/div&gt;
+    )
+  }
+}
+
+// the data is fetched by other component.
+class OtherComponent extends React.Component {
+  componentDidMount() {
+    // fetchData come from redux container (mapDispatchToProps)
+    this.props.fetchData('https://someUrlToFetchJSONData/')
+  }
+}
+</code></pre>
+
+<p>The data then is shared via Redux.</p>
+
+<p>However, based on my understanding so far, state can be updated based on props with <code>componentWillReceiveProps</code> or the new <code>getDerivedStateFromProps</code> (not on the constructor as above). But, how to do that on either method? </p>
+
+<p>The example <a href=""https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#updating-state-based-on-props"" rel=""nofollow noreferrer"">here</a> only explains when the state is initialized on the constructor, and call <code>setState</code> on either cWRP or gDSFP. But, I want the key value pair to be initialized dynamically.</p>
+
+<p>Any help/hint will be greatly appreciated. Please do tell if my question is not clear enough.</p>
+","5835100","","5835100","","2018-04-09 01:33:14","2018-04-09 01:33:14","Initialize state with dynamic key based on props in reactJS","<javascript><reactjs><javascript-objects><computed-properties>","1","6","","",""
+"50098764","1","","","2018-04-30 10:37:19","","0","563","<p>I'm trying to use the new <a href=""https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops"" rel=""nofollow noreferrer"">getDerivedStateFromProps</a> lifecycle method in my React Native component but the method never gets called. I've tried looking it up but found <a href=""https://github.com/facebook/react-native/issues?utf8=%E2%9C%93&amp;q=getDerivedStateFromProps"" rel=""nofollow noreferrer"">no issues</a> in the react-native repo. No results on StackOverflow or Google either.</p>
+
+<p>What I did find are a <a href=""https://www.reddit.com/r/reactjs/comments/8abmdl/getderivedstatefromprops_not_working/"" rel=""nofollow noreferrer"">reddit thread</a> and a <a href=""https://stackoverflow.com/a/50010498/2634633"">StackOverflow issue</a> which both cite updating <code>react-dom</code> as a solution, which would not work in this case since there's no dom in React Native.</p>
+
+<p><strong>Can anyone confirm if this method is supposed to work in React Native?</strong> If it can be used, any help with solving this issue will be much appreciated.</p>
+
+<p>Below is a simplified version of my component:</p>
+
+<pre><code>import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+
+import { Auth } from '../redux';
+import ChillaAPI from '../api';
+
+const withUserData = WrappedComponent =&gt; {
+  class UserDataLoader extends React.Component {
+
+    static getDerivedStateFromProps(props, state) {
+
+      console.log('getDerivedStateFromProps');
+
+      if (props.uid !== state.uid) {
+        return {
+          uid: props.uid,
+        };
+      }
+
+      return state;
+    }
+
+    state = { uid: null };
+
+    render() {
+      console.log({ propsUid: this.props.uid });
+      console.log({ stateUid: this.state.uid });
+      return &lt;WrappedComponent /&gt;;
+    }
+  }
+
+  UserDataLoader.propTypes = {
+    uid: PropTypes.bool.isRequired,
+  };
+
+  return connect(mapStateToProps)(UserDataLoader);
+
+};
+
+function mapStateToProps(state) {
+  return {
+    uid: Auth.selectors.getUid(state),
+  };
+}
+
+export default withUserData;
+</code></pre>
+
+<p>The log output from the component is as follows:</p>
+
+<pre><code>{ propsUid: null }
+{ stateUid: null }
+{ propsUid: 'jW78ej3JDgPpheadAlcrkG8UIZB2' }
+{ stateUid: null }
+</code></pre>
+
+<p>Here is my package.json for good measure:</p>
+
+<pre><code>{
+  ""name"": ""Chilla"",
+  ""version"": ""0.0.1"",
+  ""private"": true,
+  ""scripts"": {
+    ""start"": ""node node_modules/react-native/local-cli/cli.js start"",
+    ""start:reset"": ""node node_modules/react-native/local-cli/cli.js start --reset-cache"",
+    ""watch:lint"": ""node node_modules/eslint-watch/bin/esw -w"",
+    ""test"": ""jest"",
+    ""precommit"": ""lint-staged""
+  },
+  ""lint-staged"": {
+    ""*.js"": [
+      ""node_modules/.bin/prettier --single-quote --trailing-comma es5 --write"",
+      ""eslint"",
+      ""git add""
+    ]
+  },
+  ""dependencies"": {
+    ""axios"": ""^0.18.0"",
+    ""firebase"": ""^4.13.1"",
+    ""husky"": ""^0.14.3"",
+    ""lint-staged"": ""^7.0.4"",
+    ""prop-types"": ""^15.6.1"",
+    ""react"": ""16.3.1"",
+    ""react-native"": ""^0.52.2"",
+    ""react-native-fetch-blob"": ""^0.10.8"",
+    ""react-native-image-picker"": ""^0.26.7"",
+    ""react-navigation"": ""^1.5.11"",
+    ""react-redux"": ""^5.0.7"",
+    ""recompose"": ""^0.27.0"",
+    ""redux"": ""^4.0.0"",
+    ""redux-logger"": ""^3.0.6""
+  },
+  ""devDependencies"": {
+    ""babel-eslint"": ""^8.2.3"",
+    ""babel-jest"": ""22.4.3"",
+    ""babel-preset-react-native"": ""4.0.0"",
+    ""eslint"": ""^4.19.1"",
+    ""eslint-config-airbnb"": ""^16.1.0"",
+    ""eslint-config-prettier"": ""^2.9.0"",
+    ""eslint-plugin-import"": ""^2.11.0"",
+    ""eslint-plugin-jsx-a11y"": ""^6.0.3"",
+    ""eslint-plugin-react"": ""^7.7.0"",
+    ""eslint-plugin-react-native"": ""^3.2.1"",
+    ""eslint-watch"": ""^3.1.4"",
+    ""jest"": ""22.4.3"",
+    ""prettier"": ""^1.12.1"",
+    ""react-test-renderer"": ""16.3.1""
+  },
+  ""jest"": {
+    ""preset"": ""react-native""
+  }
+}
+</code></pre>
+","2634633","","2634633","","2018-04-30 10:47:47","2018-04-30 20:14:26","getDerivedStateFromProps not called in React Native","<javascript><reactjs><react-native>","1","2","","",""
+"49885018","1","","","2018-04-17 18:24:10","","0","935","<p>Recently it has come out that soon React will be deprecating <code>componentWillReceiveProps</code> and in it's place is the new static function <code>getDerivedStateFromProps</code>. <a href=""https://medium.com/@baphemot/whats-new-in-react-16-3-d2c9b7b6193b"" rel=""nofollow noreferrer"">See more here</a></p>
+
+<p>I am currently migrating my apps to this new API, but am having an issue with<code>getDerivedStateFromProps</code>, due to the fact that I am using the recompose library for higher order components. We make the use of <code>componentWillReceive</code> props through the library's lifecycle object.</p>
+
+<p>So before moving to the new API, I had this:</p>
+
+<pre><code>export function someHoC () {
+  return compose(
+    lifecycle({
+      componentWillReceiveProps (nextProps) {
+        const { fetch } = nextProps
+          if (shouldFetch(this.props, nextProps)) {
+             fetch()
+          }
+      }
+    })
+  )
+}
+</code></pre>
+
+<p>This has now changed to the following:</p>
+
+<pre><code>export function someHoC () {
+  return compose(
+    lifecycle({
+      getDerivedStateFromProps (nextProps) {
+          const { fetch } = nextProps
+          if (shouldFetch(this.props, nextProps)) {
+             fetch()
+          }
+      }
+    })
+  )
+}
+</code></pre>
+
+<p>However, <code>getDerivedStateFromProps</code> needs to be static, so I am getting the warning regarding that and don't know how to handle it.</p>
+
+<blockquote>
+  <p>warning.js?7f205b4:33 Warning: lifecycle(MyComponent): getDerivedStateFromProps() is defined as an instance method and will be ignored. Instead, declare it as a static method.</p>
+</blockquote>
+
+<p>What can I do to pass it in as a static lifecycle method into my component?</p>
+","1676032","","1676032","","2018-04-17 18:45:19","2018-04-19 10:11:50","How to create React's new static function getDerivedStateFromProps as a lifecycle method using an HoC in the recompose library?","<reactjs><higher-order-components><recompose><react-lifecycle>","2","4","","",""
+"49803661","1","","","2018-04-12 18:31:27","","-1","65","<p>I have the following react native script.  It's not quite right yet but getting there.  In the console I'm getting the following messages that I don't understand what to do with:</p>
+
+<pre><code>Warning: componentWillMount is deprecated and will be removed in the next 
+major version. Use componentDidMount instead. As a temporary workaround, you 
+can rename to UNSAFE_componentWillMount.
+
+Please update the following components: ExpoRootComponent, 
+RootErrorBoundary, Text, TextInput, View
+
+Learn more about this warning here:
+react-async-component-lifecycle-hooks
+- node_modules\react-native\Libraries\ReactNative\YellowBox.js:82:15 in warn
+- node_modules\react-native\Libraries\Renderer\ReactNativeRenderer- 
+dev.js:5706:19 in printWarning
+- ... 21 more stack frames from framework internals
+14:17:34: Warning: componentWillReceiveProps is deprecated and will be 
+removed in the next major version. Use static getDerivedStateFromProps 
+instead.
+
+Please update the following components: Text, TextInput, View
+
+Learn more about this warning here:
+react-async-component-lifecycle-hooks
+- node_modules\react-native\Libraries\ReactNative\YellowBox.js:82:15 in warn
+- node_modules\react-native\Libraries\Renderer\ReactNativeRenderer- 
+dev.js:5706:19 in printWarning
+- ... 21 more stack frames from framework internals
+</code></pre>
+
+<p>I'm not explicitly calling componentWillMount.  How do I use componentDidMount to get rid of the warning?</p>
+
+<p>How do I update the components it's asking me to update?</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>import React from 'react';
+import { TextInput,Button, StyleSheet, View,Text, ScrollView } from 'react-native';
+import {Constants} from 'expo'
+
+  let id=0
+  const Todo = (props) =&gt; (
+    &lt;Text&gt;
+      {/* &lt;input type='checkbox'
+              checked={props.todo.checked}
+              onClick={props.onToggle}
+        /&gt; */}
+       &lt;Button title='delete' button onPress={props.onDelete}&gt;&lt;/Button&gt;
+       &lt;Text&gt;{props.todo.text}&lt;/Text&gt;
+    &lt;/Text&gt;
+  )
+  export default class App extends React.Component {
+    constructor(){
+      super()
+      this.state={
+        todos:[],
+      }
+    }
+
+
+
+  addTodo(e){
+   console.log('hello')
+    console.log(e.target)
+    this.setState({todos: [...this.state.todos,
+                              { id:id++,
+                                text: e.value,
+                                checked:false
+                              }
+                          ]
+                  })
+    e.value=''
+  }
+  toggle(id){
+    this.setState({todos: this.state.todos.map(todo=&gt;{
+                          if(id!==todo.id)return todo
+                          return{
+                              id:todo.id,
+                              text:todo.text,
+                              checked: !todo.checked}})})
+  }
+  removeTodo(id){
+    this.setState({todos: this.state.todos.filter(todo=&gt;(todo.id!==id))})
+  }
+
+  render(){
+     return(
+
+       &lt;View style={styles.container}&gt;
+          &lt;Text &gt;Count of Todos: &amp;nbsp;{this.state.todos.length}&lt;/Text&gt;
+          &lt;Text &gt;{""Todo's checked:""}&amp;nbsp;
+               {this.state.todos.filter(todo =&gt;(todo.checked===true)).length}&lt;/Text&gt;
+          &lt;TextInput
+                 style={{height:25,borderColor:'red',borderWidth:1,textAlign:'center'}}
+                  placeholder={'add ToDo'}
+                  onSubmitEditing={(e)=&gt;(this.addTodo(e.target))}/&gt;
+
+          &lt;ScrollView&gt;
+           {this.state.todos.map(todo=&gt;(
+                 &lt;Todo
+                    onToggle={()=&gt;(this.toggle(todo.id))}
+                    onDelete={()=&gt;(this.removeTodo(todo.id))}
+                    todo={todo}
+                    key={todo.id}
+                 /&gt;))}
+          &lt;/ScrollView&gt;
+       &lt;/View&gt;
+     )
+    }
+  }
+const styles = StyleSheet.create({
+  container:{
+    flex:1,
+    flexDirection:'column',
+    height:50,
+
+    paddingTop:3*Constants.statusBarHeight,
+
+  }
+})</code></pre>
+</div>
+</div>
+</p>
+","4398966","","","","","2018-04-12 18:42:30","react native error messages not understood","<react-native>","1","0","","",""
+"49823294","1","","","2018-04-13 18:38:29","","3","173","<p>Creating a new app with create-react-native-app is now generating new warnings.  Is there anything I need to do to correct the warnings?  For instance, how would I update the components listed:</p>
+
+<pre><code> ExpoRootComponent, RootErrorBoundary, Text, View
+</code></pre>
+
+<p>here are the new warnings:  (can all this be ignored? will create-react-native-app be updated to use 0.55.x?)</p>
+
+<pre><code>14:30:04: Warning: componentWillMount is deprecated and will be removed in 
+the next major version. Use componentDidMount instead. As a temporary 
+workaround, you can rename to UNSAFE_componentWillMount.
+
+Please update the following components: ExpoRootComponent, 
+RootErrorBoundary, Text, View
+
+Learn more about this warning here:
+xxx:/fb.me/react-async-component-lifecycle-hooks
+- node_modules\react-native\Libraries\ReactNative\YellowBox.js:82:15 in warn
+- node_modules\react-native\Libraries\Renderer\ReactNativeRenderer- 
+dev.js:5706:19 in printWarning
+- ... 21 more stack frames from framework internals
+14:30:06: Warning: componentWillReceiveProps is deprecated and will be 
+removed in the next major version. Use static getDerivedStateFromProps 
+instead.
+
+Please update the following components: Text, View
+
+Learn more about this warning here:
+xxx:/fb.me/react-async-component-lifecycle-hooks
+- node_modules\react-native\Libraries\ReactNative\YellowBox.js:82:15 in warn
+- node_modules\react-native\Libraries\Renderer\ReactNativeRenderer- 
+dev.js:5706:19 in printWarning
+- ... 21 more stack frames from framework internals
+</code></pre>
+","4398966","","","","","2018-04-16 07:24:21","create-react-native-app displays new warnings","<react-native><create-react-native-app>","2","0","","",""
+"50703224","1","50733941","","2018-06-05 15:00:48","","0","89","<p>I am trying to follow the design pattern in <a href=""https://github.com/reactjs/rfcs/issues/26"" rel=""nofollow noreferrer"">https://github.com/reactjs/rfcs/issues/26</a> (see replies by bvaughn) and create ReactJS editable form, that reads data from the server, show then in the form fields, allows the use to edit values and then save those data back in database. </p>
+
+<p>I have some essential code:</p>
+
+<pre><code>const mapStateToProps = state =&gt; {
+    return {
+        invoice: state.invoice,
+        invoiceReady: state.invoiceReady,
+    };
+};
+
+ static getDerivedStateFromProps(nextProps, prevState) {
+        if (nextProps.match.params.id !== prevState.id) {
+            return update(
+                prevState, {
+                    ['id']: {$set: nextProps.match.params.id},
+                    ['invoiceReady']: {$set: false}
+                });
+        } else {
+            return update(
+                prevState, {
+                    ['invoice']: {$set: nextProps.invoice},
+                    ['invoiceReady']: {$set: nextProps.invoiceReady}
+                });
+        }
+    }
+
+ handleChange(event) {
+        const state = update(
+            this.state, {
+                invoice: {
+                    [event.target.id]: {$set: event.target.value}
+                }
+            }
+        );
+        this.setState(state);
+    }
+
+componentDidMount() {
+        this.requestInvoice();
+    }
+
+componentDidUpdate(prevProps, prevState) {
+        if (!this.state.invoiceReady) {
+            this.requestInvoice();
+        }
+    }
+</code></pre>
+
+<p>and my JSX code contains editable fields like:</p>
+
+<pre><code>                        &lt;input
+                            type=""text""
+                            className=""form-control""
+                            id=""invoiceDate""
+                            value={this.state.invoice.invoiceDate}
+                            onChange={this.handleChange}
+                        /&gt;
+</code></pre>
+
+<p>So - according to the mentioned pattern I am initiating the request to the server by <code>requestInvoice</code>, some other components handle this action and receives and saves the invoice into the Redux store and that is why those data are automatically written into the <code>props.invoice</code> variable and I am further writing <code>props.invoice</code> into <code>this.state.invoice</code> by <code>getDerivedStateFromProps</code> for further local processing of the invoice data. During the work with the form the <code>handleChange</code> events are raised and with the help of immutability-helper (update function) the updated fields are written into new state and <code>setState</code> is called. </p>
+
+<p>My problem is that during the <code>setState</code> call the React is calling <code>getDerivedStateFromProps</code> and so the <code>props.invoice</code> overwrites any changes that are coming from the user and that ar processed into <code>handleChange:setState</code> function.</p>
+
+<p>So - <strong>how to solve this problem: the conflict between <code>setState</code> and <code>getDerivedStateFromProps</code>?</strong></p>
+
+<p>Several options may be:</p>
+
+<ul>
+<li>my design can be flawed. E.g. maybe I should not try to move <code>props.invoice</code> into <code>this.state.invoice</code> (why not?)? But from the other side it would be nice to save invoice into this.state and be sure that all the changes are applied to the <code>this.state.invoice</code> during the editing of the invoice.</li>
+<li>mybe I should prevent execution of <code>getDerivedStateFromProps</code> during <code>setState</code>?</li>
+</ul>
+
+<p>Maybe some other design pattern or code is more suitable for my ReactJS form?</p>
+
+<p>I am using ReactJ 16.x</p>
+","1375882","","","","","2018-06-07 06:03:30","ReactJS setState conflicts with getDerivedStateFromProps","<reactjs><react-redux>","2","0","","",""
+"51392633","1","","","2018-07-18 02:18:56","","0","22","<p>I had successfully configured the <code>StackNavigator</code> in react-navigation v1.5.x to track navigation events in order to render contextually informative components as part of a screen's <code>navigationOptions</code>. Unfortunately, this no longer works with react-navigation v2.2.3.</p>
+
+<p>In short, in v2.2.3 a navigation event results in the invocation of the screen's <code>navigationOptions</code> BEFORE the <code>StackNavigator</code> invokes its <code>onNavigationStateChange</code> listener. This means that the <code>navigationOptions</code> are always being invoked with stale <code>screenProps</code>.</p>
+
+<p>What is the recommended way of implementing this functionality in react-navigation v2.</p>
+
+<blockquote>
+  <p>&lt;&lt; GORY DETAILS BELOW >></p>
+</blockquote>
+
+<p>I spent way too much time digging into this to see why this was occurring.</p>
+
+<p>In v2.2.3 <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/createNavigationContainer.js#L313"" rel=""nofollow noreferrer""><code>NavigationContainer.dispatch</code></a> processes the navigation event in question.</p>
+
+<ul>
+<li>The navigation event causes a new route to be added to the navigation state <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/createNavigationContainer.js#L322"" rel=""nofollow noreferrer"">[code reference]</a></li>
+<li>The navigator stores the navigation state as component state, so <code>dispatch()</code> now calls <code>setState</code> with the new <code>navState</code> <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/createNavigationContainer.js#L349"" rel=""nofollow noreferrer"">[code reference]</a></li>
+<li>Now we pop out of <code>dispatch()</code>. The change in <code>navState</code> means that the <code>StackNavigator</code>'s <code>navigation</code> prop is updated which causes react to invoke <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/navigators/createNavigator.js#L16"" rel=""nofollow noreferrer""><code>Navigator.getDerivedStateFromProps</code></a></li>
+<li>The <code>navigationOptions</code>, among several navigation relation options, will be invoked on the screen associated to the new route <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/navigators/createNavigator.js#L64"" rel=""nofollow noreferrer"">[code reference]</a> </li>
+<li>The <code>dispatch()</code> invokes <code>onNavigationStateChange</code> via a call back passed to the prior <code>setState</code> call. This means that <code>onNavigationStateChange</code> will be invoked only AFTER the state update has taken effect. <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/createNavigationContainer.js#L350"" rel=""nofollow noreferrer"">code reference</a></li>
+<li>In my case, the invocation of my navigator's <code>_onNavigationStateChange</code> results in updates to <code>screenState</code> which is then passed to the <code>StackNavigator</code>. While he does result in an invocation of <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/navigators/createNavigator.js#L16"" rel=""nofollow noreferrer""><code>Navigator.getDerivedStateFromProps</code></a> with up to date screen titles, that 2nd invocation doesn't result in a call to the Screen's <code>navigationOptions</code>. <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/navigators/createNavigator.js#L16"" rel=""nofollow noreferrer""><code>Navigator.getDerivedStateFromProps</code></a> only ends up calling <code>navigationOptions</code> the first time the route is placed on the navigation stack array <a href=""https://github.com/react-navigation/react-navigation/blob/2.2.3/src/navigators/createNavigator.js#L24"" rel=""nofollow noreferrer"">code reference</a></li>
+</ul>
+
+<p>My navigator code looks similar to this:</p>
+
+<pre><code>_onNavigationStateChange = (previousState, currentState) =&gt; {
+  const currentRoute = getRouteTitle(currentState);
+  const previousRoute = getRouteTitle(previousState);
+  // this only processes the initial ""before nav"" events.
+  if (currentRoute === previousRoute) return;
+
+  const updatedScreenState = {
+    ...this.state.screenState,
+    currentTitle: currentRoute,
+    previousTitle: previousRoute
+  };
+  this.setState({ screenState: updatedScreenState });
+};
+
+render(): Element&lt;*&gt; {
+  return (
+    &lt;StackNavigator
+      screenProps={this.state.screenState}
+      onNavigationStateChange={this._onNavigationStateChange}
+    /&gt;
+  );
+}
+</code></pre>
+
+<p>This is how one of my screens tries to use the <code>screenProps</code> title:</p>
+
+<pre><code>class MyScreenIso extends React.Component {
+  // Provides the navbar header to AppNavigator's Stack Navigation
+  static navigationOptions =
+    ({ navigation, screenProps }) =&gt; {
+      // refining the screenProps type to one we expect
+      const typedScreenProps = screenProps;
+
+      const backBtnLabel = typedScreenProps.previousTitle ? `Go back to ${typedScreenProps.previousTitle}` : 'Go back';
+      return {
+        headerLeft: (
+          &lt;McIcon
+            style={Styles.headerIcon}
+            size={30}
+            accessibilityLabel={backBtnLabel}
+            accessibilityRole=""link""
+            name=""arrow-left""
+            onPress={() =&gt; {
+              navigation.goBack();
+            }}
+          /&gt;
+        )
+      };
+    };
+</code></pre>
+","1284852","","9206753","","2018-07-18 08:52:00","2018-07-18 08:52:00","react-navigation v2 screen's navigationOptions invoked before navigator's onNavigationStateChange","<reactjs><react-navigation>","0","0","","",""
+"50056137","1","50056187","","2018-04-27 05:59:42","","1","147","<p>I cannot understand, why when I try to start the function <code>getTodosList</code> inside the <code>getDerivedStateFromProps</code> the method - it always retrun to me the <code>TypeError - Cannot read property 'getTodosList' of null</code>. </p>
+
+<p>Also after I start use the <code>getDerivedStateFromProps</code> - my function does not start in <code>componentDidMount</code> too...</p>
+
+<p>What is I'm doing wrong? (</p>
+
+<pre><code>import React, { Component } from 'react';
+import {Doughnut} from 'react-chartjs-2';
+
+class Chart extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            // some state...
+    }
+
+    getTodosList = (todos) =&gt; {
+        console.log(todos);
+        const all = [];
+        const done = [];
+
+        // some logic...
+
+    }
+
+    componentDidMount() {
+        const { todos } = this.props.state.iteams;
+        console.log('componentDidMount', todos);
+
+        this.getTodosList(todos);
+    }
+
+    static getDerivedStateFromProps(nextProps, prevState) {
+        const { todos } = nextProps.state.iteams;
+        console.log(this.getTodosList, prevState.datasets, 'componentWillReceiveProps', todos);
+
+        this.getTodosList(todos); // TypeError: Cannot read property 'getTodosList' of null
+
+    }
+</code></pre>
+","9433929","","","","","2018-04-27 06:26:38","React. Cannot start function inside the getDerivedStateFromProps","<javascript><reactjs>","2","0","1","",""
+"50632573","1","50632609","","2018-05-31 20:49:41","","0","180","<p>So just learned that <code>componentWillReceiveProps</code> is deprecated and we need to use <code>getDerivedStateFromProps</code> lifecycle method now.
+<a href=""https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops"" rel=""nofollow noreferrer"">https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops</a></p>
+
+<p>I'm using it as such below:</p>
+
+<pre><code>class Main extends Component {
+  static getDerivedStateFromProps(props) {
+    console.log('getDerivedStateFromProps', props);
+    const { modal } = props;
+    this.setState({ modal });
+  }
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      modal: {}
+    };
+  }
+</code></pre>
+
+<p>However it errors out on the <code>setState</code></p>
+
+<p><a href=""https://i.stack.imgur.com/nQOVi.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/nQOVi.png"" alt=""enter image description here""></a></p>
+
+<blockquote>
+  <p>main.js:30 Uncaught TypeError: Cannot read property 'setState' of null
+      at getDerivedStateFromProps (main.js:30)</p>
+</blockquote>
+
+<p>What am I missing here?</p>
+","168738","","","","","2018-06-10 14:48:55","When using getDerivedStateFromProps (React) getting error: Cannot read property 'setState' of null","<javascript><reactjs><getderivedstatefromprops>","3","1","","",""
+"50728797","1","","","2018-06-06 20:12:44","","0","28","<p>I have observed that the <code>getDerivedStateFromProps</code> of the React Component is called in at least 2 cases: </p>
+
+<ol>
+<li>when the props are changed, e.g. the component imports Redux store data via component's props when the Redux store have received new data from the external API (either as a result from the request initiated by the component or as a push from external event)</li>
+<li>when the component's <code>setState</code> is called, e.g. user can update data in some element of the component and this update is handled by the procedure that calls <code>setState</code>.</li>
+<li>it is also called during the navigation, when props.match.params.... are changed.</li>
+</ol>
+
+<p>So - I would like determine the cause (1. or 2.) of the <code>getDerivedStateFromProps</code> and make distinct actions in each case. How it is possible to make such distinction. Maybe this is not possible to do. Or maybe my architecture is flawed if I wish to do this?</p>
+
+<p><em>The main problem for me is - how to pass business object from the redux store (to which the <code>props</code> of component points to) into <code>this.state</code> of some component for further local manipulation?</em></p>
+
+<p>My previous attempt is documented in the question <a href=""https://stackoverflow.com/questions/50703224/reactjs-setstate-conflicts-with-getderivedstatefromprops"">ReactJS setState conflicts with getDerivedStateFromProps</a> in which the more concrete code examples are available.</p>
+","1375882","","1375882","","2018-06-06 21:04:28","2018-06-06 21:04:28","Is it possible to detect the cause of getDerivedStateFromProps in React-Redux?","<javascript><reactjs><redux><react-redux>","0","3","","",""
+"50539639","1","50539696","","2018-05-26 05:34:38","","0","53","<p>I have Three components like below</p>
+
+<p><code>A.js</code></p>
+
+<pre><code>import React, { Component } from 'react';
+import B from './B';
+export class A extends Component {
+    ajaxmethod = () =&gt; {
+        //fetching data through ajax method.
+
+    }
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;B/&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+</code></pre>
+
+<p><code>B.js</code></p>
+
+<pre><code>import React, { Component } from 'react';
+import C from './C';
+
+//this is a Modal container
+export class B extends Component {
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;C/&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+</code></pre>
+
+<p><code>C.js</code></p>
+
+<pre><code>import React, { Component } from 'react';
+
+//this is Modal elements
+export class C extends Component {
+    render() {
+        return (
+            &lt;div&gt;
+                I need to display data here from A Component
+            &lt;/div&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>There is button in <code>A.js</code> component. Which button displays a modal (<code>B.js</code>) when clicked. <code>B.js</code> is modal container component. <code>C.js</code> is modal element component. I have a AJAX method in <code>A.js</code> component. I would like to display data in <code>C.js</code> from <code>A.js</code>.</p>
+
+<p>How can I do that ?</p>
+
+<p><strong>UPDATE</strong></p>
+
+<p>I used below code in <code>B.js</code> component.</p>
+
+<pre><code>static getDerivedStateFromProps(nextProps) {
+    return {
+      modalchildOpen: nextProps.modelStatus
+    };
+  }
+</code></pre>
+","5043301","","5043301","","2018-05-26 09:16:29","2018-05-26 16:39:06","Pass data to nested component in react.js","<reactjs>","3","0","","",""
+"50752055","1","","","2018-06-08 01:12:15","","1","163","<p>I am not sure if current behavior is correct or not.</p>
+
+<p>In 16.3 I was successfully using getDerivedStateFromProps when I had a component that had received its state via props, checking between props and state (or is it more succinct to say prevState and nextProps) using said function was just fine. It updated the state when new props came in,  and changes to state functioned as normal.</p>
+
+<p>Now in 16.4 because calls to setState also trigger getDerivedStateFromProps,  I'm seeing an unexpected result. The state to which it compares is already updated to the new state (logically?) but since props or nextProps remain unchanged my comparison updates to the current set props. These are logically unchanged as I only changed the state. So, my calls to set state now fail. Maybe I'm doing it wrong? Maybe it should compare to the state as is was before setState was called? This is what I would expect, and would solve the problem because the real previous state will match the props and no change will occur.</p>
+
+<p>here is an example:
+<a href=""https://jsfiddle.net/rjacks24/1yupwngv/"" rel=""nofollow noreferrer"">https://jsfiddle.net/rjacks24/1yupwngv/</a></p>
+
+<pre><code>class Example extends React.Component {
+constructor(props) {
+super(props);
+this.state = {
+  stopped: this.props.stopped || false,
+};
+
+  this.wasToggled = false;
+  this.toggleStop = this.toggleStop.bind(this);
+}
+
+static getDerivedStateFromProps(nextProps, prevState) {
+  if (prevState.stopped !== nextProps.stopped) {
+   return ({ stopped: nextProps.stopped });
+  } 
+  return null;
+}
+
+/**
+   * function to handle the stop of the antenna
+   * @returns {void}
+   */
+toggleStop() {
+    this.wasToggled  = !this.wasToggled;
+    this.setState({
+      stopped: !this.state.stopped,
+    });
+  }
+
+render() {
+   return (
+     &lt;div&gt;
+        &lt;button type=""button"" onClick={this.toggleStop} className={this.state.stopped ? ""done"" : """"} &gt;Toggle&lt;/button&gt;
+           State Toggled? {this.state.stopped ? 'yes' : 'no'}
+         &lt;div&gt;But Actually... wasToggled: {this.wasToggled ? 'yes' :'no'} &lt;/div&gt;
+      &lt;/div&gt;
+    )
+  }
+}
+</code></pre>
+
+<p>The expected behavior is that which you get by removing the codeblock for getDerivedStateFromProps(), however, updates from heigher up to props aren't then handled,the way they should be.</p>
+
+<p>I apologize if I am just doing it wrong, but since I was good in 16.3, if figured it's at least worth bringing up for discussion.
+This person seems to be experiencing the same thing, but my example is a bit easier: <a href=""https://stackoverflow.com/questions/50532606/proper-use-of-react-getderivedstatefromprops"">Proper use of React getDerivedStateFromProps</a></p>
+
+<p>My guess is that the correct way in these cases is to always handle the state on the HOC, then calling gdsfp is not a problem.</p>
+
+<p>tldr; 16.3 let me change state while using getderivedStateFromProps,  16.4 does not. </p>
+","2811781","","","","","2018-06-08 04:13:27","getDerivedStatefromProps in react 16.4 results in no state changes","<reactjs>","1","0","1","",""
+"50246826","1","","","2018-05-09 06:29:54","","0","17","<p>I'm using react.js v 16.3 and I'm confused by <code>getDerivedStateFromProps</code> a little bit.</p>
+
+<p>I want to have <code>state</code> updated but I want <strong>particular</strong> changes to the state on the initial rendering only. How could I determine - is it first rendering or not?</p>
+","2926641","","","","","2018-05-09 06:29:54","How could I know it's initial rendering in `getDerivedStateFromProps` react.js lifecycle?","<javascript><reactjs>","1","0","1","",""
+"50115373","1","50115534","","2018-05-01 11:04:44","","1","353","<p>I want to create a Modal-like component that receives an open/closed boolean as a prop, then stores that value in the component state. When closing the Modal, I want to update the close boolean prop, but wait a few seconds before updating the component state so that I can add transition classes and animate the exit.</p>
+
+<p>With <code>componentWillReceiveProps</code>, I could accomplish this by wrapping <code>this.setState</code> in a timeout and add the classes in the meantime. With the new React 16.3 API, I see that <a href=""https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops"" rel=""nofollow noreferrer"">is is recommended</a> to use the <code>getDerivedStateFromProps</code> instead.</p>
+
+<p>Since <code>getDerivedStateFromProps</code> ""should return an object to update state, or null to indicate that the new props do not require any state updates,"" (<a href=""https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops"" rel=""nofollow noreferrer"">React docs</a>) I want the method to look something like this:</p>
+
+<pre><code>static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps.menuIsOpen === false &amp;&amp; prevState.menuIsOpen === true) {
+        return setTimeout(() =&gt; { menuIsOpen: false}, 1000);
+    }
+    return null;
+}
+</code></pre>
+
+<p>But that doesn't work. <a href=""https://stackoverflow.com/questions/24928846/get-return-value-from-settimeout"">I've read</a> that <code>setTimeout</code> does not return a value but am wondering if there is a more elegant solution to the problem than returning a promise.</p>
+","8486161","","","","","2018-05-01 17:24:00","How to use React's getDerivedStateFromProps with a setTimeout?","<javascript><reactjs><settimeout>","1","1","","",""
+"50185157","1","50185682","","2018-05-05 02:33:33","","3","149","<p>I am working with react 16.3 where <code>componentWillUpdate</code> is deprecated (strict mode). We have a react wrapper around <code>Highcharts</code> and used to update the <code>highchart</code> in <code>componentWillUpdate</code> that runs just before render. </p>
+
+<p>But now in react 16.3 when the input <code>highchartoptions</code> prop updates, there seems to be no way to call <code>Highchart.update</code> before <code>render()</code> is called. Its suggested to use <code>componentDidUpdate</code> but its called only after <code>render()</code> and it doesn't seem to work at all.Any suggestions will help.</p>
+
+<p>Code snippet here:</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>export class HighchartReactWrapper extends React.Component {
+  constructor(props) {
+    super(props);
+
+    // We maintain the user provided options being used by highchart as state
+    // inorder to check if chart update is needed.
+    this.state = { highChartOptions: this.props.options };
+    this.onChartRendered = this.onChartRendered.bind(this);
+  }
+
+  componentDidMount() {
+    // Create chart
+    this.chart = new Highcharts.Chart(this.container, this.state.highChartOptions, this.onChartRendered);
+  }
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps.options !== prevState.options) {
+      return { highChartOptions: nextProps.options };
+    }
+  }
+
+  componentDidUpdate() {
+    this.chart.update(this.state.highChartOptions, false, true); &lt;---- Doesn't work
+  }
+
+  onChartRendered() {
+    // Callbacks..
+    if (this.props.onChartRenderedCallback !== undefined) {
+      this.props.onChartRenderedCallback();
+    }
+  }
+
+  componentWillUnmount() {
+    // Destroy chart
+    this.chart.destroy()
+  }
+
+  render() {
+    return (
+      &lt;div className=""react-highchart-wrapper""&gt;
+        &lt;div id={container =&gt; this.container = container} /&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+HighchartReactWrapper.propTypes = {
+  /**
+   * Chart options to be used in Highcharts library.
+   */
+  options: PropTypes.object.isRequired,
+  onChartRenderedCallback: PropTypes.func
+};
+
+HighchartReactWrapper.defaultProps = {
+  options: undefined,
+  onChartRenderedCallback: undefined
+};</code></pre>
+</div>
+</div>
+</p>
+","9743947","","6622817","","2018-05-05 02:38:16","2018-05-05 04:23:13","How to update Highchart from inside react a component?","<reactjs><highcharts>","1","3","1","",""
+"49664867","1","49666440","","2018-04-05 05:38:19","","3","1666","<p>Before upgrading react to version <code>16.3</code> for calling action based on changes in props I use something like this code :</p>
+
+<pre><code>componentWillReceiveProps(nextProps){
+   if(this.props.country.length !== nextProps.country){
+    doSomething(); //example calling redux action
+    }
+}
+</code></pre>
+
+<p>but in version <code>16.3</code> of react <code>componentWillReceiveProps</code> is unsafe and we must use <a href=""https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops"" rel=""nofollow noreferrer""><code>getDerivedStateFromProps</code></a> but it said this methods must return object and I don't know how I can simulate what I do before with <code>componentWillReceiveProps</code> do with <code>getDerivedStateFrompProps</code></p>
+","1262045","","","","","2018-06-04 18:59:15","Calling Method in getDerivedStateFromProps in ReactJS","<reactjs>","2","4","","",""
+"50706523","1","","","2018-06-05 18:16:11","","0","73","<p>I am trying to understand the new React lifecycle methods and have trouble figuring out some details. In React docs for <a href=""https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops"" rel=""nofollow noreferrer"">getDerivedStateFromProps</a> it says:</p>
+
+<blockquote>
+  <p>getDerivedStateFromProps is invoked right before calling the render
+  method, both on the initial mount and on subsequent updates. It should
+  return an object to update the state, or null to update nothing.</p>
+  
+  <p>Note that this method is <strong>fired on every render, regardless of the
+  cause</strong>. This is in contrast to UNSAFE_componentWillReceiveProps, which
+  only fires when the parent causes a re-render and not as a result of a
+  local setState.</p>
+</blockquote>
+
+<p>(emphasis mine)</p>
+
+<p>If I understand correctly, if I just derive state from props and return it (as the name suggests we should do), I will trigger an endless loop, because <code>this.state</code> will update, which will trigger re-render, which will call <code>getDerivedStateFromProps</code>, which will return new state update,... </p>
+
+<p>Do we need to make sure that we only return state update if the changes differ from the old state, or am I missing something?</p>
+","593487","","","","","2018-06-08 12:03:04","Do we need to make sure getDerivedStateFromProps is not recursive?","<reactjs>","1","0","","",""
+"50909833","1","","","2018-06-18 12:44:31","","4","90","<p>So 16.4 ""fixes"" a bug in getDerivedStateFromProps and now it gets fired both on props change and on state change. Obviously this is intended, coming from this post: <a href=""https://github.com/facebook/react/issues/12898"" rel=""nofollow noreferrer"">https://github.com/facebook/react/issues/12898</a>. However for me, saving previous props in the state is a major overkill, so I am asking if someone has made a procedure in coping with a case like this:</p>
+
+<pre><code>class Componentche extends React.Component {
+  state = {
+    valuesForInput: {
+      input1: ''
+    }
+  }
+  static getDerivedStateFromProps(props, state) {
+    if (props.someInitialValuesForInput.input1 !== state.valuesForInput.input1) {
+      return {
+       valuesForInput: {
+         ...state,
+         input1: props.someInitialValuesForInput.input1
+       }
+      }
+    }
+   return state;
+
+   render () {
+      &lt;Input value='valuesForInput.input1' onChange='(e) =&gt; setState({valuesForInput: {...this.state, input1: e.target.value }})'
+   }
+}
+</code></pre>
+
+<p>So in this above case, I will never ever have change in the input, because getDerivedStateFromProps will execute both on new props received and on the setState trigger, and my condition will never even be false.</p>
+
+<p>So what is the correct way to handle this situation? Do I need to really keep the old props in the state and use them for conditions as well?</p>
+
+<p>I just saw this <a href=""https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html#anti-pattern-unconditionally-copying-props-to-state"" rel=""nofollow noreferrer"">post from React</a> but they do not offer a working alternative. </p>
+
+<p>Thanks for your help!</p>
+","2299417","","2299417","","2018-06-18 13:06:22","2018-06-18 13:06:22","React 16.4 enables getDerivedStateFromProps to be called from state change. How to cope with that?","<javascript><reactjs><react-16>","0","0","","",""

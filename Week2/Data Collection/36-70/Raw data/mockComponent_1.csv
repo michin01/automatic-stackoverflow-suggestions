@@ -1,0 +1,116 @@
+Title,Tags,Body
+"The correct way to unit test react component","<unit-testing><reactjs><jest>","<p>I am using <code>jest</code> and <code>enzyme</code> to test my react component which relies on <code>antd</code> - a 3rd react UI library.
+For illustrative purpose, I produce the minimal code that is fair enough to show my question.</p>
+
+<p>See my <code>test</code> component as follow:</p>
+
+<pre><code>import React from 'react';
+import { Button } from 'antd';
+
+function Test({onSubmit}) {
+  return (
+          &lt;div&gt;
+           &lt;Button htmlType=""submit"" type=""primary"" /&gt;
+          &lt;/div&gt;
+         );
+}
+
+export default Test;
+</code></pre>
+
+<p><strong><em>Q1: I mock up the Button as below since unit test requires us to isolate the target and mock up any other dependencies.
+    Is that correct?</em></strong></p>
+
+<pre><code>__mocks__
+  antd.js
+</code></pre>
+
+<p>antd.js</p>
+
+<pre><code>import mockComponent from '../mockComponent';
+
+const list = [
+  'Form',
+  'Input',
+  'Button',
+  'Spin',
+  'Icon'
+];
+
+const mockups = list.reduce((prev, next) =&gt; {
+  prev[next] = mockComponent(next);
+  return prev;
+}, {});
+
+mockups.Form.Item = mockComponent('Form.Item');
+
+export const Form = mockups.Form;
+export const Input = mockups.Input;
+export const Button = mockups.Button;
+export const Spin = mockups.Spin;
+export const Icon = mockups.Icon;
+</code></pre>
+
+<p>mockComponent.js</p>
+
+<pre><code>import React from 'react';
+
+export default function mockComponent (name) {
+  return props =&gt; React.createElement(name, props, props.children);
+}
+</code></pre>
+
+<p><strong><em>Q2. I have got the following warning even if the test passes. How can I resolve that?</em></strong></p>
+
+<p>test.spec.js</p>
+
+<pre><code>import React from 'react';
+
+import { shallow, mount } from 'enzyme';
+import renderer from 'react-test-renderer';
+
+import Test from '../components/question';
+
+describe('mount test', () =&gt; {
+  let wrapper;
+
+  let props;
+  let mountedLogin;
+
+  const test = () =&gt; {
+    if (!mountedLogin) {
+      mountedLogin = mount(&lt;Test {...props} /&gt;);
+    }
+
+    return mountedLogin;
+  };
+
+  beforeEach(() =&gt; {
+    mountedLogin = null;
+  });
+
+  it('always render test as the root', () =&gt; {
+    const divs = test().find('div');
+    expect(divs.length).toBeGreaterThan(0);
+  });
+});
+</code></pre>
+
+<p>warning</p>
+
+<pre><code> console.error node_modules/fbjs/lib/warning.js:36
+ Warning: Unknown prop `htmlType` on &lt;Button&gt; tag. Remove this prop from the 
+ element. For details, see
+    in Button (created by Unknown)
+    in Unknown (created by Test)
+    in div (created by Test)
+    in Test (created by WrapperComponent)
+    in WrapperComponent
+</code></pre>
+
+<p>A side note, I haven't got any <code>jest</code> configs in my <code>package.json</code>.</p>
+
+<p>Can anybody help me out with these.</p>
+
+<p>Many thanks</p>
+"

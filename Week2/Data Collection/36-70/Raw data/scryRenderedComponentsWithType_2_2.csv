@@ -1,0 +1,103 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"32102260","1","","","2015-08-19 17:47:37","","1","710","<p>I've been playing with <code>reactjs</code> <code>TestUtils</code>. It's been pretty frustrating. I'm not sure but after experimenting for hours. It seems to me that after shallow rendering a component, I can't use <code>findRenderedComponentWithType</code> or <code>scryRenderedComponentsWithType</code>. In fact, I'm not sure how to extract the object out by its type from the <code>ReactComponent tree</code>. I'm not sure why as I am pretty new to <code>reactjs</code> and I'm not sure what I can or cannot do.</p>
+
+<p>example:</p>
+
+<pre><code>var Layout = React.createClass({
+    render: function(){
+        console.log(this.props);
+        return (
+            &lt;div id=""data-trader""&gt;
+                &lt;header className=""header""&gt;
+                    &lt;LogoElement /&gt;
+                    &lt;UserMenu user={this.props.user} /&gt;
+                &lt;/header&gt;
+                &lt;div className=""container max""&gt;
+                    &lt;div className=""main""&gt;
+                        &lt;RouteHandler path={ this.props.path } query={ this.props.query } params={ this.props.params } user={this.props.user} /&gt;
+                    &lt;/div&gt;
+                    &lt;Footer /&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+});
+</code></pre>
+
+<p>Tests:</p>
+
+<pre><code>describe('Shallow Layout', function(){
+    beforeEach(function(){
+        fakeDOM = TestUtils.createRenderer();
+    });
+
+    // PASS    
+    it('should exist as a component', function(done){
+        expect(&lt;Layout/&gt;).to.exist;
+        done();
+    });
+
+    // PASS
+    it('should have id=data-trader', function(done){
+        fakeDOM.render(&lt;Layout /&gt;);
+        component = fakeDOM.getRenderOutput();
+
+        expect(component.props.id).to.eql('data-trader');
+        done();
+    });
+
+    it('get children', function(done) {
+        var StubbedComponent = TestHelpers.stubRouterContext(component);
+        var k = TestUtils.findRenderedComponentWithType(StubbedComponent, UserMenu);
+        console.log(k.length);
+        done();
+    })
+});
+</code></pre>
+
+<p>I get this error with <code>findRenderedComponentWithType</code></p>
+
+<pre><code>Error: Did not find exactly one match for componentType:function UserMenu()
+</code></pre>
+","1815710","","135133","","2015-08-21 01:07:11","2015-08-24 17:51:16","Shallow render component and scryRenderedComponentsWithType","<javascript><reactjs>","1","0","1","",""
+"39371629","1","","","2016-09-07 13:45:24","","2","739","<p>I'm trying to test a connected react component that needs a props.params.id to call action creators. When I try to test that the component is connected to the store I get ""Uncaught TypeError: Cannot read property 'id' of undefined""</p>
+
+<pre><code>ReactDOM.render(
+  &lt;Provider store={store}&gt;
+    &lt;Router history={history}&gt;
+      &lt;Route path=""/"" component={App}&gt;
+        &lt;IndexRoute component={PostsIndex}/&gt;
+        &lt;Route path=""posts/:id"" component={ShowPost}/&gt;
+      &lt;/Route&gt;
+    &lt;/Router&gt;
+  &lt;/Provider&gt;
+  , document.querySelector('.container'));
+
+
+describe('ConnectedShowPost', ()=&gt; {
+    let initialState = {
+      posts: { postsList: postsListData, post: postData, error: '' },
+      comments: {showComments: false},
+      auth: {authenticated: true}
+    };
+
+    store = mockStore(initialState);
+
+    connectedShowPost = TestUtils.renderIntoDocument(&lt;Provider store={store}&gt;&lt;ConnectedShowPost/&gt;&lt;/Provider&gt;);
+    showPost = TestUtils.scryRenderedComponentsWithType(connectedShowPost, ShowPost)[0];
+
+
+    expect(showPost.props.posts.post).toEqual(postData);
+  })
+</code></pre>
+
+<p>I've tried including params in the store but that doesn't work since params is not hooked up to the store when used inside the component.</p>
+
+<p>I've also tried passing it in as an ownProps argument and that didn't work either.</p>
+
+<p>Passing it in to  the ConnectedShowPost component as a props causes all other state items in the store to be undefined..</p>
+
+<p>Also tried to directly set showPost.props.params = {id: '123} which didnt work either..</p>
+
+<p>Any ideas on how to get this test to work?</p>
+","6687615","","","","","2016-09-07 13:45:24","Testing connected react component that needs params","<javascript><reactjs><mocha><redux><karma-mocha>","0","6","","",""

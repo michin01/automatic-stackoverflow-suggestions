@@ -1,0 +1,2878 @@
+Id,Title,CommentCount,Body,Text
+"27278576","My items in my listview are not reacting to OnItemClick","6","<p>This is my Layout file for a row with all them parameters need to prevent the elements from being clickable (at least i thought they are all).</p>
+
+<pre><code>&lt;?xml version=""1.0"" encoding=""utf-8""?&gt;
+&lt;LinearLayout xmlns:android=""http://schemas.android.com/apk/res/android""
+android:layout_width=""match_parent""
+android:layout_height=""wrap_content""
+android:clickable=""true""
+android:background=""?android:attr/selectableItemBackground""
+android:orientation=""horizontal"" &gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_date""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_time""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_value""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;ImageView
+    android:id=""@+id/measuredata_list_row_imageview_mood""
+    android:layout_width=""0dp""
+    android:layout_height=""wrap_content""
+    android:layout_weight=""1.0""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:contentDescription=""@string/imageview_photo_description"" /&gt;
+
+ &lt;/LinearLayout&gt;
+</code></pre>
+
+<p>and the code from the activity:</p>
+
+<pre><code>public class MeasureDataListFragment extends Fragment implements OnClickListener, OnItemClickListener, MeasureDataGetSelectionCallback, MeasureDataGetCallback {
+    private SessionManagerPreferences sessionManagerPreferences = null;
+    private SessionManagerSingleton sessionManagerSingleton = null;
+    private SessionManagerMeasureDataList sessionManagerMeasureDataList = null;
+    private MeasureDataListAdapter adapter = null;
+    private ListView listRowParent = null;
+    private Button buttonChoose = null;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.sessionManagerPreferences = new SessionManagerPreferences(this.getActivity());
+        this.sessionManagerSingleton = SessionManagerSingleton.getInstance(this.getActivity());
+        this.sessionManagerMeasureDataList = SessionManagerMeasureDataList.getInstance();
+
+        if(this.sessionManagerMeasureDataList.getMeasureDataList() == null) {
+            this.sessionManagerMeasureDataList.setMeasureDataList(new MeasureDataList());
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_measuredata_list_fragment, container, false);
+    }
+
+    @SuppressLint(""InflateParams"")
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        this.listRowParent = (ListView) view.findViewById(R.id.measuredata_list_row_parent);
+        this.buttonChoose = (Button) view.findViewById(R.id.measuredata_list_fragment_button_choose);
+        this.buttonChoose.setOnClickListener(this);
+
+        this.adapter = new MeasureDataListAdapter(this.getActivity(), this.sessionManagerMeasureDataList.getMeasureDataList().getMeasureDataListEntries());
+        this.listRowParent.setAdapter(this.adapter);
+        this.listRowParent.setOnItemClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()) {
+            case  R.id.measuredata_list_fragment_button_choose : {
+                this.performChooseDates();
+            } break;
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView&lt;?&gt; parent, View view, int position, long id) {
+        Log.v(""MeasureDataListFragment"", ""Position: "" + position);
+    }
+
+    @Override
+    public void onMeasureDataGetSelectionCompleted(final String fromYear, final String fromMonth, final String fromDay, final String toYear, final String toMonth, final String toDay) {
+        String email = null;
+        String password = null;
+        String from = fromDay + ""."" + fromMonth + ""."" + fromYear;
+        String to = toDay + ""."" + toMonth + ""."" + toYear;
+
+        if(this.sessionManagerSingleton.isLoggedIn()) {
+            email = this.sessionManagerSingleton.getEmail();
+            password = this.sessionManagerSingleton.getPassword();
+        } else {
+            Map&lt;String, String&gt; userData = this.sessionManagerPreferences.getUserDetails();
+
+            email = userData.get(Globals.KEY_EMAIL);
+            password = userData.get(Globals.KEY_PASSWORD);
+        }
+
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataGetTask measureDataGetTask = new MeasureDataGetTask(email, password, from, to);
+        MeasureDataGetDialogFragment measureDataGetDialogFragment = new MeasureDataGetDialogFragment(measureDataGetTask, this);
+
+        measureDataGetDialogFragment.show(fragmentTransaction, null);
+    }
+
+    @Override
+    public void onMeasureDataGetCompleted(StatusMeasureDataGet status, MeasureDataGetPOJO measureDataGetPOJO) {
+        switch(status) {
+            case MEASUREDATA_TRANSFER_SUCCESSFUL: {
+                this.sessionManagerMeasureDataList.setMeasureDataList(measureDataGetPOJO);
+                this.adapter.notifyDataSetChanged();
+            } break;
+            case ERROR_CONNECTION_FAILED: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_connection_failed);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_IO_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_io_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_JSON_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_json_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_NO_DATA_FOUND: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_not_data_found);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_PROTOCOL_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_protocol_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_PARAMETERS: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_wrong_parameters);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_USER_OR_PW: {
+                String title = this.getResources().getString(R.string.title_input_error);
+                String message = this.getResources().getString(R.string.message_wrong_mail_or_pw);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+        }
+    }
+
+    private void performChooseDates() {
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataSelectionDialogFragment measureDataGetSelectionDialogFragment = new MeasureDataSelectionDialogFragment(this);
+
+        measureDataGetSelectionDialogFragment.show(fragmentTransaction, null);
+    }
+}   
+</code></pre>
+
+<p>Unfortunately none of my rows is reacting to the click from OnItemClickListener.
+What else do i have to declear to get this working? There is no output at all to the log file when i click any row. its like i never added an OnItemClickListener to the ListView.</p>
+","check this http://stackoverflow.com/questions/23602924/android-listview-item-click-is-not-working/23603110#23603110"
+"27278576","My items in my listview are not reacting to OnItemClick","6","<p>This is my Layout file for a row with all them parameters need to prevent the elements from being clickable (at least i thought they are all).</p>
+
+<pre><code>&lt;?xml version=""1.0"" encoding=""utf-8""?&gt;
+&lt;LinearLayout xmlns:android=""http://schemas.android.com/apk/res/android""
+android:layout_width=""match_parent""
+android:layout_height=""wrap_content""
+android:clickable=""true""
+android:background=""?android:attr/selectableItemBackground""
+android:orientation=""horizontal"" &gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_date""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_time""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_value""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;ImageView
+    android:id=""@+id/measuredata_list_row_imageview_mood""
+    android:layout_width=""0dp""
+    android:layout_height=""wrap_content""
+    android:layout_weight=""1.0""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:contentDescription=""@string/imageview_photo_description"" /&gt;
+
+ &lt;/LinearLayout&gt;
+</code></pre>
+
+<p>and the code from the activity:</p>
+
+<pre><code>public class MeasureDataListFragment extends Fragment implements OnClickListener, OnItemClickListener, MeasureDataGetSelectionCallback, MeasureDataGetCallback {
+    private SessionManagerPreferences sessionManagerPreferences = null;
+    private SessionManagerSingleton sessionManagerSingleton = null;
+    private SessionManagerMeasureDataList sessionManagerMeasureDataList = null;
+    private MeasureDataListAdapter adapter = null;
+    private ListView listRowParent = null;
+    private Button buttonChoose = null;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.sessionManagerPreferences = new SessionManagerPreferences(this.getActivity());
+        this.sessionManagerSingleton = SessionManagerSingleton.getInstance(this.getActivity());
+        this.sessionManagerMeasureDataList = SessionManagerMeasureDataList.getInstance();
+
+        if(this.sessionManagerMeasureDataList.getMeasureDataList() == null) {
+            this.sessionManagerMeasureDataList.setMeasureDataList(new MeasureDataList());
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_measuredata_list_fragment, container, false);
+    }
+
+    @SuppressLint(""InflateParams"")
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        this.listRowParent = (ListView) view.findViewById(R.id.measuredata_list_row_parent);
+        this.buttonChoose = (Button) view.findViewById(R.id.measuredata_list_fragment_button_choose);
+        this.buttonChoose.setOnClickListener(this);
+
+        this.adapter = new MeasureDataListAdapter(this.getActivity(), this.sessionManagerMeasureDataList.getMeasureDataList().getMeasureDataListEntries());
+        this.listRowParent.setAdapter(this.adapter);
+        this.listRowParent.setOnItemClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()) {
+            case  R.id.measuredata_list_fragment_button_choose : {
+                this.performChooseDates();
+            } break;
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView&lt;?&gt; parent, View view, int position, long id) {
+        Log.v(""MeasureDataListFragment"", ""Position: "" + position);
+    }
+
+    @Override
+    public void onMeasureDataGetSelectionCompleted(final String fromYear, final String fromMonth, final String fromDay, final String toYear, final String toMonth, final String toDay) {
+        String email = null;
+        String password = null;
+        String from = fromDay + ""."" + fromMonth + ""."" + fromYear;
+        String to = toDay + ""."" + toMonth + ""."" + toYear;
+
+        if(this.sessionManagerSingleton.isLoggedIn()) {
+            email = this.sessionManagerSingleton.getEmail();
+            password = this.sessionManagerSingleton.getPassword();
+        } else {
+            Map&lt;String, String&gt; userData = this.sessionManagerPreferences.getUserDetails();
+
+            email = userData.get(Globals.KEY_EMAIL);
+            password = userData.get(Globals.KEY_PASSWORD);
+        }
+
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataGetTask measureDataGetTask = new MeasureDataGetTask(email, password, from, to);
+        MeasureDataGetDialogFragment measureDataGetDialogFragment = new MeasureDataGetDialogFragment(measureDataGetTask, this);
+
+        measureDataGetDialogFragment.show(fragmentTransaction, null);
+    }
+
+    @Override
+    public void onMeasureDataGetCompleted(StatusMeasureDataGet status, MeasureDataGetPOJO measureDataGetPOJO) {
+        switch(status) {
+            case MEASUREDATA_TRANSFER_SUCCESSFUL: {
+                this.sessionManagerMeasureDataList.setMeasureDataList(measureDataGetPOJO);
+                this.adapter.notifyDataSetChanged();
+            } break;
+            case ERROR_CONNECTION_FAILED: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_connection_failed);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_IO_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_io_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_JSON_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_json_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_NO_DATA_FOUND: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_not_data_found);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_PROTOCOL_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_protocol_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_PARAMETERS: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_wrong_parameters);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_USER_OR_PW: {
+                String title = this.getResources().getString(R.string.title_input_error);
+                String message = this.getResources().getString(R.string.message_wrong_mail_or_pw);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+        }
+    }
+
+    private void performChooseDates() {
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataSelectionDialogFragment measureDataGetSelectionDialogFragment = new MeasureDataSelectionDialogFragment(this);
+
+        measureDataGetSelectionDialogFragment.show(fragmentTransaction, null);
+    }
+}   
+</code></pre>
+
+<p>Unfortunately none of my rows is reacting to the click from OnItemClickListener.
+What else do i have to declear to get this working? There is no output at all to the log file when i click any row. its like i never added an OnItemClickListener to the ListView.</p>
+","it wokrs but in my opinion it is not a good looking workaround. i would rather understand why the ontimeclicklistener isnt reacting."
+"27278576","My items in my listview are not reacting to OnItemClick","6","<p>This is my Layout file for a row with all them parameters need to prevent the elements from being clickable (at least i thought they are all).</p>
+
+<pre><code>&lt;?xml version=""1.0"" encoding=""utf-8""?&gt;
+&lt;LinearLayout xmlns:android=""http://schemas.android.com/apk/res/android""
+android:layout_width=""match_parent""
+android:layout_height=""wrap_content""
+android:clickable=""true""
+android:background=""?android:attr/selectableItemBackground""
+android:orientation=""horizontal"" &gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_date""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_time""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_value""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;ImageView
+    android:id=""@+id/measuredata_list_row_imageview_mood""
+    android:layout_width=""0dp""
+    android:layout_height=""wrap_content""
+    android:layout_weight=""1.0""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:contentDescription=""@string/imageview_photo_description"" /&gt;
+
+ &lt;/LinearLayout&gt;
+</code></pre>
+
+<p>and the code from the activity:</p>
+
+<pre><code>public class MeasureDataListFragment extends Fragment implements OnClickListener, OnItemClickListener, MeasureDataGetSelectionCallback, MeasureDataGetCallback {
+    private SessionManagerPreferences sessionManagerPreferences = null;
+    private SessionManagerSingleton sessionManagerSingleton = null;
+    private SessionManagerMeasureDataList sessionManagerMeasureDataList = null;
+    private MeasureDataListAdapter adapter = null;
+    private ListView listRowParent = null;
+    private Button buttonChoose = null;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.sessionManagerPreferences = new SessionManagerPreferences(this.getActivity());
+        this.sessionManagerSingleton = SessionManagerSingleton.getInstance(this.getActivity());
+        this.sessionManagerMeasureDataList = SessionManagerMeasureDataList.getInstance();
+
+        if(this.sessionManagerMeasureDataList.getMeasureDataList() == null) {
+            this.sessionManagerMeasureDataList.setMeasureDataList(new MeasureDataList());
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_measuredata_list_fragment, container, false);
+    }
+
+    @SuppressLint(""InflateParams"")
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        this.listRowParent = (ListView) view.findViewById(R.id.measuredata_list_row_parent);
+        this.buttonChoose = (Button) view.findViewById(R.id.measuredata_list_fragment_button_choose);
+        this.buttonChoose.setOnClickListener(this);
+
+        this.adapter = new MeasureDataListAdapter(this.getActivity(), this.sessionManagerMeasureDataList.getMeasureDataList().getMeasureDataListEntries());
+        this.listRowParent.setAdapter(this.adapter);
+        this.listRowParent.setOnItemClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()) {
+            case  R.id.measuredata_list_fragment_button_choose : {
+                this.performChooseDates();
+            } break;
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView&lt;?&gt; parent, View view, int position, long id) {
+        Log.v(""MeasureDataListFragment"", ""Position: "" + position);
+    }
+
+    @Override
+    public void onMeasureDataGetSelectionCompleted(final String fromYear, final String fromMonth, final String fromDay, final String toYear, final String toMonth, final String toDay) {
+        String email = null;
+        String password = null;
+        String from = fromDay + ""."" + fromMonth + ""."" + fromYear;
+        String to = toDay + ""."" + toMonth + ""."" + toYear;
+
+        if(this.sessionManagerSingleton.isLoggedIn()) {
+            email = this.sessionManagerSingleton.getEmail();
+            password = this.sessionManagerSingleton.getPassword();
+        } else {
+            Map&lt;String, String&gt; userData = this.sessionManagerPreferences.getUserDetails();
+
+            email = userData.get(Globals.KEY_EMAIL);
+            password = userData.get(Globals.KEY_PASSWORD);
+        }
+
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataGetTask measureDataGetTask = new MeasureDataGetTask(email, password, from, to);
+        MeasureDataGetDialogFragment measureDataGetDialogFragment = new MeasureDataGetDialogFragment(measureDataGetTask, this);
+
+        measureDataGetDialogFragment.show(fragmentTransaction, null);
+    }
+
+    @Override
+    public void onMeasureDataGetCompleted(StatusMeasureDataGet status, MeasureDataGetPOJO measureDataGetPOJO) {
+        switch(status) {
+            case MEASUREDATA_TRANSFER_SUCCESSFUL: {
+                this.sessionManagerMeasureDataList.setMeasureDataList(measureDataGetPOJO);
+                this.adapter.notifyDataSetChanged();
+            } break;
+            case ERROR_CONNECTION_FAILED: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_connection_failed);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_IO_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_io_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_JSON_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_json_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_NO_DATA_FOUND: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_not_data_found);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_PROTOCOL_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_protocol_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_PARAMETERS: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_wrong_parameters);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_USER_OR_PW: {
+                String title = this.getResources().getString(R.string.title_input_error);
+                String message = this.getResources().getString(R.string.message_wrong_mail_or_pw);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+        }
+    }
+
+    private void performChooseDates() {
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataSelectionDialogFragment measureDataGetSelectionDialogFragment = new MeasureDataSelectionDialogFragment(this);
+
+        measureDataGetSelectionDialogFragment.show(fragmentTransaction, null);
+    }
+}   
+</code></pre>
+
+<p>Unfortunately none of my rows is reacting to the click from OnItemClickListener.
+What else do i have to declear to get this working? There is no output at all to the log file when i click any row. its like i never added an OnItemClickListener to the ListView.</p>
+","try this http://stackoverflow.com/questions/20486114/when-focus-edittext-edittext-didnot-pop-out-the-softkeyboard, add `android:descendantFocusability=""blocksDescendants""` on your inflated linearlayout"
+"27278576","My items in my listview are not reacting to OnItemClick","6","<p>This is my Layout file for a row with all them parameters need to prevent the elements from being clickable (at least i thought they are all).</p>
+
+<pre><code>&lt;?xml version=""1.0"" encoding=""utf-8""?&gt;
+&lt;LinearLayout xmlns:android=""http://schemas.android.com/apk/res/android""
+android:layout_width=""match_parent""
+android:layout_height=""wrap_content""
+android:clickable=""true""
+android:background=""?android:attr/selectableItemBackground""
+android:orientation=""horizontal"" &gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_date""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_time""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_value""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;ImageView
+    android:id=""@+id/measuredata_list_row_imageview_mood""
+    android:layout_width=""0dp""
+    android:layout_height=""wrap_content""
+    android:layout_weight=""1.0""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:contentDescription=""@string/imageview_photo_description"" /&gt;
+
+ &lt;/LinearLayout&gt;
+</code></pre>
+
+<p>and the code from the activity:</p>
+
+<pre><code>public class MeasureDataListFragment extends Fragment implements OnClickListener, OnItemClickListener, MeasureDataGetSelectionCallback, MeasureDataGetCallback {
+    private SessionManagerPreferences sessionManagerPreferences = null;
+    private SessionManagerSingleton sessionManagerSingleton = null;
+    private SessionManagerMeasureDataList sessionManagerMeasureDataList = null;
+    private MeasureDataListAdapter adapter = null;
+    private ListView listRowParent = null;
+    private Button buttonChoose = null;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.sessionManagerPreferences = new SessionManagerPreferences(this.getActivity());
+        this.sessionManagerSingleton = SessionManagerSingleton.getInstance(this.getActivity());
+        this.sessionManagerMeasureDataList = SessionManagerMeasureDataList.getInstance();
+
+        if(this.sessionManagerMeasureDataList.getMeasureDataList() == null) {
+            this.sessionManagerMeasureDataList.setMeasureDataList(new MeasureDataList());
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_measuredata_list_fragment, container, false);
+    }
+
+    @SuppressLint(""InflateParams"")
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        this.listRowParent = (ListView) view.findViewById(R.id.measuredata_list_row_parent);
+        this.buttonChoose = (Button) view.findViewById(R.id.measuredata_list_fragment_button_choose);
+        this.buttonChoose.setOnClickListener(this);
+
+        this.adapter = new MeasureDataListAdapter(this.getActivity(), this.sessionManagerMeasureDataList.getMeasureDataList().getMeasureDataListEntries());
+        this.listRowParent.setAdapter(this.adapter);
+        this.listRowParent.setOnItemClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()) {
+            case  R.id.measuredata_list_fragment_button_choose : {
+                this.performChooseDates();
+            } break;
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView&lt;?&gt; parent, View view, int position, long id) {
+        Log.v(""MeasureDataListFragment"", ""Position: "" + position);
+    }
+
+    @Override
+    public void onMeasureDataGetSelectionCompleted(final String fromYear, final String fromMonth, final String fromDay, final String toYear, final String toMonth, final String toDay) {
+        String email = null;
+        String password = null;
+        String from = fromDay + ""."" + fromMonth + ""."" + fromYear;
+        String to = toDay + ""."" + toMonth + ""."" + toYear;
+
+        if(this.sessionManagerSingleton.isLoggedIn()) {
+            email = this.sessionManagerSingleton.getEmail();
+            password = this.sessionManagerSingleton.getPassword();
+        } else {
+            Map&lt;String, String&gt; userData = this.sessionManagerPreferences.getUserDetails();
+
+            email = userData.get(Globals.KEY_EMAIL);
+            password = userData.get(Globals.KEY_PASSWORD);
+        }
+
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataGetTask measureDataGetTask = new MeasureDataGetTask(email, password, from, to);
+        MeasureDataGetDialogFragment measureDataGetDialogFragment = new MeasureDataGetDialogFragment(measureDataGetTask, this);
+
+        measureDataGetDialogFragment.show(fragmentTransaction, null);
+    }
+
+    @Override
+    public void onMeasureDataGetCompleted(StatusMeasureDataGet status, MeasureDataGetPOJO measureDataGetPOJO) {
+        switch(status) {
+            case MEASUREDATA_TRANSFER_SUCCESSFUL: {
+                this.sessionManagerMeasureDataList.setMeasureDataList(measureDataGetPOJO);
+                this.adapter.notifyDataSetChanged();
+            } break;
+            case ERROR_CONNECTION_FAILED: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_connection_failed);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_IO_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_io_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_JSON_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_json_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_NO_DATA_FOUND: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_not_data_found);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_PROTOCOL_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_protocol_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_PARAMETERS: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_wrong_parameters);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_USER_OR_PW: {
+                String title = this.getResources().getString(R.string.title_input_error);
+                String message = this.getResources().getString(R.string.message_wrong_mail_or_pw);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+        }
+    }
+
+    private void performChooseDates() {
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataSelectionDialogFragment measureDataGetSelectionDialogFragment = new MeasureDataSelectionDialogFragment(this);
+
+        measureDataGetSelectionDialogFragment.show(fragmentTransaction, null);
+    }
+}   
+</code></pre>
+
+<p>Unfortunately none of my rows is reacting to the click from OnItemClickListener.
+What else do i have to declear to get this working? There is no output at all to the log file when i click any row. its like i never added an OnItemClickListener to the ListView.</p>
+","Can you post whole activity?"
+"27278576","My items in my listview are not reacting to OnItemClick","6","<p>This is my Layout file for a row with all them parameters need to prevent the elements from being clickable (at least i thought they are all).</p>
+
+<pre><code>&lt;?xml version=""1.0"" encoding=""utf-8""?&gt;
+&lt;LinearLayout xmlns:android=""http://schemas.android.com/apk/res/android""
+android:layout_width=""match_parent""
+android:layout_height=""wrap_content""
+android:clickable=""true""
+android:background=""?android:attr/selectableItemBackground""
+android:orientation=""horizontal"" &gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_date""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_time""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_value""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;ImageView
+    android:id=""@+id/measuredata_list_row_imageview_mood""
+    android:layout_width=""0dp""
+    android:layout_height=""wrap_content""
+    android:layout_weight=""1.0""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:contentDescription=""@string/imageview_photo_description"" /&gt;
+
+ &lt;/LinearLayout&gt;
+</code></pre>
+
+<p>and the code from the activity:</p>
+
+<pre><code>public class MeasureDataListFragment extends Fragment implements OnClickListener, OnItemClickListener, MeasureDataGetSelectionCallback, MeasureDataGetCallback {
+    private SessionManagerPreferences sessionManagerPreferences = null;
+    private SessionManagerSingleton sessionManagerSingleton = null;
+    private SessionManagerMeasureDataList sessionManagerMeasureDataList = null;
+    private MeasureDataListAdapter adapter = null;
+    private ListView listRowParent = null;
+    private Button buttonChoose = null;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.sessionManagerPreferences = new SessionManagerPreferences(this.getActivity());
+        this.sessionManagerSingleton = SessionManagerSingleton.getInstance(this.getActivity());
+        this.sessionManagerMeasureDataList = SessionManagerMeasureDataList.getInstance();
+
+        if(this.sessionManagerMeasureDataList.getMeasureDataList() == null) {
+            this.sessionManagerMeasureDataList.setMeasureDataList(new MeasureDataList());
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_measuredata_list_fragment, container, false);
+    }
+
+    @SuppressLint(""InflateParams"")
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        this.listRowParent = (ListView) view.findViewById(R.id.measuredata_list_row_parent);
+        this.buttonChoose = (Button) view.findViewById(R.id.measuredata_list_fragment_button_choose);
+        this.buttonChoose.setOnClickListener(this);
+
+        this.adapter = new MeasureDataListAdapter(this.getActivity(), this.sessionManagerMeasureDataList.getMeasureDataList().getMeasureDataListEntries());
+        this.listRowParent.setAdapter(this.adapter);
+        this.listRowParent.setOnItemClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()) {
+            case  R.id.measuredata_list_fragment_button_choose : {
+                this.performChooseDates();
+            } break;
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView&lt;?&gt; parent, View view, int position, long id) {
+        Log.v(""MeasureDataListFragment"", ""Position: "" + position);
+    }
+
+    @Override
+    public void onMeasureDataGetSelectionCompleted(final String fromYear, final String fromMonth, final String fromDay, final String toYear, final String toMonth, final String toDay) {
+        String email = null;
+        String password = null;
+        String from = fromDay + ""."" + fromMonth + ""."" + fromYear;
+        String to = toDay + ""."" + toMonth + ""."" + toYear;
+
+        if(this.sessionManagerSingleton.isLoggedIn()) {
+            email = this.sessionManagerSingleton.getEmail();
+            password = this.sessionManagerSingleton.getPassword();
+        } else {
+            Map&lt;String, String&gt; userData = this.sessionManagerPreferences.getUserDetails();
+
+            email = userData.get(Globals.KEY_EMAIL);
+            password = userData.get(Globals.KEY_PASSWORD);
+        }
+
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataGetTask measureDataGetTask = new MeasureDataGetTask(email, password, from, to);
+        MeasureDataGetDialogFragment measureDataGetDialogFragment = new MeasureDataGetDialogFragment(measureDataGetTask, this);
+
+        measureDataGetDialogFragment.show(fragmentTransaction, null);
+    }
+
+    @Override
+    public void onMeasureDataGetCompleted(StatusMeasureDataGet status, MeasureDataGetPOJO measureDataGetPOJO) {
+        switch(status) {
+            case MEASUREDATA_TRANSFER_SUCCESSFUL: {
+                this.sessionManagerMeasureDataList.setMeasureDataList(measureDataGetPOJO);
+                this.adapter.notifyDataSetChanged();
+            } break;
+            case ERROR_CONNECTION_FAILED: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_connection_failed);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_IO_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_io_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_JSON_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_json_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_NO_DATA_FOUND: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_not_data_found);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_PROTOCOL_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_protocol_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_PARAMETERS: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_wrong_parameters);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_USER_OR_PW: {
+                String title = this.getResources().getString(R.string.title_input_error);
+                String message = this.getResources().getString(R.string.message_wrong_mail_or_pw);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+        }
+    }
+
+    private void performChooseDates() {
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataSelectionDialogFragment measureDataGetSelectionDialogFragment = new MeasureDataSelectionDialogFragment(this);
+
+        measureDataGetSelectionDialogFragment.show(fragmentTransaction, null);
+    }
+}   
+</code></pre>
+
+<p>Unfortunately none of my rows is reacting to the click from OnItemClickListener.
+What else do i have to declear to get this working? There is no output at all to the log file when i click any row. its like i never added an OnItemClickListener to the ListView.</p>
+","edited the post."
+"27278576","My items in my listview are not reacting to OnItemClick","6","<p>This is my Layout file for a row with all them parameters need to prevent the elements from being clickable (at least i thought they are all).</p>
+
+<pre><code>&lt;?xml version=""1.0"" encoding=""utf-8""?&gt;
+&lt;LinearLayout xmlns:android=""http://schemas.android.com/apk/res/android""
+android:layout_width=""match_parent""
+android:layout_height=""wrap_content""
+android:clickable=""true""
+android:background=""?android:attr/selectableItemBackground""
+android:orientation=""horizontal"" &gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_date""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_time""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;TextView
+    android:id=""@+id/measuredata_list_row_textview_value""
+    android:layout_width=""0dp""
+    android:layout_height=""match_parent""
+    android:layout_weight=""2.0""
+    android:gravity=""center""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:textAppearance=""?android:attr/textAppearanceMedium"" /&gt;
+
+&lt;ImageView
+    android:id=""@+id/measuredata_list_row_imageview_mood""
+    android:layout_width=""0dp""
+    android:layout_height=""wrap_content""
+    android:layout_weight=""1.0""
+    android:clickable=""false""
+    android:focusable=""false""
+    android:contentDescription=""@string/imageview_photo_description"" /&gt;
+
+ &lt;/LinearLayout&gt;
+</code></pre>
+
+<p>and the code from the activity:</p>
+
+<pre><code>public class MeasureDataListFragment extends Fragment implements OnClickListener, OnItemClickListener, MeasureDataGetSelectionCallback, MeasureDataGetCallback {
+    private SessionManagerPreferences sessionManagerPreferences = null;
+    private SessionManagerSingleton sessionManagerSingleton = null;
+    private SessionManagerMeasureDataList sessionManagerMeasureDataList = null;
+    private MeasureDataListAdapter adapter = null;
+    private ListView listRowParent = null;
+    private Button buttonChoose = null;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.sessionManagerPreferences = new SessionManagerPreferences(this.getActivity());
+        this.sessionManagerSingleton = SessionManagerSingleton.getInstance(this.getActivity());
+        this.sessionManagerMeasureDataList = SessionManagerMeasureDataList.getInstance();
+
+        if(this.sessionManagerMeasureDataList.getMeasureDataList() == null) {
+            this.sessionManagerMeasureDataList.setMeasureDataList(new MeasureDataList());
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_measuredata_list_fragment, container, false);
+    }
+
+    @SuppressLint(""InflateParams"")
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        this.listRowParent = (ListView) view.findViewById(R.id.measuredata_list_row_parent);
+        this.buttonChoose = (Button) view.findViewById(R.id.measuredata_list_fragment_button_choose);
+        this.buttonChoose.setOnClickListener(this);
+
+        this.adapter = new MeasureDataListAdapter(this.getActivity(), this.sessionManagerMeasureDataList.getMeasureDataList().getMeasureDataListEntries());
+        this.listRowParent.setAdapter(this.adapter);
+        this.listRowParent.setOnItemClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()) {
+            case  R.id.measuredata_list_fragment_button_choose : {
+                this.performChooseDates();
+            } break;
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView&lt;?&gt; parent, View view, int position, long id) {
+        Log.v(""MeasureDataListFragment"", ""Position: "" + position);
+    }
+
+    @Override
+    public void onMeasureDataGetSelectionCompleted(final String fromYear, final String fromMonth, final String fromDay, final String toYear, final String toMonth, final String toDay) {
+        String email = null;
+        String password = null;
+        String from = fromDay + ""."" + fromMonth + ""."" + fromYear;
+        String to = toDay + ""."" + toMonth + ""."" + toYear;
+
+        if(this.sessionManagerSingleton.isLoggedIn()) {
+            email = this.sessionManagerSingleton.getEmail();
+            password = this.sessionManagerSingleton.getPassword();
+        } else {
+            Map&lt;String, String&gt; userData = this.sessionManagerPreferences.getUserDetails();
+
+            email = userData.get(Globals.KEY_EMAIL);
+            password = userData.get(Globals.KEY_PASSWORD);
+        }
+
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataGetTask measureDataGetTask = new MeasureDataGetTask(email, password, from, to);
+        MeasureDataGetDialogFragment measureDataGetDialogFragment = new MeasureDataGetDialogFragment(measureDataGetTask, this);
+
+        measureDataGetDialogFragment.show(fragmentTransaction, null);
+    }
+
+    @Override
+    public void onMeasureDataGetCompleted(StatusMeasureDataGet status, MeasureDataGetPOJO measureDataGetPOJO) {
+        switch(status) {
+            case MEASUREDATA_TRANSFER_SUCCESSFUL: {
+                this.sessionManagerMeasureDataList.setMeasureDataList(measureDataGetPOJO);
+                this.adapter.notifyDataSetChanged();
+            } break;
+            case ERROR_CONNECTION_FAILED: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_connection_failed);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_IO_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_io_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_JSON_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_json_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_NO_DATA_FOUND: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_not_data_found);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_PROTOCOL_EXCEPTION: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_protocol_exception);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_PARAMETERS: {
+                String title = this.getResources().getString(R.string.title_error);
+                String message = this.getResources().getString(R.string.message_wrong_parameters);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+            case ERROR_WRONG_USER_OR_PW: {
+                String title = this.getResources().getString(R.string.title_input_error);
+                String message = this.getResources().getString(R.string.message_wrong_mail_or_pw);
+
+                DialogManager.showAlertDialog(title, message, this.getFragmentManager());
+            } break;
+        }
+    }
+
+    private void performChooseDates() {
+        FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+        MeasureDataSelectionDialogFragment measureDataGetSelectionDialogFragment = new MeasureDataSelectionDialogFragment(this);
+
+        measureDataGetSelectionDialogFragment.show(fragmentTransaction, null);
+    }
+}   
+</code></pre>
+
+<p>Unfortunately none of my rows is reacting to the click from OnItemClickListener.
+What else do i have to declear to get this working? There is no output at all to the log file when i click any row. its like i never added an OnItemClickListener to the ListView.</p>
+","Unfortunately it does not change anything."
+"29656743","I am having trouble passing in my backbone collection in to a react component","5","<p>my backbone collection collection doesn't populate when i just pass it in as props to a react component. I have tried first fetching the collection using componentDidmount and componentWillMount, but that still didn't populate the collection. If I test the code by setting a window variable pointing to DecksIndex and in the console tools call getInstance() and then fetch
+,the data loads fine. my code is as follows:</p>
+
+<pre><code> //router.js
+var DeckComponent = require(""./views/deck.jsx"")
+var DecksIndex = React.createFactory(require(""./views/decks.jsx""))
+var decksCollection = require(""./component/collections/decks.js"");
+
+module.exports = Backbone.Router.extend({
+
+    initialize: function(){
+        this.rootEl = document.getElementById('container');
+    },
+
+    routes: {
+        """":""index"",
+        ""decks/:id"":""deckShow""
+    },
+
+    index: function(){
+
+        var decks = new DecksIndex({decks: decksCollection.getInstance()});
+        this._swapView(decks)
+        console.log(""hooray!"")
+    },
+
+    deckShow: function(id){
+        //var deck = Flashcards.Collections.decks.getOrFetch(id);
+        var showDeck = new DeckComponent();
+        this._swapView(showDeck);
+    },
+
+    _swapView: function(view){
+        if (this.currentView) {
+            React.unmountComponentAtNode(this.rootEl);
+        }
+        this.currentView = view
+        React.render(view, document.getElementById('container'));
+    }   
+
+});
+
+
+//decks.js
+
+var deck = require('../models/deck.js')
+var decks = Backbone.Collection.extend({
+  url: ""/api/decks"",
+  model: deck,
+  getOrFetch: function(id){
+        var model = this.get(id);
+        var that = this;
+        if (model) {
+            model.fetch();
+        }else{
+            model = new deck({id: id})
+            model.fetch({
+                success: function(){
+                    that.add(model)
+                }
+            })
+        }
+        return model;
+    },
+
+    parse: function (data) {
+        debugger;
+        return data.objects
+    },
+
+});
+
+decks.getInstance = _.memoize(function () {
+  return new decks();
+});
+
+module.exports = decks;
+
+//decks.jsx
+var DecksList = React.createClass({
+
+    render: function() {
+
+            return (
+              &lt;div className=""deck-list""&gt;
+              {
+                this.props.decks.map(function (deck) {
+                    var title = deck.name
+                    debugger;
+                  return (
+                    &lt;div key={deck.id} className=""note-summary""&gt;
+                      {title}
+                    &lt;/div&gt;
+                  );
+                })
+              }
+              &lt;/div&gt;
+            );
+      }
+});
+
+module.exports = DecksList;
+</code></pre>
+","Is your collection async? Unless you update the component when the collection has updated, I wouldn't expect to see any of the list. You're also creating React components incorrectly. You should be using something more like: `React.createElement(DecksIndex, { decks: collection });`"
+"29656743","I am having trouble passing in my backbone collection in to a react component","5","<p>my backbone collection collection doesn't populate when i just pass it in as props to a react component. I have tried first fetching the collection using componentDidmount and componentWillMount, but that still didn't populate the collection. If I test the code by setting a window variable pointing to DecksIndex and in the console tools call getInstance() and then fetch
+,the data loads fine. my code is as follows:</p>
+
+<pre><code> //router.js
+var DeckComponent = require(""./views/deck.jsx"")
+var DecksIndex = React.createFactory(require(""./views/decks.jsx""))
+var decksCollection = require(""./component/collections/decks.js"");
+
+module.exports = Backbone.Router.extend({
+
+    initialize: function(){
+        this.rootEl = document.getElementById('container');
+    },
+
+    routes: {
+        """":""index"",
+        ""decks/:id"":""deckShow""
+    },
+
+    index: function(){
+
+        var decks = new DecksIndex({decks: decksCollection.getInstance()});
+        this._swapView(decks)
+        console.log(""hooray!"")
+    },
+
+    deckShow: function(id){
+        //var deck = Flashcards.Collections.decks.getOrFetch(id);
+        var showDeck = new DeckComponent();
+        this._swapView(showDeck);
+    },
+
+    _swapView: function(view){
+        if (this.currentView) {
+            React.unmountComponentAtNode(this.rootEl);
+        }
+        this.currentView = view
+        React.render(view, document.getElementById('container'));
+    }   
+
+});
+
+
+//decks.js
+
+var deck = require('../models/deck.js')
+var decks = Backbone.Collection.extend({
+  url: ""/api/decks"",
+  model: deck,
+  getOrFetch: function(id){
+        var model = this.get(id);
+        var that = this;
+        if (model) {
+            model.fetch();
+        }else{
+            model = new deck({id: id})
+            model.fetch({
+                success: function(){
+                    that.add(model)
+                }
+            })
+        }
+        return model;
+    },
+
+    parse: function (data) {
+        debugger;
+        return data.objects
+    },
+
+});
+
+decks.getInstance = _.memoize(function () {
+  return new decks();
+});
+
+module.exports = decks;
+
+//decks.jsx
+var DecksList = React.createClass({
+
+    render: function() {
+
+            return (
+              &lt;div className=""deck-list""&gt;
+              {
+                this.props.decks.map(function (deck) {
+                    var title = deck.name
+                    debugger;
+                  return (
+                    &lt;div key={deck.id} className=""note-summary""&gt;
+                      {title}
+                    &lt;/div&gt;
+                  );
+                })
+              }
+              &lt;/div&gt;
+            );
+      }
+});
+
+module.exports = DecksList;
+</code></pre>
+","Can you share your React component? Also, this article might be helpful: http://revelry.co/development/2014/11/11/getting-backbone-to-talk-to-react/"
+"29656743","I am having trouble passing in my backbone collection in to a react component","5","<p>my backbone collection collection doesn't populate when i just pass it in as props to a react component. I have tried first fetching the collection using componentDidmount and componentWillMount, but that still didn't populate the collection. If I test the code by setting a window variable pointing to DecksIndex and in the console tools call getInstance() and then fetch
+,the data loads fine. my code is as follows:</p>
+
+<pre><code> //router.js
+var DeckComponent = require(""./views/deck.jsx"")
+var DecksIndex = React.createFactory(require(""./views/decks.jsx""))
+var decksCollection = require(""./component/collections/decks.js"");
+
+module.exports = Backbone.Router.extend({
+
+    initialize: function(){
+        this.rootEl = document.getElementById('container');
+    },
+
+    routes: {
+        """":""index"",
+        ""decks/:id"":""deckShow""
+    },
+
+    index: function(){
+
+        var decks = new DecksIndex({decks: decksCollection.getInstance()});
+        this._swapView(decks)
+        console.log(""hooray!"")
+    },
+
+    deckShow: function(id){
+        //var deck = Flashcards.Collections.decks.getOrFetch(id);
+        var showDeck = new DeckComponent();
+        this._swapView(showDeck);
+    },
+
+    _swapView: function(view){
+        if (this.currentView) {
+            React.unmountComponentAtNode(this.rootEl);
+        }
+        this.currentView = view
+        React.render(view, document.getElementById('container'));
+    }   
+
+});
+
+
+//decks.js
+
+var deck = require('../models/deck.js')
+var decks = Backbone.Collection.extend({
+  url: ""/api/decks"",
+  model: deck,
+  getOrFetch: function(id){
+        var model = this.get(id);
+        var that = this;
+        if (model) {
+            model.fetch();
+        }else{
+            model = new deck({id: id})
+            model.fetch({
+                success: function(){
+                    that.add(model)
+                }
+            })
+        }
+        return model;
+    },
+
+    parse: function (data) {
+        debugger;
+        return data.objects
+    },
+
+});
+
+decks.getInstance = _.memoize(function () {
+  return new decks();
+});
+
+module.exports = decks;
+
+//decks.jsx
+var DecksList = React.createClass({
+
+    render: function() {
+
+            return (
+              &lt;div className=""deck-list""&gt;
+              {
+                this.props.decks.map(function (deck) {
+                    var title = deck.name
+                    debugger;
+                  return (
+                    &lt;div key={deck.id} className=""note-summary""&gt;
+                      {title}
+                    &lt;/div&gt;
+                  );
+                })
+              }
+              &lt;/div&gt;
+            );
+      }
+});
+
+module.exports = DecksList;
+</code></pre>
+","Have you tried `SetInitialProps` to create `decks` and then fetched them on `componentDidMount`?"
+"29656743","I am having trouble passing in my backbone collection in to a react component","5","<p>my backbone collection collection doesn't populate when i just pass it in as props to a react component. I have tried first fetching the collection using componentDidmount and componentWillMount, but that still didn't populate the collection. If I test the code by setting a window variable pointing to DecksIndex and in the console tools call getInstance() and then fetch
+,the data loads fine. my code is as follows:</p>
+
+<pre><code> //router.js
+var DeckComponent = require(""./views/deck.jsx"")
+var DecksIndex = React.createFactory(require(""./views/decks.jsx""))
+var decksCollection = require(""./component/collections/decks.js"");
+
+module.exports = Backbone.Router.extend({
+
+    initialize: function(){
+        this.rootEl = document.getElementById('container');
+    },
+
+    routes: {
+        """":""index"",
+        ""decks/:id"":""deckShow""
+    },
+
+    index: function(){
+
+        var decks = new DecksIndex({decks: decksCollection.getInstance()});
+        this._swapView(decks)
+        console.log(""hooray!"")
+    },
+
+    deckShow: function(id){
+        //var deck = Flashcards.Collections.decks.getOrFetch(id);
+        var showDeck = new DeckComponent();
+        this._swapView(showDeck);
+    },
+
+    _swapView: function(view){
+        if (this.currentView) {
+            React.unmountComponentAtNode(this.rootEl);
+        }
+        this.currentView = view
+        React.render(view, document.getElementById('container'));
+    }   
+
+});
+
+
+//decks.js
+
+var deck = require('../models/deck.js')
+var decks = Backbone.Collection.extend({
+  url: ""/api/decks"",
+  model: deck,
+  getOrFetch: function(id){
+        var model = this.get(id);
+        var that = this;
+        if (model) {
+            model.fetch();
+        }else{
+            model = new deck({id: id})
+            model.fetch({
+                success: function(){
+                    that.add(model)
+                }
+            })
+        }
+        return model;
+    },
+
+    parse: function (data) {
+        debugger;
+        return data.objects
+    },
+
+});
+
+decks.getInstance = _.memoize(function () {
+  return new decks();
+});
+
+module.exports = decks;
+
+//decks.jsx
+var DecksList = React.createClass({
+
+    render: function() {
+
+            return (
+              &lt;div className=""deck-list""&gt;
+              {
+                this.props.decks.map(function (deck) {
+                    var title = deck.name
+                    debugger;
+                  return (
+                    &lt;div key={deck.id} className=""note-summary""&gt;
+                      {title}
+                    &lt;/div&gt;
+                  );
+                })
+              }
+              &lt;/div&gt;
+            );
+      }
+});
+
+module.exports = DecksList;
+</code></pre>
+","yea, the component is at the very bottom of the posted code"
+"29656743","I am having trouble passing in my backbone collection in to a react component","5","<p>my backbone collection collection doesn't populate when i just pass it in as props to a react component. I have tried first fetching the collection using componentDidmount and componentWillMount, but that still didn't populate the collection. If I test the code by setting a window variable pointing to DecksIndex and in the console tools call getInstance() and then fetch
+,the data loads fine. my code is as follows:</p>
+
+<pre><code> //router.js
+var DeckComponent = require(""./views/deck.jsx"")
+var DecksIndex = React.createFactory(require(""./views/decks.jsx""))
+var decksCollection = require(""./component/collections/decks.js"");
+
+module.exports = Backbone.Router.extend({
+
+    initialize: function(){
+        this.rootEl = document.getElementById('container');
+    },
+
+    routes: {
+        """":""index"",
+        ""decks/:id"":""deckShow""
+    },
+
+    index: function(){
+
+        var decks = new DecksIndex({decks: decksCollection.getInstance()});
+        this._swapView(decks)
+        console.log(""hooray!"")
+    },
+
+    deckShow: function(id){
+        //var deck = Flashcards.Collections.decks.getOrFetch(id);
+        var showDeck = new DeckComponent();
+        this._swapView(showDeck);
+    },
+
+    _swapView: function(view){
+        if (this.currentView) {
+            React.unmountComponentAtNode(this.rootEl);
+        }
+        this.currentView = view
+        React.render(view, document.getElementById('container'));
+    }   
+
+});
+
+
+//decks.js
+
+var deck = require('../models/deck.js')
+var decks = Backbone.Collection.extend({
+  url: ""/api/decks"",
+  model: deck,
+  getOrFetch: function(id){
+        var model = this.get(id);
+        var that = this;
+        if (model) {
+            model.fetch();
+        }else{
+            model = new deck({id: id})
+            model.fetch({
+                success: function(){
+                    that.add(model)
+                }
+            })
+        }
+        return model;
+    },
+
+    parse: function (data) {
+        debugger;
+        return data.objects
+    },
+
+});
+
+decks.getInstance = _.memoize(function () {
+  return new decks();
+});
+
+module.exports = decks;
+
+//decks.jsx
+var DecksList = React.createClass({
+
+    render: function() {
+
+            return (
+              &lt;div className=""deck-list""&gt;
+              {
+                this.props.decks.map(function (deck) {
+                    var title = deck.name
+                    debugger;
+                  return (
+                    &lt;div key={deck.id} className=""note-summary""&gt;
+                      {title}
+                    &lt;/div&gt;
+                  );
+                })
+              }
+              &lt;/div&gt;
+            );
+      }
+});
+
+module.exports = DecksList;
+</code></pre>
+","so should I update the component before I call _swapView in the router?"
+"40466134","Setting up Jest and Enzyme to test React 15 cannot find module react/lib/ReactTestUtils","0","<p>I have a react project and am trying to setup some tests</p>
+
+<p>Due to the following setup guides / issues:</p>
+
+<ul>
+<li><a href=""https://github.com/facebook/jest/issues/1353"" rel=""nofollow noreferrer"">https://github.com/facebook/jest/issues/1353</a> ,</li>
+<li><a href=""https://github.com/facebook/react/issues/7386"" rel=""nofollow noreferrer"">https://github.com/facebook/react/issues/7386</a> ,</li>
+<li><a href=""http://facebook.github.io/jest/docs/tutorial-react.html#content"" rel=""nofollow noreferrer"">http://facebook.github.io/jest/docs/tutorial-react.html#content</a> ,</li>
+<li><a href=""http://airbnb.io/enzyme/"" rel=""nofollow noreferrer"">http://airbnb.io/enzyme/</a></li>
+</ul>
+
+<p>I have installed the following dependencies:</p>
+
+<ul>
+<li>react-addons-test-utils 15.3.2</li>
+<li>react 15.4.0-rc.4</li>
+<li>react-dom 15.4.0-rc-4</li>
+<li>jest 16.0.2</li>
+<li>babel-jest 16.0.0</li>
+<li>babel-preset-es2015 6.18.0 </li>
+<li>babel-preset-es2015-loose 7.0.0</li>
+<li>babel-preset-react 6.16.0</li>
+</ul>
+
+<p>My package.json contains the following Jest configuration:</p>
+
+<pre><code> ""jest"": {
+    ""bail"": false,
+    ""collectCoverage"": true,
+    ""collectCoverageFrom"": [
+      ""&lt;rootDir&gt;/src/**/*.js"",
+      ""!&lt;rootDir&gt;/node_modules/**""
+    ],
+    ""coverageDirectory"": ""coverage"",
+    ""coveragePathIgnorePatterns"": [
+      ""&lt;rootDir&gt;/node_modules""
+    ],
+    ""coverageThreshold"": {
+      ""global"": {
+        ""branches"": 50,
+        ""functions"": 50,
+        ""lines"": 50,
+        ""statements"": 50
+      }
+    },
+    ""globals"": {
+      ""SOURCEMAP"": true
+    },
+    ""modulePaths"": [
+      ""&lt;rootDir&gt;/src"",
+      ""&lt;rootDir&gt;/sass"",
+      ""&lt;rootDir&gt;/public"",
+      ""&lt;rootDir&gt;/node_modules""
+    ],
+    ""resetModules"": true,
+    ""testPathDirs"": [
+      ""&lt;rootDir&gt;/test""
+    ],
+    ""testRegex"": ""(/test/.*|\\.(test|spec))\\.(js|jsx)$"",
+    ""verbose"": true
+  }
+</code></pre>
+
+<p>I have my component (GenericButton) placed in <code>&lt;rootDir&gt;/components/buttons/GenericButton.js</code> and my test in <code>&lt;rootDir&gt;/test/componnets/buttons/GenericButtonTest.js</code> with contents as following:</p>
+
+<pre><code>import React from 'react';
+import GenericButton from 'components/buttons/GenericButton';
+import { shallow } from 'enzyme';
+import { shallowToJson } from 'enzyme-to-json';
+import ReactTestUtils from 'react-addons-test-utils'
+
+describe('Generic Button', () =&gt; {
+    test('Button action called when clicked', () =&gt; {
+        var clicked = false;
+        const component = shallow(
+            &lt;GenericButton action={() =&gt; {
+                clicked = true;
+            }}/&gt;
+        );
+
+        console.log(""Clicking the button!"");
+        ReactTestUtils.Simulate.click(component);
+        expect(clicked).toBeTruthy();
+    });
+})
+</code></pre>
+
+<p>My babelrc file is as follows:</p>
+
+<pre><code>{
+  ""presets"": [
+    ""es2015-loose"",
+    ""react"",
+    ""stage-0""
+  ],
+  ""plugins"": [
+    ""babel-root-slash-import"",
+    ""transform-decorators-legacy"",
+    ""react-hot-loader/babel"",
+    ""transform-runtime""
+  ],
+  ""compact"": true,
+  ""ignore"": [
+    ""/node_modules/(?!react-number-input)""
+  ]
+}
+</code></pre>
+
+<p>when I run my test however, I get the following error:</p>
+
+<pre><code>&gt; admin-console@4.1.0 test C:\path\to\project
+&gt; jest
+
+ FAIL  test\components\buttons\GenericButtonTest.js
+  ● Test suite failed to run
+
+    Cannot find module 'react/lib/ReactTestUtils' from 'index.js'
+
+      at Resolver.resolveModule (node_modules\jest-resolve\build\index.js:144:17)
+      at Object.&lt;anonymous&gt; (node_modules\react-addons-test-utils\index.js:1:107)
+      at node_modules\enzyme\build\react-compat.js:128:19
+
+----------|----------|----------|----------|----------|----------------|
+File      |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+----------|----------|----------|----------|----------|----------------|
+All files |  Unknown |  Unknown |  Unknown |  Unknown |                |
+----------|----------|----------|----------|----------|----------------|
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        5.843s
+Ran all test suites.
+  console.error node_modules\enzyme\build\react-compat.js:131
+    react-addons-test-utils is an implicit dependency in order to support react@0.13-14. Please add the appropriate version to your devDependencies. See https://github.com/airbnb/enzyme#installation
+
+npm ERR! Test failed.  See above for more details.
+</code></pre>
+
+<p>What can I do to make this simple test pass?</p>
+
+<hr>
+
+<p>Edit: The file react/lib/ReactTestUtils which react-addons-test-utils is requiring is not in the node_modules/react/lib folder. </p>
+
+<p>This was fixed by upgrading react-addons-test-utils to 15.4.0-rc.3 but then I got:</p>
+
+<pre><code>TypeError: Cannot read property '__reactInternalInstance$t476n6b4jes0zxw0n18vbzkt9' of undefined
+
+  at getClosestInstanceFromNode (node_modules\react-dom\lib\ReactDOMComponentTree.js:106:11)
+  at Object.getInstanceFromNode (node_modules\react-dom\lib\ReactDOMComponentTree.js:140:14)
+  at Object.click (node_modules\react-dom\lib\ReactTestUtils.js:326:74)
+  at Object.&lt;anonymous&gt; (test\components\buttons\GenericButtonTest.js:17:67)
+</code></pre>
+",""
+"47886189","Testing a react component that is wrapped in react hot keys","0","<p>Hi I am quite new to react. I have implemented key board shortcuts in my react application using react-hotkeys.</p>
+
+<p>The plugin basically asks to wrap rendered code inside following tags </p>
+
+<pre><code>&lt;Hotkeys&gt;
+// Component render output
+&lt;/Hotkeys&gt;
+</code></pre>
+
+<p>Now how to test this kind of components? I wrote a test case like this</p>
+
+<pre><code>it('Shows text passed', () =&gt; {
+ var expected = [1,2,3,0];
+ const wrapper = renderer.create(&lt;HomePageRow title={'Home Row Title'}cards={[]}/&gt;);
+ const inst = wrapper.getInstance();
+ expect(inst.render()).toMatchSnapshot();
+});
+</code></pre>
+
+<p>It gives following error</p>
+
+<pre><code>Console
+
+console.error node_modules\react-test-renderer\cjs\react-test-renderer.development.js:5530
+  The above error occurred in the &lt;HotKeys&gt; component:
+      in HotKeys (at homePageRow.js:68)
+      in HomePageRow (at home.test.js:14)
+
+  Consider adding an error boundary to your tree to customize error handling behavior.
+</code></pre>
+
+<p>What is this error boundary? How to ignore HOCs in testing? Did anyone implement react-hotkeys plugin and wrote tests to your component? If so can you please help me how to write them?</p>
+",""
+"49333062","Receiving Error: this.props.toggle() is not a function in react","2","<p>I am trying to call parent component function from child component but I am getting error:  </p>
+
+<blockquote>
+  <p>not a function  </p>
+</blockquote>
+
+<p>But its working fine if I call same function from parent component. You can see my code I am calling function <code>this.props.toggle()</code> from child component which is corresponds to <code>toggleCallModel</code> function in parent component.</p>
+
+<pre><code>Here is my code : 
+
+    Child Component : 
+    import React from 'react';
+    import Dialog from 'material-ui/Dialog';
+    import FlatButton from 'material-ui/FlatButton';
+    import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
+    import Avatar from ""material-ui/Avatar"";
+
+    /**
+     * A modal dialog can only be closed by selecting one of the actions.
+     */
+
+    class CallModal extends React.Component {
+
+        constructor(props) {
+            super(props);
+            this.state = {
+                open: props.open,
+                title: props.title,
+                conn: props.conn,
+                buttonLabel: ""HangUp"",
+                callTime: 0,
+            };
+            this.pickCall = this.pickCall.bind(this);
+            this.pickCancel = this.pickCancel.bind(this);
+            this.hangUp = this.hangUp.bind(this);
+            this.handle = this.handle.bind(this);
+        }
+
+        componentWillMount() {
+            let self = this;
+            let callProgressInterval = null;
+            this.setState({
+                buttonLabel: (!ValuexSDK.getInstance().isCallActive() &amp;&amp; !ValuexSDK.getInstance().isCaller()) ? ""Accept"" : ""HangUp""
+                ,
+                title: ValuexSDK.getInstance().isCallActive() ? ""Call in-progress.."" : (ValuexSDK.getInstance().isCaller() ? ""Calling.."" : ""Incoming call.."")
+            });
+            ValuexSDK.getInstance().subscribeEvents(""onConnect"", function () {
+                self.setState({buttonLabel: ""HangUp"", title: ""Call in-progress..""});
+                self.updateCallTime(self, callProgressInterval);
+            });
+
+            ValuexSDK.getInstance().subscribeEvents(""onDisConnect"", function () {
+                self.props.toggle(false);
+                self.setState({buttonLabel: ""Accept""});
+                clearInterval(callProgressInterval);
+            });
+
+            ValuexSDK.getInstance().subscribeEvents(""onCancel"", function () {
+                self.props.toggle(false);
+                self.setState({buttonLabel: ""Accept""});
+            });
+        }
+
+        updateCallTime(self, callProgressInterval) {
+            callProgressInterval = setInterval(function () {
+                self.setState({
+                    callTime: ValuexSDK.getInstance().getCallTime(),
+                });
+            }, 1000);
+        }
+
+        componentWillReceiveProps(props) {
+            this.setState({open: props.open});
+            this.setState({
+                buttonLabel: (!ValuexSDK.getInstance().isCallActive() &amp;&amp; !ValuexSDK.getInstance().isCaller()) ? ""Accept"" : ""HangUp""
+                ,
+                title: ValuexSDK.getInstance().isCallActive() ? ""Call in-progress.."" : (ValuexSDK.getInstance().isCaller() ? ""Calling.."" : ""Incoming call.."")
+            });
+        }
+
+        pickCall() {
+            ValuexSDK.getInstance().accept(this.props.conn);
+        };
+
+        pickCancel() {
+            ValuexSDK.getInstance().reject(this.props.conn);
+            this.props.toggle(false);
+        };
+
+        handle() {
+            (!ValuexSDK.getInstance().isCallActive() &amp;&amp; !ValuexSDK.getInstance().isCaller()) ?
+                this.pickCall() : this.hangUp();
+
+        };
+
+        hangUp() {
+            ValuexSDK.getInstance().disconnectAll();
+            this.props.toggle(false);
+        };
+
+        render() {
+            const closeImg = {cursor: 'pointer', float: 'right', marginTop: '5px', width: '20px'};
+
+            const actions = [
+                &lt;FlatButton
+                    label={this.state.buttonLabel}
+                    primary={true}
+                    onClick={this.handle}
+                /&gt;
+            ];
+
+            if (!ValuexSDK.getInstance().isCallActive() &amp;&amp; !ValuexSDK.getInstance().isCaller()) {
+                actions.push(&lt;FlatButton
+                    label=""Reject""
+                    primary={true}
+                    onClick={this.pickCancel}
+                /&gt;);
+            }
+
+            let style = {};
+
+            if (undefined !== ValuexSDK.getInstance().getStyle()) {
+                style.backgroundColor = ValuexSDK.getInstance().getStyle().primaryColor;
+                style.color = ValuexSDK.getInstance().getStyle().primaryTextColor
+            }
+
+            let callerPic = ValuexSDK.getInstance().getCaller() ?
+                ValuexSDK.getInstance().getCaller()['profile_pic'] : '';
+
+            let calleePic = ValuexSDK.getInstance().getCallee() ?
+                ValuexSDK.getInstance().getCallee()['profile_pic'] : '';
+
+            let callerName = ValuexSDK.getInstance().getCaller() ?
+                ValuexSDK.getInstance().getCaller()['name'] : '';
+
+            let calleeName = ValuexSDK.getInstance().getCallee() ?
+                ValuexSDK.getInstance().getCallee()['name'] : '';
+
+            return (
+                &lt;MuiThemeProvider&gt;
+                    &lt;div&gt;
+                        &lt;Dialog className=""vx-call-dialog""
+                                titleClassName=""va-call-dialog-title""
+                                title={&lt;div&gt;
+                                    {this.state.title}
+                                    {ValuexSDK.getInstance().isCallActive() ?
+                                        &lt;img onClick={() =&gt; this.props.toggle(false)}
+                                             src='https://d30y9cdsu7xlg0.cloudfront.net/png/53504-200.png'
+                                             style={closeImg}/&gt; : ''}
+                                &lt;/div&gt;}
+                                titleStyle={style}
+                                actions={actions}
+                                modal={true}
+                                open={this.state.open}
+                        &gt;
+                            &lt;div&gt;
+                                &lt;div className=""va-call-dialog-avatar-box""&gt;&lt;Avatar size={60}
+                                                                                   src={callerPic}/&gt;
+                                    &lt;h4&gt;{callerName}&lt;/h4&gt;&lt;/div&gt;
+                                &lt;div className=""va-call-dialog-avatar-box"" style={{marginTop: '50px'}}&gt;
+                                    &lt;p&gt;{this.state.callTime}&lt;/p&gt;
+                                    =========&gt;
+                                &lt;/div&gt;
+                                &lt;div className=""va-call-dialog-avatar-box""&gt;&lt;Avatar size={60}
+                                                                                   src={calleePic}/&gt;
+                                    &lt;h4&gt;{calleeName}&lt;/h4&gt;&lt;/div&gt;
+                            &lt;/div&gt;
+                        &lt;/Dialog&gt;
+
+                    &lt;/div&gt;
+                &lt;/MuiThemeProvider&gt;
+            );
+        }
+    }
+
+
+    export default CallModal;
+
+    Parent Compoent : 
+
+    import React from 'react';
+    import './service/src/sdk.js';
+    import OnlineList from ""./view/List"";
+    import {ValuexSDK} from ""./service/src/sdk"";
+    import {Section} from ""./view/Common"";
+    import OnlineUsers from ""./OnlineUsers"";
+    import CallModal from ""./service/src/CallModal"";
+
+
+    // Container
+    class App extends React.Component {
+        constructor(props) {
+
+            super(props);
+            this.state = {
+                showOnlineUser : false,
+                showCallModel : false
+            };
+
+            this.toggleOnlineUser = this.toggleOnlineUser.bind(this);
+            this.toggleCallModel = this.toggleCallModel.bind(this);
+
+        }
+
+        toggleOnlineUser(value) {
+            this.setState({showOnlineUser:value});
+        }
+
+        toggleCallModel(value) {
+            this.setState({showCallModel:value});
+        }
+
+        render() {
+            let style = {};
+
+            if (undefined !== ValuexSDK.getInstance().getStyle()) {
+                style.backgroundColor = ValuexSDK.getInstance().getStyle().primaryColor;
+                style.color = ValuexSDK.getInstance().getStyle().primaryTextColor
+            }
+
+            return (&lt;div&gt;
+                    &lt;CallModal open={this.state.showCallModel}
+                               toggle={this.toggleCallModel}/&gt;
+                    &lt;OnlineUsers open={this.state.showOnlineUser}
+                                 toggleOnlineUser={this.toggleOnlineUser}/&gt;
+                &lt;/div&gt;
+            );
+        };
+    }
+
+    export default App;
+</code></pre>
+","Which line raises the error?"
+"49333062","Receiving Error: this.props.toggle() is not a function in react","2","<p>I am trying to call parent component function from child component but I am getting error:  </p>
+
+<blockquote>
+  <p>not a function  </p>
+</blockquote>
+
+<p>But its working fine if I call same function from parent component. You can see my code I am calling function <code>this.props.toggle()</code> from child component which is corresponds to <code>toggleCallModel</code> function in parent component.</p>
+
+<pre><code>Here is my code : 
+
+    Child Component : 
+    import React from 'react';
+    import Dialog from 'material-ui/Dialog';
+    import FlatButton from 'material-ui/FlatButton';
+    import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
+    import Avatar from ""material-ui/Avatar"";
+
+    /**
+     * A modal dialog can only be closed by selecting one of the actions.
+     */
+
+    class CallModal extends React.Component {
+
+        constructor(props) {
+            super(props);
+            this.state = {
+                open: props.open,
+                title: props.title,
+                conn: props.conn,
+                buttonLabel: ""HangUp"",
+                callTime: 0,
+            };
+            this.pickCall = this.pickCall.bind(this);
+            this.pickCancel = this.pickCancel.bind(this);
+            this.hangUp = this.hangUp.bind(this);
+            this.handle = this.handle.bind(this);
+        }
+
+        componentWillMount() {
+            let self = this;
+            let callProgressInterval = null;
+            this.setState({
+                buttonLabel: (!ValuexSDK.getInstance().isCallActive() &amp;&amp; !ValuexSDK.getInstance().isCaller()) ? ""Accept"" : ""HangUp""
+                ,
+                title: ValuexSDK.getInstance().isCallActive() ? ""Call in-progress.."" : (ValuexSDK.getInstance().isCaller() ? ""Calling.."" : ""Incoming call.."")
+            });
+            ValuexSDK.getInstance().subscribeEvents(""onConnect"", function () {
+                self.setState({buttonLabel: ""HangUp"", title: ""Call in-progress..""});
+                self.updateCallTime(self, callProgressInterval);
+            });
+
+            ValuexSDK.getInstance().subscribeEvents(""onDisConnect"", function () {
+                self.props.toggle(false);
+                self.setState({buttonLabel: ""Accept""});
+                clearInterval(callProgressInterval);
+            });
+
+            ValuexSDK.getInstance().subscribeEvents(""onCancel"", function () {
+                self.props.toggle(false);
+                self.setState({buttonLabel: ""Accept""});
+            });
+        }
+
+        updateCallTime(self, callProgressInterval) {
+            callProgressInterval = setInterval(function () {
+                self.setState({
+                    callTime: ValuexSDK.getInstance().getCallTime(),
+                });
+            }, 1000);
+        }
+
+        componentWillReceiveProps(props) {
+            this.setState({open: props.open});
+            this.setState({
+                buttonLabel: (!ValuexSDK.getInstance().isCallActive() &amp;&amp; !ValuexSDK.getInstance().isCaller()) ? ""Accept"" : ""HangUp""
+                ,
+                title: ValuexSDK.getInstance().isCallActive() ? ""Call in-progress.."" : (ValuexSDK.getInstance().isCaller() ? ""Calling.."" : ""Incoming call.."")
+            });
+        }
+
+        pickCall() {
+            ValuexSDK.getInstance().accept(this.props.conn);
+        };
+
+        pickCancel() {
+            ValuexSDK.getInstance().reject(this.props.conn);
+            this.props.toggle(false);
+        };
+
+        handle() {
+            (!ValuexSDK.getInstance().isCallActive() &amp;&amp; !ValuexSDK.getInstance().isCaller()) ?
+                this.pickCall() : this.hangUp();
+
+        };
+
+        hangUp() {
+            ValuexSDK.getInstance().disconnectAll();
+            this.props.toggle(false);
+        };
+
+        render() {
+            const closeImg = {cursor: 'pointer', float: 'right', marginTop: '5px', width: '20px'};
+
+            const actions = [
+                &lt;FlatButton
+                    label={this.state.buttonLabel}
+                    primary={true}
+                    onClick={this.handle}
+                /&gt;
+            ];
+
+            if (!ValuexSDK.getInstance().isCallActive() &amp;&amp; !ValuexSDK.getInstance().isCaller()) {
+                actions.push(&lt;FlatButton
+                    label=""Reject""
+                    primary={true}
+                    onClick={this.pickCancel}
+                /&gt;);
+            }
+
+            let style = {};
+
+            if (undefined !== ValuexSDK.getInstance().getStyle()) {
+                style.backgroundColor = ValuexSDK.getInstance().getStyle().primaryColor;
+                style.color = ValuexSDK.getInstance().getStyle().primaryTextColor
+            }
+
+            let callerPic = ValuexSDK.getInstance().getCaller() ?
+                ValuexSDK.getInstance().getCaller()['profile_pic'] : '';
+
+            let calleePic = ValuexSDK.getInstance().getCallee() ?
+                ValuexSDK.getInstance().getCallee()['profile_pic'] : '';
+
+            let callerName = ValuexSDK.getInstance().getCaller() ?
+                ValuexSDK.getInstance().getCaller()['name'] : '';
+
+            let calleeName = ValuexSDK.getInstance().getCallee() ?
+                ValuexSDK.getInstance().getCallee()['name'] : '';
+
+            return (
+                &lt;MuiThemeProvider&gt;
+                    &lt;div&gt;
+                        &lt;Dialog className=""vx-call-dialog""
+                                titleClassName=""va-call-dialog-title""
+                                title={&lt;div&gt;
+                                    {this.state.title}
+                                    {ValuexSDK.getInstance().isCallActive() ?
+                                        &lt;img onClick={() =&gt; this.props.toggle(false)}
+                                             src='https://d30y9cdsu7xlg0.cloudfront.net/png/53504-200.png'
+                                             style={closeImg}/&gt; : ''}
+                                &lt;/div&gt;}
+                                titleStyle={style}
+                                actions={actions}
+                                modal={true}
+                                open={this.state.open}
+                        &gt;
+                            &lt;div&gt;
+                                &lt;div className=""va-call-dialog-avatar-box""&gt;&lt;Avatar size={60}
+                                                                                   src={callerPic}/&gt;
+                                    &lt;h4&gt;{callerName}&lt;/h4&gt;&lt;/div&gt;
+                                &lt;div className=""va-call-dialog-avatar-box"" style={{marginTop: '50px'}}&gt;
+                                    &lt;p&gt;{this.state.callTime}&lt;/p&gt;
+                                    =========&gt;
+                                &lt;/div&gt;
+                                &lt;div className=""va-call-dialog-avatar-box""&gt;&lt;Avatar size={60}
+                                                                                   src={calleePic}/&gt;
+                                    &lt;h4&gt;{calleeName}&lt;/h4&gt;&lt;/div&gt;
+                            &lt;/div&gt;
+                        &lt;/Dialog&gt;
+
+                    &lt;/div&gt;
+                &lt;/MuiThemeProvider&gt;
+            );
+        }
+    }
+
+
+    export default CallModal;
+
+    Parent Compoent : 
+
+    import React from 'react';
+    import './service/src/sdk.js';
+    import OnlineList from ""./view/List"";
+    import {ValuexSDK} from ""./service/src/sdk"";
+    import {Section} from ""./view/Common"";
+    import OnlineUsers from ""./OnlineUsers"";
+    import CallModal from ""./service/src/CallModal"";
+
+
+    // Container
+    class App extends React.Component {
+        constructor(props) {
+
+            super(props);
+            this.state = {
+                showOnlineUser : false,
+                showCallModel : false
+            };
+
+            this.toggleOnlineUser = this.toggleOnlineUser.bind(this);
+            this.toggleCallModel = this.toggleCallModel.bind(this);
+
+        }
+
+        toggleOnlineUser(value) {
+            this.setState({showOnlineUser:value});
+        }
+
+        toggleCallModel(value) {
+            this.setState({showCallModel:value});
+        }
+
+        render() {
+            let style = {};
+
+            if (undefined !== ValuexSDK.getInstance().getStyle()) {
+                style.backgroundColor = ValuexSDK.getInstance().getStyle().primaryColor;
+                style.color = ValuexSDK.getInstance().getStyle().primaryTextColor
+            }
+
+            return (&lt;div&gt;
+                    &lt;CallModal open={this.state.showCallModel}
+                               toggle={this.toggleCallModel}/&gt;
+                    &lt;OnlineUsers open={this.state.showOnlineUser}
+                                 toggleOnlineUser={this.toggleOnlineUser}/&gt;
+                &lt;/div&gt;
+            );
+        };
+    }
+
+    export default App;
+</code></pre>
+","wherever I call function this.props.toggle(false) or self.props.toggle(false)."
+"49530023","Use google-libphonenumber in angular reactive forms validator","0","<p>This is a basic use case for using this library. I need to verify the number if it is valid. I use angular <a href=""https://angular.io/guide/reactive-forms"" rel=""nofollow noreferrer"">reactive forms</a> <a href=""https://angular.io/guide/form-validation"" rel=""nofollow noreferrer"">custom validators</a>.<br>
+Validator is in file: <code>validators/phone-number.validator.ts</code><br>
+First step is to get google-libphonenumber PhoneNumberUtil instance</p>
+
+<p>Current state of my code is:</p>
+
+<pre class=""lang-js prettyprint-override""><code>import { ValidatorFn, AbstractControl } from '@angular/forms';
+import phoneUtil = require('google-libphonenumber');
+const phoneUtilInstance = phoneUtil.PhoneNumberUtil.getInstance();
+
+export function PhoneNumberValidator(): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } =&gt; {
+    if (!phoneUtilInstance.isValidNumber(control.value)) {
+      return { 'wrongNumber': { value: control.value } };
+    }
+    return null;
+  }
+}
+</code></pre>
+
+<p>Usage in reactive form (file <code>contact.component.ts</code>):</p>
+
+<pre><code>import { PhoneNumberValidator } from '@app/validators';
+...
+ngOnInit(): void { ...
+this.editPhoneForm = this.formBuilder.group({
+  id: [''],
+  phone: ['', [
+    Validators.minLength(3),
+    PhoneNumberValidator()
+  ]],
+}); ...
+</code></pre>
+
+<p>This code can be build and executed, however, after launch I get:</p>
+
+<pre><code>ERROR TypeError: a.getCountryCodeOrDefault is not a function
+at i18n.phonenumbers.PhoneNumberUtil.getRegionCodeForNumber (VM145038 libphonenumber.js:4418)
+</code></pre>
+
+<p><strong>How to properly use this library in the Angular project as a validator?</strong></p>
+
+<p><em>Declaration</em><br>
+This question is similar to <a href=""https://stackoverflow.com/questions/49293864/how-to-use-google-libphonenumber-in-typescript"">How to use Google libphonenumber in Typescript?</a> but in this case it is specifically about the Angular project.</p>
+",""
+"50156623","button click inside an item in recyclerview refreshes entire activity","2","<p>I'm implementing a <code>RecyclerView</code> which has items which have a delete button, the data comes from Firebase and the delete button changes a ""saved"" value in firebase. this recyclerview is present in the third menu of the bottom navigation bar of the main activity.</p>
+
+<p>When I click on the delete button, the entire activity restarts and the activity starts with the first menu of the bottom navigation bar</p>
+
+<p>How do I stop this restarting action?</p>
+
+<p>I'm attaching the <code>RecyclerView</code> adapter code below:</p>
+
+<pre><code>package com.demo.ash.demoapp
+
+import android.content.Intent
+import android.os.Environment
+import android.support.v7.widget.RecyclerView
+import android.transition.TransitionManager
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import kotlinx.android.synthetic.main.offline_client.view.*
+import kotlinx.android.synthetic.main.activity_main.*
+import org.json.JSONObject
+import java.io.File
+
+/**
+ * Created by ashwin on 3/5/2018.
+ */
+class OfflineClientAdapter(val list: MutableList&lt;Client&gt;, val clientIDList:MutableList&lt;String&gt;): RecyclerView.Adapter&lt;OfflineClientViewHolder&gt;() {
+    lateinit var vg: ViewGroup
+
+    override fun getItemCount(): Int {
+        return list.size
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): OfflineClientViewHolder {
+        val layoutInflator = LayoutInflater.from(parent?.context)
+        vg = parent!!
+        val cellForRow = layoutInflator.inflate(R.layout.offline_client, parent, false)
+        return OfflineClientViewHolder(cellForRow, """")
+    }
+
+
+    override fun onBindViewHolder(holder: OfflineClientViewHolder?, position: Int) {
+        val row = list.get(position)
+        holder?.view?.NameView?.text = row.cname
+        holder?.view?.PhnumView?.text = row.cphonenum
+
+        holder?.clientID = clientIDList[position]
+
+        var encodedimage = IOHelper.stringToBitmap(row.cimage)
+        holder?.view?.client_image?.setImageBitmap(encodedimage)
+
+        val user = FirebaseAuth.getInstance().currentUser
+
+        var database = FirebaseDatabase.getInstance().getReference(""Users"").child(user?.phoneNumber)
+                .child(""Clients"").child(clientIDList[position])
+
+        holder?.view?.delete_client?.setOnClickListener {
+            val path = Environment.getExternalStorageDirectory()
+            val dir = File(path.toString() + ""/pranjal/saved_clients.txt"")
+            var clients = IOHelper.stringFromFile(dir)
+
+            var t = JSONObject(clients)
+
+            t.remove(clientIDList[position])
+
+            database.child(""saved"").setValue(false)
+        }
+    }
+}
+
+class OfflineClientViewHolder(val view: View, var clientID: String): RecyclerView.ViewHolder(view) {
+    init{
+        view.setOnClickListener {
+            val intent = Intent(view.context, OfflinePatientListActivity::class.java)
+            intent.putExtra(""clientID"",clientID)
+            view.context.startActivity(intent)
+        }
+    }
+}
+</code></pre>
+","If it is written in Kotlyn please tag your question accordingly"
+"50156623","button click inside an item in recyclerview refreshes entire activity","2","<p>I'm implementing a <code>RecyclerView</code> which has items which have a delete button, the data comes from Firebase and the delete button changes a ""saved"" value in firebase. this recyclerview is present in the third menu of the bottom navigation bar of the main activity.</p>
+
+<p>When I click on the delete button, the entire activity restarts and the activity starts with the first menu of the bottom navigation bar</p>
+
+<p>How do I stop this restarting action?</p>
+
+<p>I'm attaching the <code>RecyclerView</code> adapter code below:</p>
+
+<pre><code>package com.demo.ash.demoapp
+
+import android.content.Intent
+import android.os.Environment
+import android.support.v7.widget.RecyclerView
+import android.transition.TransitionManager
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import kotlinx.android.synthetic.main.offline_client.view.*
+import kotlinx.android.synthetic.main.activity_main.*
+import org.json.JSONObject
+import java.io.File
+
+/**
+ * Created by ashwin on 3/5/2018.
+ */
+class OfflineClientAdapter(val list: MutableList&lt;Client&gt;, val clientIDList:MutableList&lt;String&gt;): RecyclerView.Adapter&lt;OfflineClientViewHolder&gt;() {
+    lateinit var vg: ViewGroup
+
+    override fun getItemCount(): Int {
+        return list.size
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): OfflineClientViewHolder {
+        val layoutInflator = LayoutInflater.from(parent?.context)
+        vg = parent!!
+        val cellForRow = layoutInflator.inflate(R.layout.offline_client, parent, false)
+        return OfflineClientViewHolder(cellForRow, """")
+    }
+
+
+    override fun onBindViewHolder(holder: OfflineClientViewHolder?, position: Int) {
+        val row = list.get(position)
+        holder?.view?.NameView?.text = row.cname
+        holder?.view?.PhnumView?.text = row.cphonenum
+
+        holder?.clientID = clientIDList[position]
+
+        var encodedimage = IOHelper.stringToBitmap(row.cimage)
+        holder?.view?.client_image?.setImageBitmap(encodedimage)
+
+        val user = FirebaseAuth.getInstance().currentUser
+
+        var database = FirebaseDatabase.getInstance().getReference(""Users"").child(user?.phoneNumber)
+                .child(""Clients"").child(clientIDList[position])
+
+        holder?.view?.delete_client?.setOnClickListener {
+            val path = Environment.getExternalStorageDirectory()
+            val dir = File(path.toString() + ""/pranjal/saved_clients.txt"")
+            var clients = IOHelper.stringFromFile(dir)
+
+            var t = JSONObject(clients)
+
+            t.remove(clientIDList[position])
+
+            database.child(""saved"").setValue(false)
+        }
+    }
+}
+
+class OfflineClientViewHolder(val view: View, var clientID: String): RecyclerView.ViewHolder(view) {
+    init{
+        view.setOnClickListener {
+            val intent = Intent(view.context, OfflinePatientListActivity::class.java)
+            intent.putExtra(""clientID"",clientID)
+            view.context.startActivity(intent)
+        }
+    }
+}
+</code></pre>
+","@Juan I'm new to StackOverflow, sorry"
+"50417807","Jest snapshot is null after react instance is updated","1","<p>I would like to register a snapshot of a component after a button onPress function is run.</p>
+
+<p>This is my testsuite:</p>
+
+<pre class=""lang-js prettyprint-override""><code>describe('Login component', () =&gt; {
+    // This runs fine. Snapshot OK
+    it('Renders correctly', () =&gt; {
+        const tree = renderer.create(&lt;Login /&gt;).toJSON()
+        expect(tree).toMatchSnapshot()
+    })
+
+    // This does not run fine. Snapshot is 'null'
+    it('Contains error message when submit with empty fields', () =&gt; {
+        const login = renderer.create(&lt;Login /&gt;)
+        const instance = login.getInstance()
+
+        // Submit the form (default values = empty)
+        instance.submit()
+
+        // Force update (rerender) the component
+        login.update()
+        expect(login.toJSON()).toMatchSnapshot()
+
+    })
+})
+</code></pre>
+
+<p>The testsuite above creates two snapshots. The first test snapshots the component's structure under default conditions, and seems to register correctly. </p>
+
+<p>The second test should record the component structure after a submit has been run, showing error messages alerting the user that the form cannot be submitted with empty fields.</p>
+
+<p>Unfortunately this does not work as expected as after <code>login.update()</code> is run, <code>login.toJSON()</code> returns <code>null</code>. </p>
+
+<p>I'm obviously doing something wrong, but what? <a href=""https://reactjs.org/docs/test-renderer.html#testrendererupdate"" rel=""nofollow noreferrer"">The docs</a> seem to indicate that <code>update</code> does what I think it does.</p>
+","you have to call login.update(<Login />) instead of login.update()"
+"50868852","Sending Events to JavaScript from android react-native RCTDeviceEventEmitter","0","<p>I am trying to receive an event from android side on <strong>location</strong> update. Here is my code:</p>
+
+<pre><code>package com.prop;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.location.Location;
+import android.support.v4.content.LocalBroadcastManager;
+
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
+
+public class GeoLocationModule extends ReactContextBaseJavaModule {
+    public GeoLocationModule(final ReactApplicationContext reactContext) {
+        super(reactContext);
+        BroadcastReceiver geoLocationReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Location message = intent.getParcelableExtra(""message"");
+                WritableMap map = Arguments.createMap();
+                WritableMap coordMap = Arguments.createMap();
+                coordMap.putDouble(""latitude"", message.getLatitude());
+                coordMap.putDouble(""longitude"", message.getLongitude());
+                coordMap.putDouble(""accuracy"", message.getAccuracy());
+                coordMap.putDouble(""altitude"", message.getAltitude());
+                coordMap.putDouble(""heading"", message.getBearing());
+                coordMap.putDouble(""speed"", message.getSpeed());
+
+                map.putMap(""coords"", coordMap);
+                map.putDouble(""timestamp"", message.getTime());
+
+                reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(""updateLocation"", map);
+
+            }
+        };
+        LocalBroadcastManager.getInstance(getReactApplicationContext()).registerReceiver(geoLocationReceiver, new IntentFilter(""GeoLocationUpdate""));
+    }
+
+    @Override
+    public String getName() {
+        return ""GeoLocation"";
+    }
+
+    @ReactMethod
+    public void startService(Promise promise) {
+        String result = ""Success"";
+        try {
+            Intent intent = new Intent(GeoLocationService.FOREGROUND);
+            intent.setClass(this.getReactApplicationContext(), GeoLocationService.class);
+            getReactApplicationContext().startService(intent);
+        } catch (Exception e) {
+            promise.reject(e);
+            return;
+        }
+        promise.resolve(result);
+    }
+
+    @ReactMethod
+    public void stopService(Promise promise) {
+        String result = ""Success"";
+        try {
+            Intent intent = new Intent(GeoLocationService.FOREGROUND);
+            intent.setClass(this.getReactApplicationContext(), GeoLocationService.class);
+            this.getReactApplicationContext().stopService(intent);
+        } catch (Exception e) {
+            promise.reject(e);
+            return;
+        }
+        promise.resolve(result);
+    }
+
+    private void sendEvent(Location message) {
+        WritableMap map = Arguments.createMap();
+        WritableMap coordMap = Arguments.createMap();
+        coordMap.putDouble(""latitude"", message.getLatitude());
+        coordMap.putDouble(""longitude"", message.getLongitude());
+        coordMap.putDouble(""accuracy"", message.getAccuracy());
+        coordMap.putDouble(""altitude"", message.getAltitude());
+        coordMap.putDouble(""heading"", message.getBearing());
+        coordMap.putDouble(""speed"", message.getSpeed());
+
+        map.putMap(""coords"", coordMap);
+        map.putDouble(""timestamp"", message.getTime());
+
+        getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(""updateLocation"", map);
+    }
+}
+</code></pre>
+
+<p>and on React native side <strong>DeviceEventEmitter</strong>  is like :</p>
+
+<pre><code>/**
+ * Sample React Native App
+ * https://github.com/facebook/react-native
+ * @flow
+ */
+
+import React, { Component } from 'react';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  DeviceEventEmitter
+} from 'react-native';
+
+const instructions = Platform.select({
+  ios: 'Press Cmd+R to reload,\n' +
+    'Cmd+D or shake for dev menu',
+  android: 'Double tap R on your keyboard to reload,\n' +
+    'Shake or press menu button for dev menu',
+});
+
+const updateLocation = (geoData) =&gt; {
+  alert(geoData)
+};
+
+DeviceEventEmitter.addListener('onSessionConnect', updateLocation);
+
+type Props = {};
+export default class App extends Component&lt;Props&gt; {
+  componentWillMount() {
+    alert('test');
+    DeviceEventEmitter.addListener('updateLocation', function (geoData) {
+      // handle event.
+      alert(geoData);
+    });
+  }
+
+  render() {
+    return (
+      &lt;View style={styles.container}&gt;
+        &lt;Text style={styles.welcome}&gt;
+          Welcome to React Native!
+        &lt;/Text&gt;
+        &lt;Text style={styles.instructions}&gt;
+          To get started, edit App.js
+        &lt;/Text&gt;
+        &lt;Text style={styles.instructions}&gt;
+          {instructions}
+        &lt;/Text&gt;
+      &lt;/View&gt;
+    );
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF',
+  },
+  welcome: {
+    fontSize: 20,
+    textAlign: 'center',
+    margin: 10,
+  },
+  instructions: {
+    textAlign: 'center',
+    color: '#333333',
+    marginBottom: 5,
+  },
+});
+</code></pre>
+
+<p>I am unable to figure out why its not triggering on location update my service class is :</p>
+
+<pre><code>package com.prop;
+
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
+import android.R;
+
+public class GeoLocationService extends Service {
+    public static final String FOREGROUND = ""com.prop.location.FOREGROUND"";
+    private static int GEOLOCATION_NOTIFICATION_ID = 12345689;
+    LocationManager locationManager = null;
+    LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            GeoLocationService.this.sendMessage(location);
+        }
+
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) {}
+
+        @Override
+        public void onProviderEnabled(String s) {}
+
+        @Override
+        public void onProviderDisabled(String s) {}
+    };
+
+    @Override
+    @TargetApi(Build.VERSION_CODES.M)
+    public void onCreate() {
+        locationManager = getSystemService(LocationManager.class);
+
+        int permissionCheck = ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 1, locationListener);
+        }
+    }
+
+    private void sendMessage(Location location) {
+        try {
+            Intent intent = new Intent(""GeoLocationUpdate"");
+            intent.putExtra(""message"", location);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        locationManager.removeUpdates(locationListener);
+        super.onDestroy();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        startForeground(GEOLOCATION_NOTIFICATION_ID, getCompatNotification());
+        return START_STICKY;
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    private Notification getCompatNotification() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        String str = ""Is using your location in the background"";
+        builder
+                .setSmallIcon(com.prop.R.mipmap.ic_gps_icon)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), com.prop.R.mipmap.ic_gps_icon))
+                .setContentTitle(""App Name"")
+                .setContentText(str)
+                .setTicker(str)
+                .setWhen(System.currentTimeMillis());
+        Intent startIntent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 1000, startIntent, 0);
+        builder.setContentIntent(contentIntent);
+        return builder.build();
+    }
+}
+</code></pre>
+
+<p>Please help me out why android side is not emitting or js side is not receiving events. I have following permission in my Android manifest:</p>
+
+<pre><code>&lt;uses-permission android:name=""android.permission.ACCESS_FINE_LOCATION"" /&gt;
+&lt;uses-permission android:name=""android.permission.ACCESS_COARSE_LOCATION"" /&gt;
+&lt;uses-permission android:name=""android.permission.ACCESS_NETWORK_STATE"" /&gt;
+&lt;uses-permission android:name=""android.permission.INTERNET"" /&gt;
+&lt;uses-permission android:name=""android.permission.SYSTEM_ALERT_WINDOW""/&gt;
+</code></pre>
+",""

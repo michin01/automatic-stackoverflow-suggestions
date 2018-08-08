@@ -1,0 +1,1565 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"51257881","1","","","2018-07-10 05:38:09","","2","32","<p>When I loading Three.js dynamically, the variable THREE is still not found.
+I have create a React project using <code>create-react-app</code> and copied the three js file in the public folder. the structure looks like this:</p>
+
+<pre><code>src
+public
+├── js
+│   └── threejs
+│       ├── Detector.js
+│       ├── OrbitControls.js
+│       ├── postprocessing
+│       │   ├── BloomPass.js
+│       │   ├── ShaderPass.js
+│       │   └── ...
+│       ├── shaders
+│       │   ├── BasicShader.js
+│       │   ├── BleachBypassShader.js
+│       │   ├── ....
+│       ├── three.js
+│       └── three.min.js
+</code></pre>
+
+<p>I have created the following class that loads three.js and any file that is part of the examples/js folder dynamically and triggers the onLoaded callback:</p>
+
+<pre><code>// Dependencies
+import React from 'react';
+
+export default class ThreeJsLoader extends React.Component {
+
+    constructor(props) {
+        super(props);   
+        this.unloaded = [
+            '/js/threejs/three.js',
+            '/js/threejs/OrbitControls.js'
+        ];
+        this.loaded = [];
+    }
+
+    loadScript(address) {
+        let script = document.createElement('script');
+        script.setAttribute('type', 'text/javascript');  // optional
+        script.setAttribute('src', address);
+        script.onload = () =&gt; {
+            this.loaded.push(address);
+            this.checkLoaded();
+        };
+        document.getElementsByTagName('head')[0].appendChild(script);
+    }
+
+    checkLoaded() {
+        if(this.loaded.length &gt;= this.unloaded.length) {
+            if(this.props.onLoaded) {
+                this.props.onLoaded();
+            }
+        }
+    }
+
+    componentDidMount() {
+        while(true) {
+            let script = this.unloaded.shift();
+            let script_path = `${process.env.PUBLIC_URL}${script}`;
+            if(script) {
+                this.loadScript(script_path);
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    render() {
+        return null;
+    }
+}
+</code></pre>
+
+<p>this is how the script is used:</p>
+
+<pre><code>import React from 'react';
+import ThreeJsLoader from './threejs_loader';
+
+export default class PageBackground extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.background_ref = React.createRef();
+    }
+
+    loadScene() {
+        let scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0xcccccc );
+
+        let renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        this.background_ref.current.appendChild( renderer.domElement );
+
+        let camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+        camera.position.set( 400, 200, 0 );
+
+        // controls
+        let controls = new THREE.OrbitControls( camera, renderer.domElement );
+    }
+
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;ThreeJsLoader onLoaded={ () =&gt; this.loadScene() } /&gt;
+                &lt;div ref={this.background_ref} &gt; &lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>I have tested the code and it correctly loads the scripts. However, I get the following error:</p>
+
+<pre><code>./src/page_background.jsx
+  Line 36:  'THREE' is not defined  no-undef
+  Line 37:  'THREE' is not defined  no-undef
+</code></pre>
+","960475","","960475","","2018-07-11 07:29:59","2018-07-11 08:35:16","dynamically loading threejs into create react app","<javascript><reactjs><three.js><create-react-app>","1","2","","",""
+"49958960","1","49959410","","2018-04-21 18:28:41","","0","85","<p>I have a react-chartjs-2 element in my render function that I assign a ref to from React.createRef() but</p>
+
+<ol>
+<li>refs is empty</li>
+<li><p>the current property on my ref is null</p>
+
+<pre><code>import React, { Component } from 'react';
+const LineChart = require('react-chartjs-2').Line;
+
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.chartRef = React.createRef();
+    this.chartObject = null;
+  }
+
+  componentDidMount() {
+    this.chartObject = this.chartRef.current.getContext('2d');
+    this.chartObject.update();
+  }
+
+  render() {
+
+    return ( 
+      &lt;div className = ""App""&gt;
+        &lt;LineChart 
+          data = {}
+          width = {600}
+          height = {250}
+          ref = {this.chartRef}/&gt;
+        &lt;/div&gt;
+      );
+    }
+  }
+</code></pre></li>
+</ol>
+","77187","","","","","2018-04-21 19:20:11","refs in reactjs Component empty","<reactjs><chart.js>","1","2","","",""
+"49903450","1","49905994","","2018-04-18 15:21:18","","1","365","<p>I am very new to reactjs. Currently developing mobile app using ReactJS native by using expo.io. In my project, I am using the webView to display the content. It works fine. But I get a problem when I try to implemented the goBack().</p>
+
+<p>The example that I have followed:
+<a href=""https://blog.defining.tech/adding-a-back-button-for-react-native-webview-4a6fa9cd0b0"" rel=""nofollow noreferrer"">https://blog.defining.tech/adding-a-back-button-for-react-native-webview-4a6fa9cd0b0</a></p>
+
+<p>Since this.refs is depreciated, I try to change it to createRef()
+Another ref. that I followed:
+<a href=""https://reactjs.org/docs/refs-and-the-dom.html#adding-a-ref-to-a-class-component"" rel=""nofollow noreferrer"">https://reactjs.org/docs/refs-and-the-dom.html#adding-a-ref-to-a-class-component</a></p>
+
+<p>When goBack() is executed, 'undefined is not an object' is flowed.</p>
+
+<p>May I know solution for this?</p>
+
+<p>Here is my code:</p>
+
+<pre><code>enter code here
+import React from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  WebView
+} from 'react-native';
+
+export default class App extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.webRef = React.createRef();     
+    this.state = { canGoBack: false };
+  }
+
+  render() {
+    return (
+      &lt;View style={styles.container}&gt;
+        &lt;WebView
+          ref={this.webRef}
+          style={{flex: 1}}
+          onNavigationStateChange=
+            {this.onNavigationStateChange.bind(this)}
+          source={{uri: 'http://www.google.com'}}
+          /&gt; 
+          &lt;View style={styles.bottombar}&gt;
+          &lt;TouchableOpacity
+            disabled={!this.state.canGoBack}
+            onPress={this.onBack.bind(this)}
+            &gt;
+            &lt;Text style={this.state.canGoBack ? styles.topbarText : styles.topbarTextDisabled}&gt;Go Back&lt;/Text&gt;
+          &lt;/TouchableOpacity&gt;
+        &lt;/View&gt;
+      &lt;/View&gt;
+    );
+  }
+
+  onBack() {
+    // error: undefined is not an object 
+    this.webRef.current.goBack();
+  }
+
+
+  onNavigationStateChange(navState) {
+    this.setState({
+      canGoBack: navState.canGoBack
+    });
+  }
+}
+</code></pre>
+","9665037","","","","","2018-04-18 17:48:37","React js createRef() returning undefined","<android><reactjs><react-native>","1","0","","",""
+"39777833","1","39778416","","2016-09-29 18:46:30","","9","4788","<p>In isomorphic rendered page image can be downloaded before main <code>script.js</code> file. So image can be already loaded before <code>react</code> register <code>onLoad</code> event - never trigger this event.</p>
+
+<p><code>script.js</code></p>
+
+<pre><code>constructor(props) {
+    super(props);
+    this.handleImageLoaded = this.handleImageLoaded.bind(this);
+}
+
+handleImageLoaded() {
+    console.log('image loaded');
+} 
+
+render() {
+    return (
+        &lt;img src='image.jpg' onLoad={this.handleImageLoaded} /&gt;
+    );
+}
+</code></pre>
+
+<hr>
+
+<h3>Scenario 1 - <code>image.jpg</code> is bigger than <code>script.js</code></h3>
+
+<p><a href=""https://i.stack.imgur.com/cE6Mu.jpg"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/cE6Mu.jpg"" alt=""image.jpg is bigger than script.js""></a></p>
+
+<p>In this scenario everything is working fine. Event is registered before image is finally loaded so in console is <code>image loaded</code> message.</p>
+
+<hr>
+
+<h3>Scenario 2 - <code>image.jpg</code> is smaller than <code>script.js</code></h3>
+
+<p><a href=""https://i.stack.imgur.com/tKbrd.jpg"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/tKbrd.jpg"" alt=""image.jpg is smaller than script.js""></a></p>
+
+<p>This scenario you can see problem described at the beginning of post. <code>onLoad</code> event is not triggered. </p>
+
+<hr>
+
+<h3>Question</h3>
+
+<p>What can I do in order to trigger <code>onLoad</code> event in <strong>scenario 2</strong>?  </p>
+
+<hr>
+
+<h3>EDIT: Soviut answer implementation</h3>
+
+<p>To detect if image is ready on render you should check <code>complete</code> property on pure javascript <code>img</code> object:</p>
+
+<pre><code>constructor(props) {
+    super(props);
+    this.state = { loaded: false };
+    this.handleImageLoaded = this.handleImageLoaded.bind(this);
+    this.image = React.createRef();
+}
+
+componentDidMount() {
+    const img = this.image.current;
+    if (img &amp;&amp; img.complete) {
+        this.handleImageLoaded();
+    }
+}
+
+handleImageLoaded() {
+    if (!this.state.loaded) {
+        console.log('image loaded');
+        this.setState({ loaded: true });
+    }
+} 
+
+render() {
+    return (
+        &lt;img src='image.jpg' ref={this.image} onLoad={this.handleImageLoaded} /&gt;
+    );
+}
+</code></pre>
+","3708596","","7630280","","2018-07-15 19:44:15","2018-07-15 19:44:15","Image onLoad event in isomorphic/universal react - register event after image is loaded","<javascript><reactjs><isomorphic-javascript>","3","4","4","",""
+"50894897","1","","","2018-06-17 08:18:31","","0","35","<p>I'm trying to show a popup on the place I clicked every time I click on the map (only one popup needs to show).</p>
+
+<p>The first time it works but any time I click after that it won't:</p>
+
+<pre><code>import React, { Component, createRef } from 'react';
+import { Map as LeafletMap, TileLayer, Marker,Popup } from 'react-leaflet';
+
+
+const newPopup = props =&gt; (
+  &lt;Popup position={props.newCoords}&gt;
+    &lt;h1&gt;You clicked here&lt;/h1&gt;
+  &lt;/Popup&gt;
+);
+
+export default class Map extends Component {
+  mapRef = createRef()
+
+  handleClick (e) {
+    const coords = this.mapRef.current.leafletElement.mouseEventToLatLng(e.originalEvent);
+    console.log(coords);
+    this.setState({
+      ...this.state,
+      showNewPopup:true,
+      newName:"""",
+      newCoords:coords
+    })
+  }
+  constructor() {
+    super()
+    this.state = {
+      lat: 52.369730195560706,
+      lng: 4.901275634765625,
+      zoom: 10,
+      showNewPopup:false,
+      newName:"""",
+      newCoords:{lat:0,lng:0}
+    }
+  }
+
+  render() {
+    const position = [this.state.lat, this.state.lng];
+    return (
+      &lt;LeafletMap 
+        center={position}
+        zoom={this.state.zoom}
+        style={{width:""100%"",height:""100%""}}
+        onClick={(e)=&gt;this.handleClick(e)}
+        ref={this.mapRef}
+      &gt;
+        &lt;TileLayer
+          attribution='&amp;copy; &lt;a href=""http://osm.org/copyright""&gt;OpenStreetMap&lt;/a&gt; contributors'
+          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+        /&gt;
+        {
+          (this.state.showNewPopup)
+            ? newPopup(this.state)
+            : """"
+        }
+      &lt;/LeafletMap&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>Popup cannot be extended, when you try there is an error:</p>
+
+<blockquote>
+  <blockquote>
+    <p>TypeError: Super expression must either be null or a function, not object</p>
+  </blockquote>
+</blockquote>
+
+<pre><code>class MyPopup extends Popup {
+
+}
+
+const newPopup = props =&gt; (
+  &lt;MyPopup position={props.newCoords}&gt;
+    &lt;h1&gt;You clicked here&lt;/h1&gt;
+  &lt;/MyPopup&gt;
+);
+</code></pre>
+
+<p>Probably because of <a href=""https://github.com/PaulLeCam/react-leaflet/blob/master/src/Popup.js#L99"" rel=""nofollow noreferrer"">this</a></p>
+
+<pre><code>export default withLeaflet(Popup)
+</code></pre>
+
+<p>Tried to wrap the component and get a ref to the leaflet popup</p>
+
+<pre><code>class NewPopup extends Component {
+  popRef = createRef()
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    console.log(""lll"",prevProps.position,this.props.position);
+    this.popRef.current.leafletElement.openPopup(this.props.position);
+    // this.popRef.current.leafletElement.update();
+    // this.popRef.current.leafletElement.bringToFront();
+    // debugger;
+  }
+  render() {
+    return (
+      &lt;div&gt;
+        &lt;Popup position={this.props.position} ref={this.popRef}&gt;
+          &lt;h1&gt;You clicked here&lt;/h1&gt;
+        &lt;/Popup&gt;
+      &lt;/div&gt;
+    );
+  }
+};
+</code></pre>
+
+<p>No error but same behavior, never opens a popup after the first click.</p>
+
+<p>Dependencies in package.json:</p>
+
+<pre><code>""dependencies"": {
+  ""leaflet"": ""^1.3.0"",
+  ""react"": ""^16.4.1"",
+  ""react-dom"": ""^16.4.1"",
+  ""react-leaflet"": ""^2.0.0-rc.1"",
+  ""react-scripts"": ""1.1.4""
+},
+</code></pre>
+","1641941","","1641941","","2018-06-17 09:19:54","2018-06-17 09:19:54","react-leaflet keep opening popup on click instead of opening only once","<javascript><babel><react-leaflet>","0","0","","",""
+"51124642","1","51124689","","2018-07-01 15:30:51","","-1","21","<p>Hey I read the ref doc (<a href=""https://reactjs.org/docs/refs-and-the-dom.html#adding-a-ref-to-a-dom-element"" rel=""nofollow noreferrer"">https://reactjs.org/docs/refs-and-the-dom.html#adding-a-ref-to-a-dom-element</a>) and tried to do the same but that doesn't work  despite of the same lines add :</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>import React from 'react'
+import './Nav.css'
+import {NavLink} from 'react-router-dom'
+import Cookies from 'js-cookie'
+import Logo from './Logo'
+
+class Nav extends React.Component {
+  constructor(props) {
+    super(props)
+    this.textInput = React.createRef(); //// I INIT MY REF ////
+    this.state = {
+      showCategory: false
+    }
+
+    this.displayMenu = this.displayMenu.bind(this);
+    this.closeMenu = this.closeMenu.bind(this);
+    this.logOutKillCookie = this.logOutKillCookie.bind(this);
+  }
+
+  displayMenu() {
+    this.setState({ showCategory: true }, () =&gt; {
+      document.addEventListener('click', this.closeMenu)
+    })
+  }
+
+  closeMenu(event) {
+    console.log(event.target, this.dropdownMenu)
+    if (!this.textInput.contains(event.target)) { //// ERROR BECAUSE this.textInput IS NULL ////
+      this.setState({ showCategory: false }, () =&gt; {
+        document.removeEventListener('click', this.closeMenu)
+      })
+    }
+  }
+
+  componentDidMount() {
+    console.log(this.textInput) //// RENDER ME NULL... ////
+  }
+
+  logOutKillCookie() {
+    Cookies.remove('id')
+    Cookies.remove('username')
+  }
+  render() {
+    return (
+      &lt;div id='Nav_wrapper'&gt;
+        &lt;Logo className='Nav_logo'/&gt;
+        &lt;div id='Nav_trigram' onClick={this.displayMenu}&gt;{'\u2630'}&lt;/div&gt;
+      {(this.state.showCategory) ? (
+        &lt;div id='Nav_menu' ref={this.textInput}&gt; //// I SET THE REF VALUE ////
+          &lt;NavLink id='Nav_match' className='Nav_category' exact to='/' activeClassName={'Nav_clicked'}&gt;Match&lt;/NavLink&gt;
+          &lt;NavLink id='Nav_chat' className='Nav_category' exact to='/chat' activeClassName={'Nav_clicked'}&gt;Chats&lt;/NavLink&gt;
+          &lt;NavLink id='Nav_profil' className='Nav_category' exact to='/profil' activeClassName={'Nav_clicked'}&gt;Profil&lt;/NavLink&gt;
+          &lt;a href='/' id='Nav_logOut' className='Nav_category' onClick={this.logOutKillCookie}&gt;LogOut&lt;/a&gt;
+        &lt;/div&gt;
+      ) : null}
+      &lt;/div&gt;
+    );
+  }
+}
+export default Nav;</code></pre>
+</div>
+</div>
+</p>
+
+<p>Hope that someone could help and explain me where is my mistake. Thx !</p>
+","7715114","","","","","2018-07-01 15:36:59","ref doesn't work (react js)","<reactjs><ref>","1","1","0","",""
+"50076176","1","","","2018-04-28 11:43:25","","3","625","<p>Since React 16.3 it is possible to use <a href=""https://reactjs.org/docs/refs-and-the-dom.html"" rel=""nofollow noreferrer""><code>React.createRef()</code></a> to access a DOM element. I am also using <a href=""https://flow.org/en/"" rel=""nofollow noreferrer"">Flow</a> in my project, but the <a href=""https://flow.org/en/docs/react/refs/"" rel=""nofollow noreferrer"">documentation still uses the old way</a>.</p>
+
+<p>The below code unfortunately fails:</p>
+
+<pre class=""lang-js prettyprint-override""><code>/* @flow */
+import * as React from 'react';
+
+export class TestComponent extends React.Component&lt;{}&gt; {
+  myRef: React.Ref&lt;HTMLDivElement&gt;
+
+  constructor(props: any) {
+    super(props)
+    this.myRef = React.createRef()
+  }
+
+  render() {
+    return (
+      &lt;div ref={this.myRef} /&gt;
+    )
+  }
+}
+</code></pre>
+
+<p>with the following error:</p>
+
+<pre><code>Cannot instantiate `Ref` because in type argument `ElementType`:
+ - Either a callable signature is missing in `HTMLDivElement` [1] but exists in
+   `React.StatelessFunctionalComponent` [2].
+ - Or `HTMLDivElement` [1] is incompatible with statics of `React.Component` [3].
+</code></pre>
+
+<p>How do I type it correctly?</p>
+","166229","","4740947","","2018-07-01 03:26:30","2018-07-01 03:26:30","How to use Flow with React.createRef()?","<reactjs><flow><typing>","2","0","1","",""
+"50347791","1","50347905","","2018-05-15 10:21:25","","1","266","<p>I need the reference of the component. Just shifted from jsx to tsx and can't find a solution for this problem. </p>
+
+<p>Other workaround would be to use query selector but that's not a good way of doing things in react I believe. </p>
+
+<p>Here is the constructor function </p>
+
+<pre><code>constructor(props) {
+    super(props);
+    this.state = {
+        data: initialData,
+        showNewListForm: false,
+        whichButtonClicked: undefined,
+        background: props.background || ""#23719f""
+    };
+
+    this.divContainerRef = React.createRef();
+    console.log(""kanban reference : "" + React.createRef().current);
+
+    this.handleDragStart = this.handleDragStart.bind(this);
+    this.handleDragEnd = this.handleDragEnd.bind(this);
+    this.handleLaneDragEnd = this.handleLaneDragEnd.bind(this);
+    this.handleLaneDragStart = this.handleLaneDragStart.bind(this);
+    this.onCardAdd = this.onCardAdd.bind(this);
+    this.onCardClick = this.onCardClick.bind(this);
+    this.addNewListHandler = this.addNewListHandler.bind(this);
+    this.containerRefResolver = this.containerRefResolver.bind(this);
+    this.isBoardPresent = this.isBoardPresent.bind(this);
+}
+</code></pre>
+","5593294","","","","","2018-05-15 10:27:19","In TSX file : Property 'createRef' does not exist on type 'typeof React'","<javascript><reactjs><typescript><jsx><tsx>","1","2","","",""
+"47104177","1","","","2017-11-03 20:47:43","","0","204","<p>Trying to use 'react-virtualized-select' as per <a href=""https://github.com/bvaughn/react-virtualized-select"" rel=""nofollow noreferrer"">https://github.com/bvaughn/react-virtualized-select</a> </p>
+
+<p>we are using require.js in our application <strong>imported after getting it from npm and didn't the import css ....as mentioned here</strong> <a href=""https://github.com/bvaughn/react-virtualized-select#simple-example"" rel=""nofollow noreferrer"">https://github.com/bvaughn/react-virtualized-select#simple-example</a></p>
+
+<p><a href=""https://i.stack.imgur.com/6znNc.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/6znNc.png"" alt=""enter image description here""></a></p>
+
+<p><strong>Note : posting full code to make easy to understand context Please ignore any short coming's in rest of code as the error disappears if i remove the VirtualizedSelect tag</strong></p>
+
+<pre><code>    var React = require('react');
+var ReactDOM = require('react-dom');
+var VirtualizedSelect = require('react-virtualized-select');
+
+module.exports = React.createClass({
+    componentName: 'Search',
+    getDefaultProps() {
+        return {};
+    },
+    getInitialState() {
+        return {
+            error: false,
+            authenticated: false,
+            visible: true,
+            data: null,
+            showAccountSelection: false,
+            selected: null,
+            search: '',
+            optionPartnerList: []
+
+        };
+    },
+    componentDidMount () {
+        var qS = queryString.parse(location.search);
+        if (qS &amp;&amp; qS.search) {
+            this.setState({search: qS.search, visible: true});
+        }
+
+        this._unsubscribe = AppStore.listen(Utils.createRefluxComponentDispatcher(this));
+    },
+    componentDidUpdate: function () {
+        if (this.refs.inputSearch) {
+            this.refs.inputSearch.focus();
+            this.refs.inputSearch.select()
+        }
+    },
+
+    componentWillUnmount () {
+        this._unsubscribe();
+    },
+
+render: function () {
+        var self= this;
+        if (!this.state.authenticated) {
+            return null;
+        }
+        let componentDisabled = this.state.async ? true : false;
+        let buttonIcon;
+        let closeButton = AppStore.selectedAccount ?
+            &lt;a href=""#"" className=""closebtn"" onClick={this.closeNav}&gt;&amp;times;&lt;/a&gt; :
+            (&lt;a key=""-1"" className=""logout-link dropdown-item t-font"" onClick={AppActions.logout} href=""#""&gt;
+                &lt;i className=""fa fa-sign-out m-r-10""&gt;&lt;/i&gt;Logout&lt;/a&gt;);
+
+        let overlayStyle = {width: this.state.visible ? '100%' : '0px', display: this.state.visible ? 'block' : 'none', 'overflowX': 'hidden', 'overflowY': this.state.overlayOverflowY};
+        if (this.state.visible) {
+            AppActions.hideBodyScrollBar();
+        } else {
+            AppActions.showBodyScrollBar();
+        }
+
+        if (!this.state.async) {
+            buttonIcon = &lt;i className=""fa fa-search""&gt;&lt;/i&gt;
+        } else {
+            buttonIcon = &lt;i className=""fa fa-cog fix fa-spin""&gt;&lt;/i&gt;
+        }
+        //TODO: refactor this make it css driven using flex box
+        let style = {top: '37%'};
+        if (this.state.data &amp;&amp; Object.keys(this.state.data).length &gt; 1) {
+            style = {top: '10%'};
+        }
+        return (
+
+            &lt;div style={{float:'left'}} className=""search-div""&gt;
+                {this.searchIcon()}
+                &lt;div className=""overlay"" style={overlayStyle}&gt;
+                    {closeButton}
+                    &lt;div className=""global-search center-content-wrapper"" style={style}&gt;
+                        &lt;form id=""searchFormComponent"" ref={function(){$('#searchFormComponent').show('fast')}}
+                              className=""global-search"" onSubmit={this.handleClick} style={{height: '500px'}}&gt;
+                            {this.errorRender()}
+                            &lt;div className=""f-row f-center""&gt;
+                                &lt;input id=""searchbox"" type=""text"" ref=""inputSearch"" className=""form-control f-9 searchbox""
+                                       placeholder=""SEARCH FOR ACCOUNT"" required
+                                       style={{marginBottom:'1px'}} disabled={componentDisabled}
+                                       defaultValue={this.state.search}&gt;
+                                &lt;/input&gt;
+                                &lt;VirtualizedSelect
+                                    options={self.optionPartnerList}
+                                    onChange={(selectValue) =&gt; this.setState({ selectValue })}
+                                    value={this.state.selectValue}
+                                /&gt;
+                                &lt;button id=""searchbutton"" className=""btn btn-lg btn-primary btn-block t-font f-1""
+                                        disabled={componentDisabled}
+                                        onClick={this.handleClick}
+                                        style={{ paddingLeft: '4px',paddingRight: '4px', fontSize:'1.1em',marginLeft:'4px'}}&gt;
+                                    {buttonIcon}
+                                &lt;/button&gt;
+                                &lt;SearchHint ref={""searchHint""} toggleOverlayStyle={this.toggleOverlayStyle}/&gt;
+                            &lt;/div&gt;
+                            &lt;SearchAccountSelector data={this.state.search == ''? {}: this.state.data}/&gt;
+                        &lt;/form&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+}); 
+</code></pre>
+
+<p>getting this exception </p>
+
+<pre><code>Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object. Check the render method of `exports`.     at invariant (bundle.c81618e7.js:5333)     at instantiateReactComponent (bundle.c81618e7.js:27936)     at Object.updateChildren (bundle.c81618e7.js:17273)     at ReactDOMComponent._reconcilerUpdateChildren (bundle.c81618e7.js:23289)     at ReactDOMComponent._updateChildren (bundle.c81618e7.js:23393)     at ReactDOMComponent.updateChildren (bundle.c81618e7.js:23380)     at ReactDOMComponent._updateDOMChildren (bundle.c81618e7.js:19340)     at ReactDOMComponent.updateComponent (bundle.c81618e7.js:19154)     at ReactDOMComponent.receiveComponent (bundle.c81618e7.js:19116)     at Object.receiveComponent (bundle.c81618e7.js:24009)
+</code></pre>
+
+<p>Not able to find the mistake i made any help in this regard will be greatly appreciated please find my package.json entries </p>
+
+<pre><code>""react"": ""^15.6.2"",
+""react-dimensions"": ""^1.3.0"",
+""react-dom"": ""^15.6.2"",
+""react-virtualized-select"": ""3.1.0"",
+</code></pre>
+","2359997","","2359997","","2017-11-03 21:41:59","2017-11-03 21:50:29","Error while using react-virtualized-select","<javascript><node.js><reactjs><react-redux>","2","10","","",""
+"50853042","1","","","2018-06-14 08:31:41","","0","41","<p>Trying to implement a relative simple input form via using some Refs.
+Unfortunately I get always a ""Module build failed: SyntaxError: Unexpected token"" error.</p>
+
+<p>Tried to do it how it is recommended in React 16.3+ with <code>React.createRef()</code> as well as the old way with a <code>ref={(input) =&gt; this.title = input}</code> inline of the input.</p>
+
+<hr>
+
+<p>Here is the component for option 1:</p>
+
+<pre><code>import React from 'react';
+
+class AddTextForm extends React.Component {
+
+submit = () =&gt; {
+  console.log(this.title.value)
+  }
+
+  render () {
+    return (
+      &lt;div&gt;
+        &lt;form&gt;
+
+          &lt;input name=""title"" ref={(input) =&gt; this.title = input} type=""text"" placeholder=""Add title"" /&gt;   
+          &lt;button type=""submit"" onClick={this.submit} className=""detailsctabutton w-button""&gt;Add Text&lt;/button&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+export default AddTextForm;
+</code></pre>
+
+<p>And this is the error:</p>
+
+<pre><code>/src/components/AddTextForm.js
+Module build failed: SyntaxError: Unexpected token (5:7)
+
+  3 | class AddTextForm extends React.Component {
+  4 | 
+&gt; 5 | submit = () =&gt; {
+    |        ^
+  6 |   console.log(this.title.value)
+  7 |   }
+  8 | 
+</code></pre>
+
+<hr>
+
+<p>Here is the component option 2:</p>
+
+<pre><code>import React from 'react';
+
+class AddTextForm extends React.Component {
+
+  titleRef = React.createRef();
+
+  createText (event) {
+    event.preventDefault();
+    const text = {
+      title: this.titleRef.value.value
+    };
+    console.log(text);
+  };
+
+  render () {
+    return (
+      &lt;div&gt;
+        &lt;form onSubmit={this.createText}&gt;
+
+          &lt;input name=""title"" ref={this.titleRef} type=""text"" placeholder=""Add title"" /&gt;
+
+          &lt;button type=""submit"" className=""detailsctabutton w-button""&gt;Add Text&lt;/button&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+export default AddTextForm;
+</code></pre>
+
+<p>and this is the error for option 2:</p>
+
+<pre><code>./src/components/AddTextForm.js
+Module build failed: SyntaxError: Unexpected token (5:11)
+
+  3 | class AddTextForm extends React.Component {
+  4 | 
+&gt; 5 |   titleRef = React.createRef();
+    |            ^
+  6 | 
+  7 |   createText (event) {
+  8 |     event.preventDefault();
+</code></pre>
+
+<hr>
+
+<p>The code that I try to implement is also part of a tutorial, so that should obviously work, but I have no clue why not in this case.</p>
+
+<p>Is this an issues with my setup? Webpack? (sorry, newbie to Webpack)</p>
+
+<p>Here is the webpack.config.js</p>
+
+<pre><code>const path = require('path');
+const webpack = require('webpack');
+
+// copy manifest.json to the path: 'public/build'
+// this will allow for the authRequest to see the file at www.example.com/manifest.json
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const ManifestAssetPlugin = new CopyWebpackPlugin([ { from: 'src/assets/manifest.json', to: 'manifest.json' } ]);
+const IconAssetPlugin = new CopyWebpackPlugin([ { from: 'src/images/icon-192x192.png', to: 'icon-192x192.png' } ]);
+const UglifyEsPlugin = require('uglify-es-webpack-plugin');
+const UglifyEsPluginConfig = new UglifyEsPlugin({
+    mangle: {
+        reserved: [
+                    'Buffer',
+                        'BigInteger',
+                        'Point',
+                        'ECPubKey',
+                        'ECKey',
+                        'sha512_asm',
+                        'asm',
+                        'ECPair',
+                        'HDNode'
+                ]
+        }
+})
+
+
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPluginConfig = new HtmlWebpackPlugin({
+  template: './src/index.html',
+  filename: 'index.html',
+  inject: 'body'
+});
+
+module.exports = {
+  entry: './src/index.js',
+  target: 'web',
+  output: {
+    path: path.resolve('public/build'),
+    filename: 'index_bundle.js',
+  },
+  devServer: {
+    historyApiFallback: {
+      disableDotRule: true
+    },
+    watchOptions: { aggregateTimeout: 300, poll: 1000 },
+    headers: {
+      ""Access-Control-Allow-Origin"": ""*"",
+      ""Access-Control-Allow-Methods"": ""GET, POST, PUT, DELETE, PATCH, OPTIONS"",
+      ""Access-Control-Allow-Headers"": ""X-Requested-With, content-type, Authorization"",
+    },
+  },
+  module: {
+    rules: [
+      { test: /\.json$/, use: 'json-loader' },
+      { test: /\.js$/, loader: 'babel-loader', exclude: /node_modules/ },
+      { test: /\.jsx$/, loader: 'babel-loader', exclude: /node_modules/ },
+      {
+        test: /\.(eot|woff|woff2|ttf|svg|png|jpe?g|gif)(\?\S*)?$/,
+        loader: 'file-loader!url-loader',
+      },
+      { test: /\.css$/, loader: 'style-loader!css-loader' }
+    ]
+  },
+  plugins: [
+    HtmlWebpackPluginConfig, 
+    ManifestAssetPlugin, 
+    IconAssetPlugin,
+    UglifyEsPluginConfig
+ ]
+}
+</code></pre>
+
+<p>Here are the dependencies:</p>
+
+<pre><code>""devDependencies"": {
+    ""babel-core"": ""^6.24.1"",
+    ""babel-loader"": ""^6.4.1"",
+    ""copy-webpack-plugin"": ""^4.0.1"",
+    ""css-loader"": ""^0.28.0"",
+    ""file-loader"": ""^0.11.1"",
+    ""html-webpack-plugin"": ""^2.28.0"",
+    ""json-loader"": ""^0.5.4"",
+    ""path"": ""^0.12.7"",
+    ""style-loader"": ""^0.16.1"",
+    ""uglify-es-webpack-plugin"": ""^0.10.0"",
+    ""url-loader"": ""^0.5.8"",
+    ""webpack"": ""^2.3.3"",
+    ""webpack-dev-server"": ""^2.4.2""
+  },
+  ""dependencies"": {
+    ""bootstrap"": ""^3.3.7"",
+    ""react"": ""^16.4.0"",
+    ""react-dom"": ""^16.4.0"",
+    ""react-router-dom"": ""^4.2.2""
+  }
+}
+</code></pre>
+
+<p>Thanks for helping out! Drives me crazy for two days.</p>
+","2996521","","2996521","","2018-06-14 08:36:33","2018-06-14 08:36:33","refs in React - React.createRef() - Module build failed: SyntaxError: Unexpected token","<reactjs><webpack><ref>","0","4","","2018-06-14 08:37:55",""
+"49985819","1","","","2018-04-23 16:28:26","","1","1281","<p>In order to allow my <code>parent component</code> (<code>JsonFetcher</code>) to access values from my <code>child component</code> (<code>Display</code>), I tried using <code>createRef()</code> API that just came of this patch 16.3</p>
+
+<p>Following the ""Adding a Ref to a class Component"" example in <a href=""https://reactjs.org/docs/refs-and-the-dom.html"" rel=""nofollow noreferrer"">this document</a>, here's what I tried in my code:</p>
+
+<pre><code>class JsonFetcher extends Component {
+    constructor(props) {
+        super(props);
+        this.child = React.createRef();
+        this.state = {
+            data: [],
+        }
+    }
+
+    componentDidMount() {   
+        this.updateContent(this.props.mainUrl)
+    }
+
+    updateContent(mainUrl){
+        fetch(mainUrl)
+            .then((responseJsonAnyUrl) =&gt; responseJsonAnyUrl.json())
+            .then((responseJsonAnyUrl) =&gt; {
+                this.setState({
+                    mainUrl: mainUrl,
+                    jsonObject: responseJsonAnyUrl
+                },
+                function () {
+                    this.timeout = setTimeout(
+                        function(){
+                            //let ind = this.child.current.getCurrentIndex
+                            //tyring to get values from child...
+                            //if index === length-1
+                                this.updateContent(mainUrl)
+                            //else    
+                            //retry this function in 5 seconds
+                            // 
+                        }.bind(this, mainUrl)
+                        ,
+                        20000)
+                }.bind(this))
+            })
+    }
+
+    interpretJson() {
+        /*
+        *some code
+        */            
+        return(
+            &lt;Display content={contentListArray} ref={this.child}/&gt;
+        )
+    }
+
+    render() {
+        if(this.state.jsonObject){
+            return (
+                &lt;div&gt;
+                    &lt;div&gt; {this.interpretJson()} &lt;/div&gt;
+                &lt;/div&gt;
+            )
+        }else
+            return(
+                null
+            )                
+    }
+}
+</code></pre>
+
+<p>So, I created the <code>ref</code> in the constructor, linked it to the <code>child component</code> <code>Display</code>  in the end of <code>interpretJson()</code> method and then i'm trying to use the the child method in my <code>timeOut()</code> function. However I get the following error:</p>
+
+<p><strong>""TypeError: Cannot read property 'getCurrentIndex' of null ""</strong></p>
+
+<p>What am I doing wrong that's not letting me call the child methods so I can simulate the pseudo-code I have commented?</p>
+
+<p>(Edit) <strong>Notes</strong>:</p>
+
+<ul>
+<li><p>My child component <code>Display</code> is not a stateless component, it's a
+class.  </p></li>
+<li><p>I already tried calling <code>&lt;Display&gt;</code> in the render instead but the<br>
+problem remained.</p></li>
+</ul>
+","9580599","","","","","2018-04-23 18:39:31","React- createRef() Api - this.child.current is null","<reactjs><reference><ref>","1","4","","",""
+"47213527","1","","","2017-11-09 23:45:55","","0","25","<p>I'm trying to use React Virtualized Select <a href=""https://github.com/bvaughn/react-virtualized-select"" rel=""nofollow noreferrer"">https://github.com/bvaughn/react-virtualized-select</a> for drop down and my react component code is here We are not able to select the option from drop down</p>
+
+<p>this is before selecting the option 
+<a href=""https://i.stack.imgur.com/KvPqD.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/KvPqD.png"" alt=""enter image description here""></a></p>
+
+<p>this is after selecting the option 
+<a href=""https://i.stack.imgur.com/ZIMG8.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/ZIMG8.png"" alt=""enter image description here""></a></p>
+
+<p>please find my react component code below</p>
+
+<pre><code>var React = require('react');
+var ReactDOM = require('react-dom');
+var SearchActions = require('../actions/SearchActions');
+var AppStore = require('../stores/AppStore');
+var AppActions = require('../actions/AppActions');
+var Utils = require('../utils/Utils');
+var SearchAccountSelector = require('./SearchAccountSelector');
+var queryString = require('query-string');
+var SearchHint = require('./SearchHint');
+var VirtualizedSelect = require('react-virtualized-select').default;
+module.exports = React.createClass({
+    componentName: 'Search',
+    getDefaultProps() {
+        return {};
+    },
+    getInitialState() {
+        return {
+            error: false,
+            authenticated: false,
+            visible: true,
+            data: null,
+            showAccountSelection: false,
+            selected: null,
+            search: '',
+            optionPartnerList: [],
+            selectedPartner: null
+
+        };
+    },
+
+    componentDidMount () {
+        let self = this;
+        this._unsubscribe = AppStore.listen(Utils.createRefluxComponentDispatcher(this));
+        var qS = queryString.parse(location.search);
+        AppActions.getPartnersAllowed();
+        if (qS &amp;&amp; qS.search) {
+            this.setState({search: qS.search, visible: true});
+        }
+
+    },
+    componentDidUpdate: function () {
+        let self = this;
+        if (this.refs.inputSearch) {
+            this.refs.inputSearch.focus();
+            this.refs.inputSearch.select()
+        }
+    },
+
+    componentWillUnmount () {
+        this._unsubscribe();
+    },
+
+    [AppStore.events.onSecurityCheck] () {
+        console.log('onSecurityCheck', arguments);
+        this.setState(function (prev, cur) {
+            var st = {
+                authenticated: AppStore.authenticated
+            };
+            if (!AppStore.authenticated) {
+                st.async = false;
+            }
+            return st;
+        });
+    },
+
+    [AppStore.events.onAccountSearch] (data) {
+
+        var accountsNum = data.errorMessage ? 0 : this.numberOfAccountsFound(data);
+        var state = {
+            async: false,
+            data: data.errorMessage ? {} : data,
+            showAccountSelection: false,
+            selected: null,
+            error: null
+        };
+        console.log('[' + accountsNum + '] accounts found when search completed', data);
+
+        if (accountsNum == 0) {
+            state.error = data.errorMessage ? data.errorMessage : 'No accounts found';
+
+        } else if (accountsNum == 1) {
+            // if there is single account found selecting it and closing search panel
+            state.selected = this.getFirstKey(data);
+            state.visible = false;
+            AppActions.selectAccount(state.selected);// auto select account if there is no ambiguites
+            SearchActions.cDVR({query: state.selected});
+        } else {
+            // if multiple account found lets user select a correct one
+            state.showAccountSelection = true;
+
+        }
+
+        this.setState(state);
+    },
+
+    [AppStore.events.onSelectAccount]() {
+        if (AppStore.isValidUserProfile()) {
+            this.setState({
+                visible: false
+            });
+        }
+    },
+
+    [AppStore.events.onLogin]() {
+        //Handling properly case when session is timed out so user will return to previos screen
+        if (!this.state.selected) {
+            this.setState({
+                visible: true
+            });
+        }
+    },
+
+    [AppStore.events.onLogout](event) {
+        if(!event || !event.byTimeout){
+            this.setState({   data: null,
+                showAccountSelection: false,
+                selected: null,
+                search: ''
+            });
+        }
+    },
+    [AppStore.events.onResized](windowSize){
+        this.setState({width: windowSize.innerWidth, height: innerHeight})
+    },
+
+
+    numberOfAccountsFound(data) {
+        var size = 0, key;
+        if (!data) {
+            return size;
+        }
+        for (key in data) {
+            if (data.hasOwnProperty(key)) size++;
+        }
+        return size;
+    },
+
+    getFirstKey(data){
+        for (let key in data) {
+            if (data.hasOwnProperty(key)) return key;
+        }
+    },
+
+    handleClick(event) {
+        event.preventDefault();
+        this.refs.searchHint.removePopover();
+        console.log('clicked event', event);
+        this.setState({
+                data: null,
+                async: true,
+                error: null
+            }
+        );
+        var query = this.refs.inputSearch.value.trim();
+        this.setState({search: query});
+        if (query &amp;&amp; this.state.selectedPartner) {
+            //extract receiver Id from Recording Id, by extracting string between V&amp;L or A&amp;L
+            let selectedPartner = this.state.selectedPartner;
+            AppActions.resetFieldsForNewSearch();
+            var receiverIdPattern = new RegExp('(V|A)(.*?)L');
+            var parsedReceiverId = receiverIdPattern.exec(query);
+            if (parsedReceiverId != null &amp;&amp; parsedReceiverId[2] != null) {
+                let receiverId = parsedReceiverId[2];
+                AppActions.setSearchQuery(query);
+                //use receiverId to perform search
+                query = receiverId;
+            } else {
+                AppActions.clearRecIdSearch();
+            }
+            SearchActions.cDVR({query: query});
+            AppStore.selectedPartner = selectedPartner.value;
+            SearchActions.search({query: query, selectedPartner: selectedPartner.value});
+            Utils.updateQueryString('search', query);
+        } else {
+            this.setState({async: false, error: 'Invalid Input'});
+        }
+    },
+
+    openNav(){
+        this.setState({visible: true});
+        AppActions.hideBodyScrollBar();
+    },
+    closeNav(){
+        this.refs.searchHint.refs.popover.close();
+        this.setState({visible: false});
+        AppActions.showBodyScrollBar();
+    },
+
+    searchIcon(){
+        if (this.state.authenticated) {
+            return (&lt;span id=""search"" onClick={this.openNav}&gt;&lt;i className=""fa fa-search search-icon pointer"" style={{fontSize: '1.4em'}}/&gt;&lt;/span&gt;);
+        }
+    },
+
+    setPartnerList(partnerList) {
+        let partnerOptionsList = this.getOptions(partnerList);
+        this.setState({optionPartnerList : partnerOptionsList})
+
+    },
+
+    getOptions(partnerList) {
+        let options = partnerList.map( x =&gt; ({value :x,label: x}));
+        return options;
+    },
+
+    errorRender() {
+        let style = this.state.error ? {visibility: 'visible'} : {visibility: 'hidden'};
+        return (
+            &lt;div style={style} className=""alert alert-danger"" role=""alert""&gt;
+                &lt;i className=""fa fa-exclamation-triangle""&gt;&lt;/i&gt; {this.state.error}
+            &lt;/div&gt;);
+    },
+
+    toggleOverlayStyle(state){
+        this.setState({overlayOverflowY : state});
+    },
+    [AppStore.events.onResized](windowSize) {
+        let state = AppStore.innerHeight &lt; 900 &amp;&amp; this.refs.searchHint &amp;&amp; this.refs.searchHint.state.showSearchHint ? 'auto' : 'hidden';
+        this.toggleOverlayStyle(state);
+    },
+    [AppStore.events.onPartnersAllowedUpdated](partnerList) {
+        this.setPartnerList(partnerList);
+    },
+
+    render: function () {
+        var self= this;
+
+
+        if (!this.state.authenticated) {
+            return null;
+        }
+        let componentDisabled = this.state.async ? true : false;
+        let buttonIcon;
+        let closeButton = AppStore.selectedAccount ?
+            &lt;a href=""#"" className=""closebtn"" onClick={this.closeNav}&gt;&amp;times;&lt;/a&gt; :
+            (&lt;a key=""-1"" className=""logout-link dropdown-item t-font"" onClick={AppActions.logout} href=""#""&gt;
+                &lt;i className=""fa fa-sign-out m-r-10""&gt;&lt;/i&gt;Logout&lt;/a&gt;);
+
+        let overlayStyle = {width: this.state.visible ? '100%' : '0px', display: this.state.visible ? 'block' : 'none', 'overflowX': 'hidden', 'overflowY': this.state.overlayOverflowY};
+        if (this.state.visible) {
+            AppActions.hideBodyScrollBar();
+        } else {
+            AppActions.showBodyScrollBar();
+        }
+
+        if (!this.state.async) {
+            buttonIcon = &lt;i className=""fa fa-search""&gt;&lt;/i&gt;
+        } else {
+            buttonIcon = &lt;i className=""fa fa-cog fix fa-spin""&gt;&lt;/i&gt;
+        }
+        //TODO: refactor this make it css driven using flex box
+        let style = {top: '37%'};
+        if (this.state.data &amp;&amp; Object.keys(this.state.data).length &gt; 1) {
+            style = {top: '10%'};
+        }
+        return (
+            &lt;div style={{float:'left'}} className=""search-div""&gt;
+                {this.searchIcon()}
+                &lt;div className=""overlay"" style={overlayStyle}&gt;
+                    {closeButton}
+                    &lt;div className=""global-search center-content-wrapper"" style={style}&gt;
+                        &lt;form id=""searchFormComponent"" ref={function(){$('#searchFormComponent').show('fast')}}
+                              className=""global-search"" onSubmit={this.handleClick} style={{height: '500px'}}&gt;
+                            {this.errorRender()}
+                            &lt;div className=""f-row f-center""&gt;
+                                &lt;input id=""searchbox"" type=""text"" ref=""inputSearch"" className=""form-control f-9 searchbox""
+                                       placeholder=""SEARCH FOR ACCOUNT"" required
+                                       style={{marginBottom:'1px'}} disabled={componentDisabled}
+                                       defaultValue={this.state.search}&gt;
+                                &lt;/input&gt;
+                                &lt;button id=""searchbutton"" className=""btn btn-lg btn-primary btn-block t-font f-1""
+                                        disabled={componentDisabled}
+                                        onClick={this.handleClick}
+                                        style={{ paddingLeft: '4px',paddingRight: '4px', fontSize:'1.1em',marginLeft:'4px'}}&gt;
+                                    {buttonIcon}
+                                &lt;/button&gt;
+                                &lt;SearchHint ref={""searchHint""} toggleOverlayStyle={this.toggleOverlayStyle}/&gt;
+                            &lt;/div&gt;
+                            &lt;SearchAccountSelector data={this.state.search == ''? {}: this.state.data}/&gt;
+                        &lt;/form&gt;
+                        &lt;VirtualizedSelect
+                            placeholder=""Select Partner""
+                            options={self.state.optionPartnerList}
+                            onChange={(selectValue) =&gt; this.setState({selectedPartner: selectValue})}
+                            value={this.state.selectedPartner}
+                        /&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+});
+</code></pre>
+
+<p>Except for the highlighted part i don't know what the issue is whether css or js 
+<a href=""https://i.stack.imgur.com/CtSor.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/CtSor.png"" alt=""enter image description here""></a></p>
+","2359997","","2359997","","2017-11-10 14:26:41","2017-11-10 14:26:41","react-virtualized: Drop down is unresponsive suddenly with no error code in the console","<javascript><css><reactjs><react-native><react-redux>","0","0","","",""
+"50299218","1","","","2018-05-11 19:43:06","","2","324","<p>I upgraded my React to 16.3.2 and used <code>React.createRef()</code> as seen here: <a href=""https://reactjs.org/docs/react-api.html#reactcreateref"" rel=""nofollow noreferrer"">https://reactjs.org/docs/react-api.html#reactcreateref</a> </p>
+
+<p>But when I am getting the following error:</p>
+
+<pre><code>Uncaught Error: Expected ref to be a function or a string.
+</code></pre>
+
+<p>When I look at what the function React.createRef() actually returns, I see this:</p>
+
+<pre><code>{ current: null }
+</code></pre>
+
+<p>What is going wrong here? Has the implementation changed?</p>
+
+<p>I am using react-router-dom for routing, and my component is a <code>class</code> component.</p>
+
+<p>EDIT: this is my code:</p>
+
+<pre><code>export class MyComponent extends Component { 
+    constructor(props) {
+        super(props);
+
+        this.cardRef = React.createRef();
+    }
+
+    render() {
+        return (
+            &lt;div&gt;
+                ...
+                &lt;Card ref={this.cardRef}&gt;
+                    ...
+                &lt;/Card&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+</code></pre>
+","1416151","","1416151","","2018-05-11 19:52:42","2018-05-11 20:07:33","React.createRef() causing error 'expected ref to be function or string'","<javascript><reactjs><redux>","1","15","","",""
+"51399499","1","","","2018-07-18 10:19:47","","1","47","<p>I am trying to add some dank Flow typings to my React app. I have two components, one which references the other to trigger some validation. A very simplified version looks kind of like this:</p>
+
+<pre><code>class FormFields extends React.Component {
+  onSubmit = () =&gt; {/* impl */};
+  render() {/* impl */}
+}
+
+class Form extends React.Component {
+  formRef = React.createRef();
+  onSubmit = e =&gt; {
+    e.preventDefault();
+    this.formRef.current.onSubmit();
+  }
+  render() {
+    return (
+      &lt;form onSubmit={this.onSubmit}&gt;
+        &lt;FormFields ref={this.formRef} /&gt;
+      &lt;/form&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>I'm trying to add typings so that <code>this.formRef.current.onSubmit</code> is typed and autocompleted. How do I do that? <a href=""https://flow.org/en/docs/react/refs/"" rel=""nofollow noreferrer"">There are some docs on the subject</a>, but those only apply to the ""old"" way of making refs, with functions.</p>
+
+<p>I notice that React's exporting <a href=""https://github.com/facebook/flow/blob/master/lib/react.js#L231-L232"" rel=""nofollow noreferrer"">the following type definition</a> for <code>React.createRef</code>:</p>
+
+<pre><code>declare export function createRef&lt;ElementType: React$ElementType&gt;(): 
+{current: null | React$ElementRef&lt;ElementType&gt;};
+</code></pre>
+
+<p>I'm pretty inexperienced with Flow, so the solution is probably something pretty straight forward.</p>
+","1064572","","","","","2018-07-18 10:19:47","Flow and React.createRef","<javascript><reactjs><flowtype>","0","5","","",""
+"49785303","1","","","2018-04-11 22:29:08","","0","29","<p>I have this js:</p>
+
+<pre><code>import React, {Component} from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+
+class Titulo extends Component{
+    render(){
+        return (
+            &lt;h1&gt;Hola Mundo&lt;/h1&gt;
+        );
+    }
+}
+
+class Contenido extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            element: props.myDiv
+        }
+    }
+
+    render(){
+         return (
+            &lt;div ref={this.state.element} className=""contenido""&gt;
+                &lt;p className=""parrafo""&gt;
+                Este es el contenido principal de la página
+                &lt;/p&gt;
+            &lt;/div&gt;
+         );
+    }
+}
+
+class LeftPanel extends Component{
+
+constructor(props) {
+    super(props);
+    this.state = {
+        daemon: props.textContent,
+        showPopup: false,
+        elem: 0
+    };
+}
+
+togglePopup() {
+    this.setState({
+    showPopup: !this.state.showPopup
+    });
+}
+
+addText(i){
+    var t = &lt;p id={i}&gt;Texto agregado&lt;/p&gt;
+    var a = this.state.daemon;
+    a.appendChild(t);
+    this.setState({
+        elem: i+1
+    });
+}
+
+removeText(i){
+    var a = this.state.daemon;
+    a.removeChild(a.lastChild());
+    this.setState({
+        elem: i-1
+    });
+}
+
+render(){
+    return (
+        &lt;div className=""left""&gt;
+            &lt;span className=""spanLeft"" onClick={this.togglePopup.bind(this)}&gt;Popup&lt;/span&gt;&lt;br/&gt;
+            &lt;span className=""spanLeft"" onClick={this.addText(this.state.elem)}&gt;Agregar text&lt;/span&gt;&lt;br/&gt;
+            &lt;span className=""spanLeft"" onClick={this.removeText(this.state.elem)}&gt;Quitar texto&lt;/span&gt;&lt;br/&gt;
+            &lt;span className=""spanLeft"" onClick=""""&gt;Elemento 4&lt;/span&gt;                    
+            {this.state.showPopup ? 
+            &lt;MyPopUp
+                closePopup={this.togglePopup.bind(this)}
+            /&gt;
+            : null
+            }
+        &lt;/div&gt;
+    );
+}   
+}
+
+class PiePagina extends Component{
+render(){
+    return (
+        &lt;div className=""pie""&gt;
+            &lt;span&gt;Pie de página&lt;/span&gt;
+        &lt;/div&gt;
+    );
+}
+}
+
+
+class Cabecera extends Component{
+constructor(props){
+    super(props);
+    this.mycontent = React.createRef();
+}
+
+render(){
+    return (
+        &lt;div className=""cuerpo""&gt;
+            &lt;div className=""cabecera""&gt;
+                &lt;Titulo/&gt;
+            &lt;/div&gt;
+            &lt;div className=""row""&gt;
+                &lt;LeftPanel textContent={this.mycontent}/&gt;
+                &lt;Contenido myDiv={this.mycontent}/&gt;
+            &lt;/div&gt;
+            &lt;div&gt;
+                &lt;PiePagina/&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}
+}
+
+class PopUpContent extends Component{
+render(){
+    return(
+        &lt;div className=""popupContent""&gt;
+            &lt;div&gt;
+                &lt; span className=""CloseButton""
+                    onClick={this.props.closePopup} &gt;
+                    X
+                &lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div &gt;
+                &lt;span className=""pie"" &gt;
+                    Hola!Soy un popup     
+                &lt;/span&gt;
+            &lt;/div&gt; 
+            &lt;div className=""parrafo"" &gt;
+                &lt;p&gt;
+                Este es un mensaje más que está dentro del popup 
+                &lt;/p&gt; 
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}
+}
+
+class MyPopUp extends Component{
+render(){
+    return(
+        &lt;div className=""popup""&gt;
+            &lt;div className=""popup_inner""&gt;
+                &lt;PopUpContent
+                    closePopup={this.props.closePopup}
+                /&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}
+}
+ReactDOM.render(&lt;Cabecera/&gt;,document.getElementById('root')); 
+</code></pre>
+
+<p>Ok, so I wish to access the div on class ""Contenido"" so I can add some text and delete some text after clicking on some elements.</p>
+
+<p>But I get an error that says that a.appendChild() is not a method.</p>
+
+<p>I see that it isn't being recognised as a method because when trying to acces it with this.state.daemon it isn't returning an element</p>
+","8980452","","","","","2018-04-11 22:29:08","How can I access this element with react","<javascript><reactjs><dom><jsx>","0","8","","",""
+"50639842","1","50640058","","2018-06-01 09:06:41","","0","192","<p>I am new to React.js and just now i was learning the concept of <code>ref</code> in React. They have new <em>createRef API</em> in V16.3. I was trying to learn this from <a href=""https://reactjs.org/docs/refs-and-the-dom.html#adding-a-ref-to-a-dom-element"" rel=""nofollow noreferrer"">REACT DOC's</a> like this -</p>
+
+<pre><code>import React from ""react"";
+
+export class MyComponent extends React.Component {
+
+constructor(props) {
+    super(props);
+    // create a ref to store the textInput DOM element
+    this.textInput = React.createRef();
+    this.focusTextInput = this.focusTextInput.bind(this);
+}
+
+focusTextInput() {
+    // Explicitly focus the text input using the raw DOM API
+    // Note: we're accessing ""current"" to get the DOM node
+    this.textInput.current.focus();
+}
+
+render() {
+    // tell React that we want to associate the &lt;input&gt; ref
+    // with the `textInput` that we created in the constructor
+    return (
+        &lt;div&gt;
+            &lt;input
+                type=""text""
+                ref={this.textInput} /&gt;
+
+            &lt;input
+                type=""button""
+                value=""Focus the text input""
+                onClick={this.focusTextInput}
+            /&gt;
+        &lt;/div&gt;
+    );
+}
+</code></pre>
+
+<p>}</p>
+
+<p>And I was Getting this Error -</p>
+
+<p><strong>TypeError: __WEBPACK_IMPORTED_MODULE_0_react___default.a.createRef is not a function</strong></p>
+
+<p>Here is the screenshot -<a href=""https://i.stack.imgur.com/Uv3ti.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/Uv3ti.png"" alt=""enter image description here""></a></p>
+","9522340","","","","","2018-06-01 09:18:12","TypeError: __WEBPACK_IMPORTED_MODULE_0_react___default.a.createRef is not a function","<javascript><reactjs><ref>","1","1","","",""

@@ -1,0 +1,256 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"50080893","1","50098540","","2018-04-28 20:43:42","","1","146","<p>I'm building a bundle with rollUp using styled-components.</p>
+
+<p>My rollup.config.js looks like:</p>
+
+<pre><code>import resolve from 'rollup-plugin-node-resolve'
+import babel from 'rollup-plugin-babel'
+import commonjs from 'rollup-plugin-commonjs'
+export default {
+  input: 'src/index.js',
+  output: {
+    file: 'dist/bundle.js',
+    format: 'cjs'
+  },
+  external: [
+    'react',
+    'react-proptypes'
+  ],
+  plugins: [
+    resolve({
+      extensions: [ '.js', '.json', '.jsx' ]
+    }),
+    commonjs({
+      include: 'node_modules/**'
+    }),
+    babel({
+      exclude: 'node_modules/**'
+    })
+  ]
+}
+</code></pre>
+
+<p>And I'm receiving</p>
+
+<pre><code>[!] Error: 'isValidElementType' is not exported by node_modules/react-is/index.js
+https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module
+node_modules/styled-components/dist/styled-components.es.js (7:9)
+5: import stream from 'stream';
+6: import PropTypes from 'prop-types';
+7: import { isValidElementType } from 'react-is';
+            ^
+8: import hoistStatics from 'hoist-non-react-statics';
+</code></pre>
+
+<p>Checking on the node_modules itself react-is is a commonjs module as it can be checked out <a href=""https://github.com/facebook/react/blob/master/packages/react-is/npm/index.js"" rel=""nofollow noreferrer"">here</a> as well.</p>
+
+<p>Shouldn't  the commonjs plugin take care of it since it is inside node_modules/** ?</p>
+
+<p>Thanks.</p>
+","1440762","","","","","2018-04-30 10:23:48","Rollup Error: 'isValidElementType' is not exported by node_modules/react-is/index.js","<reactjs><rollup><styled-components>","1","0","","",""
+"44291500","1","44292414","","2017-05-31 17:47:10","","0","98","<p>The following is a simple index.jsx.<br>
+At the bottom, in Workspace's render() method, {C} renders.</p>
+
+<p>In Workspace's render method, C, the child component is rendering, the wrapper is not.  The console.log indicates...
+React.isValidElement(W) => returning FALSE.
+What am I missing in function wrappedHOC(WrappedComponent) - that it is failing to return a valid React Element?
+I have stripped all functionality, save passing the SAME props as the WrappedComponent had.</p>
+
+<pre><code>import React from ""react"";
+import ReactDOM from ""react-dom"";
+
+class Kid extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {};
+    this.handleClick = this.handleClick.bind(this);
+  }
+  handleClick(e) {
+    console.log('clicked');
+  }
+  render() {
+    return (
+      &lt;div onClick={this.handleClick}&gt;
+        &lt;span&gt;{`I, ${this.props.name}, ${this.props.power}`}&lt;/span&gt;&lt;br/&gt;
+      &lt;/div&gt;
+    )
+  }
+}
+
+function wrapperHOC(WrappedComponent) {
+  return class extends React.Component {
+    constructor(props){
+      super(props);
+      this.state = {};
+    }
+    render() {
+      return &lt;WrappedComponent {...this.props} /&gt;
+    }
+  }
+}
+
+class Workspace extends React.Component {
+  render() {
+    let C = &lt;Kid name={'Wonder Woman'} power={'kill baddies'} /&gt;
+    let W = wrapperHOC(C);
+    if (React.isValidElement(C)) { // is TRUE
+      console.log(""Child is valid React Component"");
+    }
+    if (React.isValidElement(W)) { // is FALSE
+      console.log(""Wrapper is also valid React Component"");
+    } else {
+      console.log(""Wrapper is NOT valid React Component"");
+    }
+    return (
+      &lt;div&gt;
+        &lt;span&gt; {C} &lt;/span&gt; 
+        &lt;hr/&gt;
+        &lt;span&gt; {W} &lt;/span&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+ReactDOM.render(&lt;Workspace /&gt;, document.querySelector(""#container""));
+</code></pre>
+
+<p>Any pointers please?</p>
+","3213604","","","","","2017-05-31 18:40:37","React HOC simple use-case.. Function NOT returning valid ReactElement (React.isValidElement(H)) === false","<reactjs>","1","0","","",""
+"29196008","1","29201235","","2015-03-22 15:13:34","","1","1716","<p>Something weird is going on with the <code>react.js</code>  <a href=""https://facebook.github.io/react/docs/top-level-api.html#react.isvalidelement"" rel=""nofollow"">Top-Level API</a>.</p>
+
+<p>This is an excerpt of my <code>mocha</code> test:</p>
+
+<pre><code>it.only('should identify a ReactElement', function () {
+  var component = ReactTestUtils.renderIntoDocument(
+    &lt;SomeComponent value={data.value} label={data.label} /&gt;
+  );
+
+  console.log(React.isValidElement(component));
+  expect(React.isValidElement(component), 'to be truthy');
+  expect(true, 'to be truthy');
+});
+</code></pre>
+
+<p>Problem is, <code>isValidElement</code> returns false... which doesn't makes a lot of sense since I've just created the damn element.</p>
+
+<p>Any clue?</p>
+","2904025","","","","","2015-03-22 23:42:08","React.isValidElement false negative","<javascript><facebook><reactjs><mocha>","1","0","0","",""
+"34078038","1","34078449","","2015-12-03 23:12:07","","2","394","<p>I'm trying to upgrade from react-router 0.13 to 1.0.  I read through the guide and believe I have everything set up properly, but I keep getting this error:</p>
+
+<pre><code>Uncaught TypeError: Cannot read property 'createRouteFromReactElement' of undefined
+</code></pre>
+
+<p>The error corresponds to this function in react-router:</p>
+
+<pre><code>    function createRoutesFromReactChildren(children, parentRoute) {
+  var routes = [];
+
+  _react2['default'].Children.forEach(children, function (element) {
+    if (_react2['default'].isValidElement(element)) {
+      // Component classes may have a static create* method.
+      if (element.type.createRouteFromReactElement) {
+        var route = element.type.createRouteFromReactElement(element, parentRoute);
+
+        if (route) routes.push(route);
+      } else {
+        routes.push(createRouteFromReactElement(element));
+      }
+    }
+  });
+
+  return routes;
+}
+</code></pre>
+
+<p>Presumably this means that the routes are not getting passed as <code>this.props.children</code> properly?</p>
+
+<p>If it helps, here is what my routes look like:</p>
+
+<pre><code>var routes = (
+  &lt;Route path=""/"" component={AppView}&gt;
+    &lt;Route path=""account"" component={Account} /&gt;
+    &lt;Route path=""insights"" component={InsightsHome} /&gt;
+    &lt;Route path=""insights/:slug"" component={SingleInsight} /&gt;
+
+    &lt;Route path=""collections"" component={CollectionBox}&gt;
+      &lt;Route path=""/:id"" component={CollectionContent} /&gt;
+      &lt;DefaultRoute component={NoCollections} /&gt;
+    &lt;/Route&gt;
+
+    &lt;Route path=""team"" component={Team} /&gt;
+
+    &lt;Redirect from=""projects/:projectId/insights/?"" to=""insights"" /&gt;
+    &lt;Redirect from=""projects/:projectId/insights/:slug/?"" to=""insights-single"" /&gt;
+    &lt;Redirect from=""*"" to=""insights"" /&gt;
+  &lt;/Route&gt;
+);
+</code></pre>
+
+<p>Here is my <code>render</code> method (I am using Redux):</p>
+
+<pre><code>ReactDOM.render(
+  &lt;Provider store={store}&gt;
+    &lt;Router history={history}&gt;{routes}&lt;/Router&gt;
+  &lt;/Provider&gt;,
+  document.getElementById('site-container')
+);
+</code></pre>
+
+<p>And here is the relevant piece of my <code>AppView</code> component:</p>
+
+<pre><code>return (
+      &lt;div&gt;
+        {this.props.children}
+      &lt;/div&gt;
+    )
+  },
+</code></pre>
+","2962432","","","","","2015-12-03 23:46:19","react-router 1.0: using this.props.children instead of the RouteHandler","<javascript><reactjs><react-router><redux>","1","2","","",""
+"47481038","1","","","2017-11-24 23:05:35","","0","18","<p>I am using a library which needs to map trough the child elements of a React component. It does this successfully when child elements are nested directly:</p>
+
+<p><a href=""https://i.stack.imgur.com/iZBfN.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/iZBfN.png"" alt=""enter image description here""></a></p>
+
+<p>But when wrapped in a component the elements returned by the component are not accessible:</p>
+
+<p><a href=""https://i.stack.imgur.com/lt7IB.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/lt7IB.png"" alt=""enter image description here""></a></p>
+
+<p>Surely a react component is just a function, how do I map through the elements that are returned by the component? At the moment all I have access to is the function itself:</p>
+
+<p><a href=""https://i.stack.imgur.com/C5W6c.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/C5W6c.png"" alt=""enter image description here""></a></p>
+
+<p>The function that maps through the child elements is:</p>
+
+<pre><code>export function extractTextFromElement(element) {
+  const stack = element ? [element] : [];
+  const lines = [];
+
+
+  while (stack.length &gt; 0) {
+    const current = stack.pop();
+    if (React.isValidElement(current)) {
+      if (isBackspaceElement(current) || isDelayElement(current)) {
+        // If it is a `Backspace` or `Delay` element, we want to keep it in our
+        // `textLines` state. These will serve as markers when updating the
+        // state of the text
+        lines.unshift(current);
+      } else {
+        React.Children.forEach(current.props.children, child =&gt; {
+          stack.push(child);
+        });
+      }
+    } else if (Array.isArray(current)) {
+      for (const el of current) {
+        stack.push(el);
+      }
+    } else {
+      lines.unshift(current);
+    }
+  }
+  return lines;
+}
+</code></pre>
+
+<p>As the element passed to it is the component and not its children it doesn't work as expected. If I could get access to the elements the component returns I could map through those instead to get it to work...</p>
+
+<p>Any help much much appreciated!!</p>
+","5077248","","","","","2017-11-24 23:05:35","Mapping through the elements returned from a react component","<javascript><reactjs>","0","0","","",""

@@ -1,0 +1,145 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"34493926","1","","","2015-12-28 12:55:16","","1","583","<p>I am updating my code from the now deprecated react/addons package to the react-addon-test-utils package. I use jsdom and inject a document and window element, as shown below.</p>
+
+<pre><code>import jsdom from 'jsdom';
+import chai from 'chai';
+import chaiImmutable from 'chai-immutable';
+
+const doc = jsdom.jsdom('&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;');
+const win = doc.defaultView;
+
+global.document = doc;
+global.window = win;
+
+Object.keys(window).forEach((key) =&gt; {
+  if (!(key in global)) {
+    global[key] = window[key];
+  }
+});
+
+chai.use(chaiImmutable);
+</code></pre>
+
+<h3>And here is my unit test.</h3>
+
+<pre><code>import {expect} from 'chai';
+import ErrorBlock from '../src/Controls/ErrorBlock';
+import React from 'react-addons-test-utils';
+
+const {renderIntoDocument, scryRenderedDOMComponentsWithClass, Simulate}
+  = React;
+
+describe('ErrorBlock', () =&gt; {
+
+  it('renders properly', () =&gt; {
+    const id = 'test';
+    const message = 'my message';
+    const alertStyle = ""alert-danger"";
+    const component = renderIntoDocument(
+      &lt;ErrorBlock id={id} message={message} alertStyle={alertStyle} /&gt;
+    );
+    const spanEntry = scryRenderedDOMComponentsWithClass(component, id + 'AlertMessage');
+    expect (spanEntry.length).to.equal(1);
+  });
+});
+</code></pre>
+
+<p>I am in the process of getting unit testing setup for a React UI module for use on some projects. However, when I switch over to the new react-addons-test-utils package, I get the following error:</p>
+
+<pre><code>TypeError: _reactAddonsTestUtils2.default.createElement is not a function
+</code></pre>
+
+<p>This error occurs on the line where I define my component. </p>
+
+<p>Why am I getting this error ONLY when using the new package?</p>
+","3191037","","1755598","","2015-12-28 12:55:58","2017-06-16 02:56:22","Issue with react-addon-test-utils createElement","<javascript><unit-testing><reactjs><jsdom>","1","7","1","",""
+"45048672","1","","","2017-07-12 04:49:10","","0","146","<p>I use <code>react-dom/test-utils</code> to test my react component.</p>
+
+<p>But the return value of <code>scryRenderedDOMComponentsWithClass</code> has no <code>props</code></p>
+
+<p>and <code>props.children</code> property. Did I do something wrong or what?</p>
+
+<p>here is my test code: </p>
+
+<pre><code>it('renders item count correctly', () =&gt; {
+    const $$searchList  = TestUtils.renderIntoDocument(&lt;SearchList items={datas}/&gt;)
+    const list = TestUtils.scryRenderedDOMComponentsWithClass($$searchList, 'list');
+
+    expect(list.props.children).toHaveLength(4);
+    expect(items).toHaveLength(4);
+
+  });
+</code></pre>
+
+<p>here is the test result:</p>
+
+<pre><code>● component - SearchList test suites › renders item count correctly
+
+    TypeError: Cannot read property 'children' of undefined
+
+      at Object.&lt;anonymous&gt; (src/components/List/__tests__/SearchList.test.jsx:17:26)
+      at Promise.resolve.then.el (node_modules/p-map/index.js:42:16)
+      at process._tickCallback (internal/process/next_tick.js:109:7)
+
+  component - SearchList test suites
+    ✓ loads without error (43ms)
+    ✕ renders item count correctly (18ms)
+</code></pre>
+
+<p>-- update --</p>
+
+<p>Here is my component render: </p>
+
+<pre><code>return (
+      &lt;div className=""list""&gt;
+        {
+          items.map((item: Book, idx: number): React.ReactElement&lt;IListProps&lt;Book&gt;&gt; =&gt; {
+            return (
+              &lt;ListItem onClick={() =&gt; this.onItemClick(item, idx)} key={item.id} item={item}/&gt;
+            );
+          })
+        }
+      &lt;/div&gt;
+    );
+</code></pre>
+","6463558","","6463558","","2017-07-12 05:31:09","2017-07-12 05:48:18","react-dom/test-utils, TypeError: Cannot read property 'children' of undefined","<reactjs><jestjs>","1","0","","",""
+"28094336","1","29056517","","2015-01-22 16:52:59","","6","3574","<p>I'm trying to write tests for some d3 elements that are rendered via react component, and I was hoping to be able to pick out some of the svg elements on the page and check their width to see if they're behaving as expected.</p>
+
+<p>I'm not entirely sure what the react test-utils docs are expecting when they say ReactComponent tree.</p>
+
+<pre><code>array scryRenderedDOMComponentsWithClass(ReactComponent tree, string className)
+</code></pre>
+
+<p>I'm rendering my component into the document via:</p>
+
+<pre><code>  var component = TestUtils.renderIntoDocument(
+    &lt;ProgressCircle percentage={75} /&gt;
+  );
+</code></pre>
+
+<p>And I'm able to successfully check for a css className by doing:</p>
+
+<pre><code>  it('should render an element with the class ""progress-circle""', function() {
+    var circleContainer = TestUtils.findRenderedDOMComponentWithClass(component, 'progress-circle');
+    expect(circleContainer).toBeDefined();
+  });
+</code></pre>
+
+<p>But I don't understand what I need to provide to some of these find / scry methods that expect a ReactComponent tree.</p>
+
+<p><a href=""http://facebook.github.io/react/docs/test-utils.html"" rel=""noreferrer"">http://facebook.github.io/react/docs/test-utils.html</a></p>
+
+<p>Edit:</p>
+
+<p>For more clarification, the rendered DOM for this component looks like this:</p>
+
+<pre><code>&lt;div class=""progress-circle""&gt;
+  &lt;svg&gt;
+    &lt;g&gt;
+    &lt;/g&gt;
+  &lt;/svg&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>... and I'm trying to find the  element.</p>
+","2461190","","2461190","","2015-01-22 17:14:57","2015-09-18 20:13:53","What does react test-utils expect when it refers to ReactComponent tree?","<reactjs><jestjs>","1","0","1","",""

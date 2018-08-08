@@ -1,0 +1,275 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"36574492","1","","","2016-04-12 13:16:16","","1","511","<p>Good day. I have the following problem:
+I have an item editor. 
+How it works: I push 'Add' button, fill some information, click 'Save' button.
+_onSaveClicked function in my react component handles click event and call function from service, which sends params from edit form to server and return promise.
+_onSaveClicked implements </p>
+
+<pre><code>.then(response =&gt; {
+    console.log('I\'m in then() block.');
+    console.log('response', response.data);
+}) 
+</code></pre>
+
+<p>function and waits for promise result. It works in real situation.
+I created fake service and placed it instead of real service.
+Service's function contains:</p>
+
+<pre><code>return Promise.resolve({data: 'test response'});
+</code></pre>
+
+<p>As you can see fake service return resolved promise and .then() block should work immediatly. But .then() block never works.</p>
+
+<p>Jest test:</p>
+
+<pre><code>jest.autoMockOff();
+
+const React = require('react');
+const ReactDOM = require('react-dom');
+const TestUtils = require('react-addons-test-utils');
+const expect = require('expect');
+const TestService = require('./service/TestService ').default;
+
+
+let testService = new TestService ();
+
+describe('TestComponent', () =&gt; {
+  it('correct test component', () =&gt; {
+    //... some initial code here
+    let saveButton = TestUtils.findRenderedDOMComponentWithClass(editForm, 'btn-primary');
+    TestUtils.Simulate.click(saveButton);
+    // here I should see response in my console, but I don't
+  });
+});
+</code></pre>
+
+<p>React component save function:</p>
+
+<pre><code> _onSaveClicked = (data) =&gt; {
+    this.context.testService.saveData(data)
+      .then(response =&gt; {
+        console.log('I\'m in then() block.');
+        console.log('response', response.data);
+      });
+  };
+</code></pre>
+
+<p>Service:</p>
+
+<pre><code>export default class TestService {
+  saveData = (data) =&gt; {
+    console.log('I\'m in services saveData function');
+    return Promise.resolve({data: data});
+  };
+}
+</code></pre>
+
+<p>I see only ""I'm in services saveData function"" in my console.</p>
+
+<p>How to make it works? I need to immitate server response.</p>
+
+<p>Thank you for your time.</p>
+","6193396","","50065","","2016-06-08 10:02:46","2016-11-05 17:09:26","Promise isn't working in react component when testing component using jest","<testing><reactjs><promise><jestjs>","1","2","","",""
+"39322966","1","","","2016-09-05 01:45:31","","10","9592","<p>I'm following the example from this stackoverflow answer - <a href=""https://stackoverflow.com/questions/25533036/test-a-react-component-function-with-jest"">Test a React Component function with Jest</a>. I have an example component and test set up. The component works correctly when loaded into App.js. </p>
+
+<p>Component - </p>
+
+<pre><code>import React, { PropTypes, Component } from 'react';
+
+export default class ExampleModule extends Component {
+  static propTypes = {
+    onAction: PropTypes.func,
+  }
+
+  static defaultProps = {
+  onAction: () =&gt; { console.log(""In onAction""); }
+}
+
+doAction = () =&gt; {
+  // do something else
+  console.log('In do action');
+  this.props.onAction();
+}
+
+render() {
+  return(
+    &lt;div&gt;
+      &lt;button className='action-btn' onClick=  {this.doAction.bind(this)}&gt;Do action&lt;/button&gt;
+    &lt;/div&gt;
+  )
+}
+}
+</code></pre>
+
+<p>And here's the test - </p>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-addons-test-utils';
+import ExampleComponent from './ExampleModule.js';
+
+let Example;
+
+describe('Example component', function() {
+  beforeEach(function() {
+    Example = TestUtils.renderIntoDocument(&lt;ExampleComponent /&gt;);
+  })
+
+  it('calls props functions', function() {
+    Example.doAction = jest.genMockFunction();
+    let actionBtn = TestUtils.findRenderedDOMComponentWithClass(Example, 'action-btn');
+    TestUtils.Simulate.click(actionBtn);
+    expect(Example.doAction).toBeCalled();
+  })
+
+  it('doAction calls onAction', function() {
+    expect(Example.props.onAction).not.toBeCalled();
+    Example.doAction();
+    expect(Example.props.onAction).toBeCalled();
+  })
+})
+</code></pre>
+
+<p>However, I get the following error - </p>
+
+<pre><code>FAIL  src/App/components/Example/ExampleModule.test.js
+  Console
+
+    console.log src/App/components/Example/ExampleModule.js:14
+      In do action
+    console.log src/App/components/Example/ExampleModule.js:24
+      In onAction
+
+  Example component › calls props functions
+
+    Expected the mock function to be called.
+
+      at Object.&lt;anonymous&gt; (src/App/components/Example/ExampleModule.test.js:17:30)
+      at process._tickCallback (node.js:369:9)
+
+  Example component › doAction calls onAction
+
+    toBeCalled matcher can only be used on a spy or mock function.
+
+      at Object.&lt;anonymous&gt; (src/App/components/Example/ExampleModule.test.js:21:40)
+      at process._tickCallback (node.js:369:9)
+</code></pre>
+
+<p>I can see the console.logs in the <code>doAction</code> and <code>onAction</code> are being called even when I want to mock out <code>doAction</code>. 
+Also, I'm unable to mock out <code>onAction</code>. I get this error - </p>
+
+<pre><code>TypeError: Cannot assign to read only property 'onAction' of #&lt;Object&gt;
+</code></pre>
+
+<p>I've tried <code>jest.fn()</code> but got the same errors. </p>
+
+<p>How do I mock these functions and test them?</p>
+
+<p>EDIT:</p>
+
+<p>I was able to mock <code>doAction</code> by using jest.fn() in the following way - </p>
+
+<pre><code>let mockFn = jest.fn();
+Example.doAction = mockFn()
+</code></pre>
+
+<p>However, I'm still unable to mock <code>Example.props.onAction</code>.</p>
+","451906","","-1","","2017-05-23 12:17:36","2016-12-08 22:41:23","How to mock functions, and test that they're called, when passed as props in react components?","<javascript><unit-testing><reactjs><jestjs>","1","0","4","",""
+"28094336","1","29056517","","2015-01-22 16:52:59","","6","3574","<p>I'm trying to write tests for some d3 elements that are rendered via react component, and I was hoping to be able to pick out some of the svg elements on the page and check their width to see if they're behaving as expected.</p>
+
+<p>I'm not entirely sure what the react test-utils docs are expecting when they say ReactComponent tree.</p>
+
+<pre><code>array scryRenderedDOMComponentsWithClass(ReactComponent tree, string className)
+</code></pre>
+
+<p>I'm rendering my component into the document via:</p>
+
+<pre><code>  var component = TestUtils.renderIntoDocument(
+    &lt;ProgressCircle percentage={75} /&gt;
+  );
+</code></pre>
+
+<p>And I'm able to successfully check for a css className by doing:</p>
+
+<pre><code>  it('should render an element with the class ""progress-circle""', function() {
+    var circleContainer = TestUtils.findRenderedDOMComponentWithClass(component, 'progress-circle');
+    expect(circleContainer).toBeDefined();
+  });
+</code></pre>
+
+<p>But I don't understand what I need to provide to some of these find / scry methods that expect a ReactComponent tree.</p>
+
+<p><a href=""http://facebook.github.io/react/docs/test-utils.html"" rel=""noreferrer"">http://facebook.github.io/react/docs/test-utils.html</a></p>
+
+<p>Edit:</p>
+
+<p>For more clarification, the rendered DOM for this component looks like this:</p>
+
+<pre><code>&lt;div class=""progress-circle""&gt;
+  &lt;svg&gt;
+    &lt;g&gt;
+    &lt;/g&gt;
+  &lt;/svg&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>... and I'm trying to find the  element.</p>
+","2461190","","2461190","","2015-01-22 17:14:57","2015-09-18 20:13:53","What does react test-utils expect when it refers to ReactComponent tree?","<reactjs><jestjs>","1","0","1","",""
+"24730019","1","24747657","","2014-07-14 05:28:30","","14","7633","<p>I want to be able to simulate a user typing into a text box using reactjs so that I can test my validation status messages.</p>
+
+<p>I have a react component which validates on keyUp</p>
+
+<p>Below is a simple example of what I've tried.</p>
+
+<pre><code>nameInput.props.value = 'a';
+React.addons.TestUtils.Simulate.keyUp(nameInput);
+React.addons.TestUtils.findRenderedDOMComponentWithClass(component, 'has-error');
+</code></pre>
+
+<p>This doesn't seem to change the value of the bound textbox when I debug in the validator</p>
+
+<pre><code>React.addons.TestUtils.Simulate.keyUp(nameInput, {key: 'a'});
+React.addons.TestUtils.findRenderedDOMComponentWithClass(component, 'has-error');
+</code></pre>
+
+<p>This doesn't either.</p>
+
+<p>Could someone point me on the right track, the second is inline with the documentation I could find around simulate (<a href=""http://facebook.github.io/react/docs/test-utils.html"" rel=""nofollow noreferrer"">http://facebook.github.io/react/docs/test-utils.html</a>), the first makes sense to me (set the actual textbox value then fake an event)</p>
+","1070291","","8276474","","2018-06-18 20:26:50","2018-06-18 20:26:50","Simulating text entry with reactJs TestUtils","<javascript><unit-testing><reactjs><reactjs-testutils>","2","0","2","",""
+"28994283","1","","","2015-03-11 18:12:26","","7","3027","<p>I have the following code in a jest based test:</p>
+
+<pre><code>it('will show the hero loop if there is one', function() {
+
+    var React = require('react/addons');
+    var ShowsDetailHeader = require('../../../../routes/shows/components/ShowsDetailHeader.jsx');
+    var mockData = require('../../../../mock/episodeDetailData');
+    mockData.data.show.assets._webHeroVideoUrl = 'https://test.video.com';
+
+    var Subject = require('../../../../mock/stubRouterContext')(ShowsDetailHeader,  {
+      show: mockData.data.show
+    });
+
+    var TestUtils = React.addons.TestUtils;
+
+    var showsHeader = TestUtils.renderIntoDocument(
+      &lt;Subject /&gt;
+    );
+
+    showsHeader.setState({
+      showVideo: true
+    });
+
+    var videoClass = TestUtils.findRenderedDOMComponentWithClass(showsHeader, 'flex-video').getDOMNode().getAttribute('class');
+
+    expect(videoClass.indexOf('in')).toBe(-1);
+
+    console.log(videoClass);
+
+
+  });
+</code></pre>
+
+<p>My previous test tests the initial state of the component. I now want to call setState to check the component after a state change. The videoClass i'm logging here stays the same. I am on react 0.12. and latest jest 0.4.0.</p>
+
+<p>Any ideas on how to test what happens after set state?</p>
+","938269","","","","","2015-08-20 18:10:22","calling setState on a reactjs component with test utils not re-rendering component","<reactjs><jestjs>","1","0","1","",""

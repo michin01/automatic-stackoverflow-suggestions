@@ -1,0 +1,3046 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"48160911","1","","","2018-01-09 03:05:14","","0","49","<p>I have seen a lot of question that asking url change but view does not get updated. However, it is opposite for my case.</p>
+
+<p>Currently, I am using server-side and it was working until I added </p>
+
+<pre><code> new webpack.DefinePlugin({
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+}),
+</code></pre>
+
+<p>Even though I pass production NODE_ENV with build script webpack keep adding react-dom.development.js which is really big.</p>
+
+<pre><code>NODE_ENV=production
+</code></pre>
+
+<p>After that I feel like history is not get updated</p>
+
+<p>history.js</p>
+
+<pre><code>import createBrowserHistory from 'history/createBrowserHistory'
+import createMemoryHistory from 'history/createMemoryHistory'
+
+let createMemory // eslint-disable-line
+
+if(process.env.NODE_ENV === 'production') {
+  createMemory = createMemoryHistory()
+} else {
+  createMemory = createBrowserHistory()
+}
+
+export default createMemory
+</code></pre>
+
+<p>prod.js</p>
+
+<pre><code> import history from 'Root/history'
+
+ const preloadedState = window.__INITIAL_STATE__
+ // const history = createHistory()
+ const store = configureStore(history, preloadedState)
+ hydrate(
+    &lt;Provider store={store}&gt;
+      &lt;ConnectedRouter history={history}&gt;
+        &lt;AppRoot /&gt;
+      &lt;/ConnectedRouter&gt;
+    &lt;/Provider&gt;,
+    domRoot,
+  )
+</code></pre>
+
+<p>server.root.js using createMemoryHistory for server </p>
+
+<pre><code>&lt;Provider store={store}&gt;
+  &lt;StaticRouter location={urlPath} context={context}&gt;
+    &lt;AppRoot /&gt;
+  &lt;/StaticRouter&gt;
+&lt;/Provider&gt;
+</code></pre>
+
+<p>anyone notice anything wrong ?</p>
+
+<p>by the way if I remove config below. Everything works fine but bundle contains react-dom.development.js</p>
+
+<pre><code>new webpack.DefinePlugin({
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+}),
+</code></pre>
+","3882878","","","","","2018-01-09 03:05:14","react server side rendering url is not get updated on link or location change","<reactjs><webpack>","0","0","","",""
+"34444154","1","","","2015-12-23 21:40:06","","8","923","<p>I'm facing an issue on how to update store when a react-router transition occurs.</p>
+
+<p>In my current implementation (below), update store before rendering next page. The issue comes up when the current page gets a store update based on the data for the next page: (1) the current page renders pointlessly (it's subscribed to store updates), because the updated store is for the next page (2) the current page breaks on render because updated store only has data for the next page.</p>
+
+<pre><code>superagent
+  .get(opts.path)
+  .set('Accept', 'application/json')
+  .end((err, res) =&gt; {
+    let pageData = res &amp;&amp; res.body || {};
+    store.dispatch(setPageStore(pageData));
+    render(store);
+  });
+</code></pre>
+
+<p>The reverse is problematic too, render next page before updating store. The issue now is the next page breaks on render because the data needed for the next page is not there until store is updated.</p>
+
+<p>I'm either misusing the libraries, or my architecture is incomplete, or something else. help!</p>
+
+<p>The rest of the sample code:</p>
+
+<h2>app</h2>
+
+<pre><code>const React = require('react');
+const Router = require('react-router');
+const {createStore} = require('redux');
+const {update} = React.addons;
+const routes = require('./routes'); // all the routes
+let store = {};
+let initialLoad = true;
+
+Router.run(routes, Router.HistoryLocation, (Handler, opts) =&gt; {
+  if(initialLoad) {
+    initialLoad = false;
+
+    // hydrate
+    const initialState = JSON.parse(document.getElementById('initial-state').text);
+    store = createStore(appReducer, initialState);
+    render(store);
+
+  } else {
+    superagent
+      .get(opts.path)
+      .set('Accept', 'application/json')
+      .end((err, res) =&gt; {
+        let pageData = res &amp;&amp; res.body || {};
+        store.dispatch(setPageStore(pageData));
+        render(store);
+      });
+  }
+});
+
+function render(store) {
+  React.render(
+    &lt;Provider store={store} children={() =&gt; &lt;Handler/&gt;} /&gt;, 
+    document.getElementById('react')
+  );
+}
+</code></pre>
+
+<h2>action &amp; reducer</h2>
+
+<pre><code>function appReducer(state = {}, action) {
+  switch(action.type) {
+    case 'SET_PAGE_STORE':
+      return update(state, {$merge: action.pageData});
+
+    default:
+      return reduce(state, action);
+  }
+}
+
+const reduce = combineReducers({
+  // ..all the reducers
+});
+
+function setPageStore(pageData) {
+  return {type: 'SET_PAGE_STORE', pageData};
+}
+</code></pre>
+","158749","","","","","2015-12-30 20:45:47","How should I update redux store during a react-router transition?","<reactjs><react-router><redux>","2","0","3","",""
+"50128342","1","","","2018-05-02 06:26:44","","1","50","<p>I am using react router v4 with redux to render some data on the server but i am not able to set the state of the component on the server. Here's my code. Appreciate the Help </p>
+
+<p>heres the server side loadonserver function</p>
+
+<pre><code>loadOnServer({ store, location, routes }).then(() =&gt; {
+  const context = {};
+  const html = renderToString(
+    &lt;Provider store={store}&gt;
+      &lt;StaticRouter location={location} context={context}&gt;
+        &lt;ReduxAsyncConnect routes={routes} /&gt;
+      &lt;/StaticRouter&gt;
+    &lt;/Provider&gt;
+  );
+
+  // handle redirects
+  if(context.url) {
+    req.header('Location', context.url)
+    return res.send(302)
+  }
+
+  // render the page, and send it to the client
+  res.send(renderLayout(html, '', store.getState(),ApiData , req.protocol + '://' + req.get('x-forwarded-host')));
+
+  // render the page, and send it to the client
+  // can't use until redux-connect works with loadable-components
+  // getLoadableState(html).then(pageScripts =&gt;
+  //   res.send(renderLayout(html, pageScripts.getScriptTag(), store.getState(), !!(req.user &amp;&amp; req.user.isAdmin)))
+  // )
+})
+.catch(err =&gt; {
+  console.log(err);
+  res.status(500).end();
+});
+</code></pre>
+
+<p>ApiData is the data from the server that needs to be set at the server so that the components render out</p>
+
+<p>Heres my index.js</p>
+
+<pre><code>import React from 'react';
+import { hydrate } from 'react-dom';
+import { createStore, applyMiddleware } from 'redux';
+import { Provider } from 'react-redux';
+import { BrowserRouter, Route } from 'react-router-dom';
+import { ReduxAsyncConnect } from 'redux-connect';
+import createHistory from 'history/createBrowserHistory';
+import { ConnectedRouter, routerMiddleware, push } from 'react-router-redux';
+
+import routes from './routes';
+import reducers from './reducers';
+
+import App from './app';
+
+const initialState = window.__INITIAL_STATE;
+
+const history = createHistory();
+const middleware = routerMiddleware(history);
+
+const store = createStore(reducers, initialState, applyMiddleware(middleware));
+
+hydrate(
+  &lt;Provider store={store}&gt;
+    &lt;ConnectedRouter history={history}&gt;
+       &lt;ReduxAsyncConnect routes={routes}/&gt;
+    &lt;/ConnectedRouter&gt;
+  &lt;/Provider&gt;,
+  document.getElementById('app')
+);
+</code></pre>
+
+<p>Heres my routes.js</p>
+
+<pre><code>import React from 'react';
+import App from './app';
+import HomePage from './pages/HomePage';
+
+const routes = [{
+    component: App,
+    routes: [
+         {
+           path : '/',
+           exact: true,
+           component: HomePage
+         }
+    ]
+ }];
+
+ export default routes;
+</code></pre>
+
+<p>And heres my App.js</p>
+
+<pre><code>import React,  { Component } from 'react';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
+import renderRoutes from 'react-router-config/renderRoutes';
+
+import routes from './routes';
+
+import {isBrowser,isServer} from './util/environmentDetection'
+
+class App extends Component {
+
+    constructor(props) {
+        super(props);
+        if(isServer) {
+
+        } else if(isBrowser &amp;&amp; !this.state) {
+             this.state = window.__DATA;
+             delete  window.__DATA;
+        }
+     }
+     render() {
+         return (
+             &lt;div&gt;
+               &lt;Link to={'/'}&gt;
+                {'Home'}
+               &lt;/Link&gt;
+               {renderRoutes(routes[0].routes, { initialData : this.state })}
+            &lt;/div&gt;
+        );
+    }
+ }
+
+ export default App;
+</code></pre>
+","6550576","","","","","2018-05-15 17:10:29","How to set state at the server for data from API using react redux","<reactjs><redux>","1","0","","",""
+"51298132","1","","","2018-07-12 05:48:07","","-1","22","<p>In my project, am using react-lodable plugin for lazyloading js files and hydrate for server side rendering. but after pagelayout completes, the webpage re-rendering whole page on client-side.</p>
+
+<p>re-rendering problem comes while serving html from server to client.</p>
+
+<p>is this problem with react-lodable or any other issue?</p>
+","6025305","","6025305","","2018-07-12 05:58:04","2018-07-12 05:58:04","rerendering page with react-loadable and hydrate in Reactjs","<reactjs><react-loadable>","0","0","","",""
+"50315639","1","","","2018-05-13 11:31:50","","1","206","<p>I am having trouble initialising my redux-state when my react-native application boots up. I need to make an api call before the application boots up to retrieve data to hydrate my state. Id like to pass the result of this call to the createStore function in my Provider JSX element.
+I have read different things about how to do that but none of them seems to work.</p>
+
+<p>Here's my root App component :</p>
+
+<pre><code>import React, { Component } from 'react';
+import { View } from 'react-native';
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+import ReduxThunk from 'redux-thunk';
+import reducers from './reducers';
+import RouterComponent from './Router';
+
+class App extends Component {
+  render() {
+    return (
+      &lt;Provider store={createStore(reducers, {}, applyMiddleware(ReduxThunk))}&gt;
+        &lt;View style={{ flex: 1 }}&gt;
+          &lt;RouterComponent /&gt;
+        &lt;/View&gt;
+      &lt;/Provider&gt;
+    );
+  }
+}
+
+
+export default App;
+</code></pre>
+
+<p>I have read and tried different strategies :
+- wrapping the return statement of the render method in the then callback of the api call
+- make the call in componentWillMount or componentDidMount </p>
+
+<p>None of this did work for me. What is the standard way to pass createStore an initial state from an API call when react-native application boots up.</p>
+","4620141","","","","","2018-05-16 09:29:14","Passing initial state from API call to createStore when react native application boots up","<react-native><redux><react-redux><redux-thunk>","3","1","","",""
+"44149334","1","","","2017-05-24 05:01:20","","0","905","<p>I'm working off the react-redux example here: <a href=""https://github.com/timscott/react-devise-sample"" rel=""nofollow noreferrer"">https://github.com/timscott/react-devise-sample</a></p>
+
+<p>The redux store is being created in <code>setup.js</code> like so: <a href=""https://github.com/timscott/react-devise-sample/blob/master/client/src/app/setup.js"" rel=""nofollow noreferrer"">https://github.com/timscott/react-devise-sample/blob/master/client/src/app/setup.js</a></p>
+
+<p>key part:</p>
+
+<pre><code>const initStore = ({onRehydrationComplete}) =&gt; {
+  store = createStore(
+    combineReducers({
+      ...reactDeviseReducers,
+      cats: [],
+      form: formReducer,
+      router: routerReducer,
+      apollo: apolloClient.reducer()
+    }),
+    {},
+    compose(
+      applyMiddleware(
+        thunk,
+        routerMiddleware(history),
+        apolloClient.middleware()
+      ),
+      autoRehydrate()
+    )
+  );
+
+  persistStore(store, {
+    blacklist: [
+      'form'
+    ]
+  }, onRehydrationComplete);
+
+  return store;
+};
+</code></pre>
+
+<p>Outside of this file in a react component:
+<code>CatsPage.js</code></p>
+
+<p>I'm trying to .dispatch(loadCats()) so the react app will fetch the list of cats from the server, update the store, and react magically update the dom. Here is what I have in CatsPage.js:</p>
+
+<pre><code>import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import CatList from './CatList';
+import {loadCats} from '../../actions/catActions';
+import {initStore} from '../../app/setup';
+
+class CatsPage extends React.Component {
+  state = {
+    rehydrated: false
+  };
+  componentDidMount() {
+    initStore.dispatch(loadCats())
+  }
+  render() {
+    return (
+      &lt;div&gt;
+        &lt;h1&gt;Cats&lt;/h1&gt;
+        &lt;div&gt;
+          &lt;CatList cats={this.props.cats} /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+CatsPage.propTypes = {
+  cats: PropTypes.array.isRequired
+};
+
+function mapStateToProps(state, ownProps) {
+  return {
+    cats: state.cats
+  };
+}
+
+export default connect(mapStateToProps)(CatsPage);
+</code></pre>
+
+<p>I'm getting the error: <code>Uncaught TypeError: _setup.initStore.dispatch is not a function</code></p>
+
+<p>I'm a react-redux newbie and appreciate any help you can provide to point me in the right direction. Thanks</p>
+
+<p>UPDATE</p>
+
+<p><strong>CatList.js</strong></p>
+
+<pre><code>import React from 'react';
+import PropTypes from 'prop-types';
+import {Link} from 'react-router-dom';
+
+const CatList = ({cats}) =&gt; {
+  return (
+      &lt;ul className=""list-group""&gt;
+        {cats.map(cat =&gt;
+           &lt;li className=""list-group-item"" key={cat.id}&gt;
+            &lt;Link to={'/cats/' + cat.id}&gt;{cat.name}&lt;/Link&gt;
+           &lt;/li&gt;
+        )}
+      &lt;/ul&gt;
+  );
+};
+
+CatList.propTypes = {
+  cats: PropTypes.array.isRequired
+};
+
+export default CatList;
+</code></pre>
+","149080","","149080","","2017-05-24 13:04:22","2017-05-24 13:04:22","How to access the store in react components","<reactjs><redux><react-redux><redux-thunk>","1","0","","",""
+"50013837","1","","","2018-04-25 03:58:12","","0","113","<p>I have been getting the following error since sometime in my console, i have no idea what it means and why it is originating. Please spread some light on this matter.
+<a href=""https://i.stack.imgur.com/XWZor.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/XWZor.png"" alt=""enter image description here""></a></p>
+
+<p>it says:</p>
+
+<pre><code>persistReducer.js:50 Uncaught TypeError: action.rehydrate is not a function
+at _rehydrate (persistReducer.js:50)
+at persistReducer.js:54
+</code></pre>
+
+<p>redux-persist version on package.json: ""^5.6.11""
+locked version: ""5.9.1""</p>
+
+<p>Store configuration code:</p>
+
+<pre><code>import thunk from 'redux-thunk';
+import { persistStore } from 'redux-persist';
+import { History, createBrowserHistory } from 'history';
+import { createUserManager, loadUser } from ""redux-oidc"";
+import { routerReducer, routerMiddleware } from 'react-router-redux';
+import { createStore, applyMiddleware, compose, combineReducers, GenericStoreEnhancer, Store, StoreEnhancerStoreCreator, ReducersMapObject } from 'redux';
+
+import * as StoreModule from './reducers';
+import { ApplicationState, reducers } from './reducers';
+
+import userManager from ""./utils/userManager"";
+
+// Create browser history to use in the Redux store
+const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href')!;
+const history = createBrowserHistory({ basename: baseUrl });
+
+export default function configureStore(history: History, initialState?: ApplicationState) {
+    // Build middleware. These are functions that can process the actions before they reach the store.
+    const windowIfDefined = typeof window === 'undefined' ? null : window as any;
+    // If devTools is installed, connect to it
+    const devToolsExtension = windowIfDefined &amp;&amp; windowIfDefined.__REDUX_DEVTOOLS_EXTENSION__ as () =&gt; GenericStoreEnhancer;
+
+
+    const createStoreWithMiddleware = compose(
+        applyMiddleware(thunk, routerMiddleware(history)),
+        devToolsExtension ? devToolsExtension() : &lt;S&gt;(next: StoreEnhancerStoreCreator&lt;S&gt;) =&gt; next
+    )(createStore);
+
+    // Combine all reducers and instantiate the app-wide store instance
+    const allReducers = buildRootReducer(reducers);
+    const store = createStoreWithMiddleware(allReducers, initialState) as Store&lt;ApplicationState&gt;;
+    loadUser(store, userManager);
+
+    // Enable Webpack hot module replacement for reducers
+    if (module.hot) {
+        module.hot.accept('./reducers', () =&gt; {
+            const nextRootReducer = require&lt;typeof StoreModule&gt;('./reducers');
+            store.replaceReducer(buildRootReducer(nextRootReducer.reducers));
+        });
+    }
+    const persistor = persistStore(store);
+    return { store, persistor };
+}
+
+function buildRootReducer(allReducers: ReducersMapObject) {
+    return combineReducers&lt;ApplicationState&gt;(Object.assign({}, allReducers, { routing: routerReducer }));
+}
+
+// Get the application-wide store instance, prepopulating with state from the server where available.
+const initialState = (window as any).initialReduxState as ApplicationState;
+export const { store, persistor } = configureStore(history, initialState);
+</code></pre>
+","3315191","","3315191","","2018-04-25 04:47:58","2018-06-06 23:24:28","action.rehydrate is not a function","<reactjs><redux><redux-persist>","2","4","","",""
+"44159568","1","44159826","","2017-05-24 13:18:17","","1","450","<p>I have the following store:</p>
+
+<p><strong>setup.js</strong></p>
+
+<pre><code>import catReducer from '../reducers/catReducer';
+
+let store;
+
+const initStore = ({onRehydrationComplete}) =&gt; {
+  store = createStore(
+    combineReducers({
+      ...reactDeviseReducers,
+      catReducer,
+      form: formReducer,
+      router: routerReducer,
+      apollo: apolloClient.reducer()
+    }),
+    {},
+    compose(
+      applyMiddleware(
+        thunk,
+        routerMiddleware(history),
+        apolloClient.middleware()
+      ),
+      autoRehydrate()
+    )
+  );
+
+  persistStore(store, {
+    blacklist: [
+      'form'
+    ]
+  }, onRehydrationComplete);
+
+  return store;
+};
+</code></pre>
+
+<p>I'm trying to add the reducer <code>catReducer</code> as seen above. When <code>catReducer</code> is not present everything works, when I add <code>catReducer</code> and later log the <code>state</code> in a component the catReducer is not being shown as expected in the store. What am I doing wrong?</p>
+
+<p><strong>catReducer.js</strong></p>
+
+<pre><code>import * as types from '../actions/actionTypes';
+import initialState from './initialState';
+
+export default function catReducer(state = initialState.cats, action) {
+  switch(action.type) {
+    case types.LOAD_CATS_SUCCESS:
+      return action.cats
+    default:
+      return state;
+  }
+}
+</code></pre>
+
+<p><strong>initialState</strong></p>
+
+<pre><code>export default {
+  cats: [],
+  hobbies: []
+}
+</code></pre>
+
+<p><strong>My react component: CatsPage.js</strong></p>
+
+<pre><code>import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import CatList from './CatList';
+import {loadCats} from '../../actions/catActions';
+
+class CatsPage extends React.Component {
+  componentDidMount() {
+    this.props.dispatch(loadCats())
+  }
+  render() {
+    return (
+      &lt;div&gt;
+        &lt;h1&gt;Cats&lt;/h1&gt;
+        &lt;div&gt;
+          &lt;CatList cats={this.props.cats} /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+CatsPage.propTypes = {
+  cats: PropTypes.array.isRequired
+};
+
+function mapStateToProps(state, ownProps) {
+
+  console.log('mapStateToProps')
+  console.log(state)
+
+  return {
+    cats: state.cats
+    //cats: [{id:1, name: ""Maru""}]
+  };
+}
+
+export default connect(mapStateToProps)(CatsPage);
+</code></pre>
+
+<p>Thanks for any help!</p>
+
+<p><strong>UPDATES</strong></p>
+
+<p><strong>js console errors w the above:</strong></p>
+
+<pre><code>warning.js:36 Warning: Failed prop type: The prop `cats` is marked as required in `CatsPage`, but its value is `undefined`.
+
+Warning: Failed prop type: The prop `cats` is marked as required in `CatList`, but its value is `undefined`.
+
+CatList.js:8 Uncaught TypeError: Cannot read property 'map' of undefined
+</code></pre>
+","149080","","","","","2017-05-24 15:34:46","How to add a reducer to a react redux app","<reactjs><redux><react-redux><redux-thunk><reducers>","3","6","1","",""
+"49088073","1","","","2018-03-03 19:04:13","","0","39","<p><strong>ERROR MSG:</strong>
+<code>
+Error: Request failed with status code 500
+Stack trace:
+[42]/&lt;/t.exports@http://crdwk.herokuapp.com/packs/bundle-ecc8ea14dbe153e50352.js:1:89311
+[42]/&lt;/t.exports@http://crdwk.herokuapp.com/packs/bundle-ecc8ea14dbe153e50352.js:1:251725
+[42]/&lt;/t.exports/&lt;/d[h]@http://crdwk.herokuapp.com/packs/bundle-ecc8ea14dbe153e50352.js:1:88311
+</code></p>
+
+<p><strong>Ruby version:</strong> 2.3</p>
+
+<p><strong>Rails version:</strong> 5.1</p>
+
+<p>I have a server-side rendered, client-side hydrated React/Rails app (using <a href=""https://github.com/reactjs/react-rails"" rel=""nofollow noreferrer""><code>gem 'react-rails'</code></a>).</p>
+
+<p>I added the <code>gem 'rack-cors'</code> plus setup in <a href=""https://github.com/English3000/crdwk/blob/master/config/application.rb"" rel=""nofollow noreferrer""><code>application.rb</code></a> in order for my requests to work (I'm using <code>axios</code>). However, <a href=""https://github.com/English3000/crdwk/blob/master/frontend/utils/api.js"" rel=""nofollow noreferrer"">signing out</a> (a DELETE request) fails and hitting refresh erases the current user. Neither issue occurs locally/in development.</p>
+
+<p>Here's the app: <a href=""http://crdwk.herokuapp.com"" rel=""nofollow noreferrer"">http://crdwk.herokuapp.com</a></p>
+
+<p>And the repo: <a href=""https://github.com/English3000/crdwk"" rel=""nofollow noreferrer"">https://github.com/English3000/crdwk</a></p>
+","8425368","","","","","2018-03-06 19:13:29","axios/rack-cors/react-rails/heroku: Internal Server Error 500 on sign out, no persistence on refresh","<ruby-on-rails><heroku><axios><react-rails><rack-cors>","1","2","","",""
+"48983567","1","","","2018-02-26 07:39:10","","1","186","<p>I'm newby to Redux. I was trying to persist data on local storage through <code>redux-persist</code>. I followed the tutorial and the data stored in storage as below. </p>
+
+<pre><code>import {createStore, applyMiddleware, compose} from 'redux';
+ import {AsyncStorage} from 'react-native';
+ import {persistStore, autoRehydrate} from 'redux-persist';
+ import reducer from '../reducer';
+
+ var defaultState = {
+     todos: []
+ };
+
+
+
+ exports.configureStore = (initialState=defaultState) =&gt; {
+
+     var store = createStore(reducer, initialState, compose(
+         autoRehydrate()
+     ));
+     persistStore(store, {storage: AsyncStorage});
+     return store;
+ }
+</code></pre>
+
+<p>And here is my <code>App.js</code>.</p>
+
+<pre><code>import React, { Component } from 'react';
+import {Provider} from 'react-redux';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
+import Main from './app/components/Main';
+import {configureStore} from './app/store';
+
+export default class App extends Component&lt;Props&gt; {
+  render() {
+    return (
+     &lt;Provider store={configureStore()}&gt;
+        &lt;Main/&gt;
+     &lt;/Provider&gt;
+    );
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF',
+  },
+  welcome: {
+    fontSize: 20,
+    textAlign: 'center',
+    margin: 10,
+  },
+  instructions: {
+    textAlign: 'center',
+    color: '#333333',
+    marginBottom: 5,
+  },
+});
+</code></pre>
+
+<p>But I guess, there is new update in <code>redux-persist</code>. So, with this code I get the error like below.</p>
+
+<p><a href=""https://i.stack.imgur.com/Pjs9t.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/Pjs9t.png"" alt=""enter image description here""></a></p>
+
+<p>As I understand, within new update there is no more <code>autoRehydrate</code>. But I can't handle, how to update the code so it works with new version. Can you help me, please? </p>
+","5696585","","5696585","","2018-02-26 11:19:48","2018-02-26 11:19:48","redux-persist autoRehydrate not defined in new version","<react-native><redux><redux-persist>","0","0","","",""
+"47202696","1","47265945","","2017-11-09 13:09:11","","1","828","<p>From the <a href=""https://reactjs.org/docs/react-dom.html#hydrate"" rel=""nofollow noreferrer"">React 16 docs</a> about <code>ReactDOM.hydrate()</code>,</p>
+
+<blockquote>
+  <p>Same as render(), but is used to hydrate a container whose HTML contents were rendered by ReactDOMServer. React will attempt to attach event listeners to the existing markup.</p>
+</blockquote>
+
+<ol>
+<li><p>Will <code>ReactDOM.hydrate()</code> also trigger lifecycle methods on the client such as <code>componentWillMount()</code>, <code>componentDidMount()</code> during initial render?</p></li>
+<li><p>Will <code>render()</code> method be called on the client during hydration? I suppose not, because that's the difference between <code>ReactDOM.render()</code> and <code>ReactDOM.hydrate()</code>? </p></li>
+</ol>
+
+<p>If <code>render</code> method won't be called on the client, we wouldn't expect <code>componentDidMount()</code> lifecycle method to be triggered.</p>
+
+<p>If none of the lifecycle methods are called on the client, how would we know when has React finished rendering. I suppose the <code>callback</code> in the following syntax:</p>
+
+<blockquote>
+  <p>ReactDOM.hydrate(element, container[, callback])</p>
+</blockquote>
+
+<p>I want to understand if there are lifecycle methods / hooks (which give more control over the application) available when React is ""attempting to attach event listeners to existing markup"".</p>
+","3563619","","3563619","","2017-11-09 13:16:03","2017-11-13 13:53:03","Will ReactDOM.hydrate() trigger lifecycle methods on the client?","<reactjs><react-dom><react-dom-server>","1","0","0","",""
+"49979005","1","","","2018-04-23 10:36:55","","1","296","<p>How CSS files will load dynamically using react-loadable library on client side?</p>
+
+<p>I have included react-loadable library on both server and client side rendering, from server-side rendering everything works fine but client side, how CSS will load dynamically?</p>
+
+<p><code>webpack.config.prod.js</code> : <em>Client/Server -</em></p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""true"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>'use strict';
+
+const autoprefixer = require('autoprefixer');
+const path = require('path');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractCssChunks = require('extract-css-chunks-webpack-plugin');
+const ManifestPlugin = require('webpack-manifest-plugin');
+const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
+const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
+const eslintFormatter = require('react-dev-utils/eslintFormatter');
+const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
+const paths = require('./paths');
+const getClientEnvironment = require('./env');
+const { ReactLoadablePlugin } = require('react-loadable/webpack');
+
+const publicPath = paths.servedPath;
+
+const shouldUseRelativeAssetPaths = publicPath === './';
+
+const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
+const publicUrl = publicPath.slice(0, -1);
+const env = getClientEnvironment(publicUrl);
+if (env.stringified['process.env'].NODE_ENV !== '""production""') {
+  throw new Error('Production builds must have NODE_ENV=production.');
+}
+const cssFilename = 'static/css/[name].[contenthash:8].css';
+
+const client = {
+  bail: true,
+  devtool: shouldUseSourceMap ? 'source-map' : false,
+  entry: [require.resolve('./polyfills'), paths.appIndexJs],
+  output: {
+    // The build folder.
+    path: paths.appBuild,
+    filename: 'static/js/[name].[chunkhash:8].js',
+    chunkFilename: 'static/js/[name].[chunkhash:8].chunk.js',
+    publicPath,
+    devtoolModuleFilenameTemplate: info =&gt;
+      path
+        .relative(paths.appSrc, info.absoluteResourcePath)
+        .replace(/\\/g, '/'),
+  },
+  resolve: {
+    modules: ['node_modules', paths.appNodeModules].concat(
+  process.env.NODE_PATH.split(path.delimiter).filter(Boolean)),
+    extensions: ['.web.js', '.mjs', '.js', '.json', '.web.jsx', '.jsx'],
+    alias: {
+      'react-native': 'react-native-web',
+    },
+    plugins: [
+      new ModuleScopePlugin(paths.appSrc, [paths.appPackageJson]),
+
+    ],
+  },
+  module: {
+    strictExportPresence: true,
+    rules: [
+      {
+        test: /\.(js|jsx|mjs)$/,
+        enforce: 'pre',
+        use: [
+          {
+            options: {
+              formatter: eslintFormatter,
+              eslintPath: require.resolve('eslint'),
+
+            },
+            loader: require.resolve('eslint-loader'),
+          },
+        ],
+        include: paths.appSrc,
+      },
+      {
+        oneOf: [
+   
+          {
+            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+            loader: require.resolve('url-loader'),
+            options: {
+              limit: 10000,
+              name: 'static/media/[name].[hash:8].[ext]',
+            },
+          },
+          // Process JS with Babel.
+          {
+            test: /\.(js|jsx|mjs)$/,
+            include: paths.appSrc,
+            loader: require.resolve('babel-loader'),
+            options: {
+              compact: true,
+              plugins: ['react-loadable/babel'],
+            },
+          },
+          {
+            test: /\.(?:css|less)$/,
+            use: ExtractCssChunks.extract({
+              use: [
+                {
+                  loader: 'css-loader?modules',
+                  options: {
+                    minimize: true,
+                    sourceMap: shouldUseSourceMap,
+                    importLoaders: true,
+                    localIdentName: '[name]__[local]__[hash:base64:7]',
+                  },
+                },
+                {
+                  loader: 'less-loader',
+                  options: {
+                    minimize: true,
+                    sourceMap: shouldUseSourceMap,
+                    importLoaders: true,
+                  },
+                },
+                {
+                  loader: require.resolve('postcss-loader'),
+                  options: {
+                  ident: 'postcss',
+                    plugins: () =&gt; [
+                      require('postcss-flexbugs-fixes'),
+                      autoprefixer({
+                        browsers: [
+                          '&gt;1%',
+                          'last 4 versions',
+                          'Firefox ESR',
+                          'not ie &lt; 9',
+                        ],
+                        flexbox: 'no-2009',
+                      }),
+                    ],
+                  },
+                },
+              ],
+              fallback: 'style-loader',
+            }),
+            exclude: /\.(eot|woff|woff2|ttf|otf|svg)(\?[\s\S]+)?$/,
+          },
+          {
+            loader: require.resolve('file-loader'),
+            exclude: [/\.(js|jsx|mjs)$/, /\.html$/, /\.json$/],
+            options: {
+              name: 'static/media/[name].[hash:8].[ext]',
+            },
+          },
+        ],
+      },
+    ],
+  },
+  plugins: [
+    new InterpolateHtmlPlugin(env.raw),
+    new HtmlWebpackPlugin({
+      inject: true,
+      template: paths.appHtml,
+      minify: {
+        removeComments: true,
+        collapseWhitespace: true,
+        removeRedundantAttributes: true,
+        useShortDoctype: true,
+        removeEmptyAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        keepClosingSlash: true,
+        minifyJS: false,
+        minifyCSS: true,
+        minifyURLs: true,
+      },
+    }),
+    new webpack.DefinePlugin(env.stringified),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false,
+        comparisons: false,
+      },
+      mangle: {
+        safari10: true,
+      },
+      output: {
+        comments: false,
+        ascii_only: true,
+      },
+      sourceMap: shouldUseSourceMap,
+    }),
+    new ExtractCssChunks({
+      filename: cssFilename,
+    }),
+    new webpack.HashedModuleIdsPlugin(),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'manifest.js',
+      minChunks: Infinity,
+    }),
+    new ManifestPlugin({
+      fileName: 'asset-manifest.json',
+    }),
+    new ReactLoadablePlugin({
+      filename: './build/react-loadable.json',
+    }),
+    new SWPrecacheWebpackPlugin({
+      dontCacheBustUrlsMatching: /\.\w{8}\./,
+      filename: 'service-worker.js',
+      logger(message) {
+        if (message.indexOf('Total precache size is') === 0) {
+          return;
+        }
+        if (message.indexOf('Skipping static resource') === 0) {
+          return;
+        }
+        console.log(message);
+      },
+      minify: true,
+      navigateFallback: `${publicUrl}/index.html`,
+      navigateFallbackWhitelist: [/^(?!\/__).*/],
+      staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
+    }),
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+  ],
+
+  node: {
+    dgram: 'empty',
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty',
+    child_process: 'empty',
+  },
+};
+
+// Server render
+const nodeExternals = require('webpack-node-externals');
+const server = Object.assign({}, client);
+server.target = 'node';
+server.node = {
+  __filename: true,
+  __dirname: true,
+};
+server.externals = [nodeExternals()];
+server.entry = [
+  './server/middleware/renderer.js',
+];
+
+delete server.devtool;
+delete server.node;
+server.module = {};
+server.plugins = [
+  new webpack.HashedModuleIdsPlugin(),
+  new webpack.optimize.LimitChunkCountPlugin({
+    maxChunks: 1,
+  }),
+];
+server.output = {
+  path: paths.appBuild,
+  filename: 'handleRender.js',
+  publicPath,
+  libraryTarget: 'commonjs2',
+};
+server.module.rules = [{
+  test: /\.(?:js|jsx)$/,
+  exclude: /node_modules/,
+  loader: require.resolve('babel-loader'),
+  options: {
+    compact: true,
+    plugins: ['react-loadable/babel'],
+  },
+},
+{
+  test: /\.(?:css|less)$/,
+  loader: 'css-loader/locals?modules&amp;localIdentName=[name]__[local]__[hash:base64:7]!less-loader',
+  exclude: /\.(eot|woff|woff2|ttf|otf|svg)(\?[\s\S]+)?$/,
+}];
+
+module.exports = [server, client];</code></pre>
+</div>
+</div>
+</p>
+
+<p><code>Server index.js</code>: </p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>...
+import Loadable from 'react-loadable';
+import serverRenderer from '../build/handleRender.js';
+...
+router.use('*', serverRenderer);
+...
+app.use(router);
+// Pre-load all compoenents
+Loadable.preloadAll().then(() =&gt; {
+  app.listen(PORT, (error) =&gt; {
+    if (error) {
+      return console.log('something bad happened', error);
+    }
+    console.log(`listening on ${PORT}...`);
+  });
+}).catch((e) =&gt; {
+  console.log('Loadable Error : ', e);
+});</code></pre>
+</div>
+</div>
+</p>
+
+<p><code>renderer.js</code>:</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>import { renderToStringWithData } from 'react-apollo';
+import Loadable from 'react-loadable';
+import { getBundles } from 'react-loadable/webpack';
+...
+
+const mainApp = renderToStringWithData(&lt;Loadable.Capture
+      report={moduleName =&gt; modules.push(moduleName)}
+    &gt;
+      &lt;App req={req} context={context} client={client} /&gt;
+    &lt;/Loadable.Capture&gt;);
+...
+  const bundles = getBundles(JSON.parse(stats), modules);
+  const styles = bundles.filter(bundle =&gt;                   bundle.file.endsWith('.css'));
+  const scripts = bundles.filter(bundle =&gt; bundle.file.endsWith('.js'));    
+
+...
+//mainApp=&gt;html
+   const replacedStyle = html.replace(
+            '&lt;link id=""codeSplittingStyle""&gt;',
+            styles.map(bundle =&gt; `&lt;link
+                rel=""stylesheet""
+                href=""/${bundle.file}""/&gt;`).join('\n'),
+          );
+
+          const replacedScript = replacedStyle.replace(
+            '&lt;script id=""codeSplittingScript""&gt;&lt;/script&gt;',
+            scripts.map(bundle =&gt; `&lt;script
+                type=""text/javascript""
+                src=""/${bundle.file}""&gt;&lt;/script&gt;`).join('\n'),
+          );
+...
+   return res.send(replacedScript);    </code></pre>
+</div>
+</div>
+</p>
+
+<p><code>Browser.js</code>:</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>import React from 'react';
+import ReactDOM from 'react-dom';
+import Loadable from 'react-loadable';
+
+import Browser from './layout/browser';
+import registerServiceWorker from './registerServiceWorker';
+
+Loadable.preloadReady().then(() =&gt; {
+  ReactDOM.hydrate(&lt;Browser /&gt;, document.getElementById('root'));
+});
+registerServiceWorker();</code></pre>
+</div>
+</div>
+</p>
+","6025305","","3073543","","2018-04-26 07:23:11","2018-04-26 09:06:01","Import component css chunk client side with react-loadable","<reactjs><react-loadable>","1","8","","",""
+"44918084","1","","","2017-07-05 06:02:18","","0","107","<p>I'm building a simple web app using React where the user enters a valid username to bring up a diary of recently eaten food items. I have a single username field at the top of the page that I want to be sticky as the user scrolls down the entirety of the page. But as it is now, the username field is just scrolling out of view like a normal component. What am I missing? Any help would be appreciated.</p>
+
+<p>app.js</p>
+
+<pre><code>import React, { Component } from 'react';
+import {StickyContainer, Sticky} from 'react-sticky';
+import Username from '../containers/username';
+import DiaryList from '../containers/diary_list';
+
+export default class App extends Component {
+  render() {
+    return (
+      &lt;div&gt;       
+        &lt;h1 className=""text-xs-center""&gt;Diary&lt;/h1&gt;
+        &lt;StickyContainer&gt;
+            &lt;Sticky&gt;
+                {() =&gt; {
+                    return &lt;Username /&gt;}}
+            &lt;/Sticky&gt;
+            &lt;DiaryList /&gt;
+        &lt;/StickyContainer&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>username.js</p>
+
+<pre><code>import React, {Component} from 'react';
+import {connect} from 'react-redux';
+
+import {fetchUser} from '../actions/index';
+
+class Username extends Component {
+    constructor(props){
+        super(props);
+
+        this.state = {term: ''};
+        this.onInputChange = this.onInputChange.bind(this);
+    }
+
+    onInputChange(event) {
+        this.setState({term: event.target.value}, 
+            () =&gt; this.props.fetchUser(this.state.term)
+        );
+    }
+
+    render(){
+        return(
+            &lt;div className=""username""&gt;
+                &lt;span className=""username-field""&gt;Username:&lt;/span&gt;
+                &lt;input value = {this.state.term}
+                onChange={this.onInputChange}   /&gt;
+            &lt;/div&gt;
+        )   
+    }
+}
+
+export default connect(null, {fetchUser})(Username);
+</code></pre>
+
+<p>diary_list.js</p>
+
+<pre><code>import React, {Component} from 'react';
+import {connect} from 'react-redux';
+import DishChart from './dish_chart';
+
+class DiaryList extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {width: $(window).width(), 
+                        height: $(window).height()
+        }
+
+        this.updateDimensions = this.updateDimensions.bind(this);
+    }
+
+    componentDidMount() {
+        window.addEventListener(""resize"",  this.updateDimensions);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener(""resize"", this.updateDimensions);
+    }
+
+    updateDimensions() {
+        this.setState({width: $(window).width(), height: $(window).height()});
+    }
+
+    renderDiary(diaryData, key=diaryData.dishId) {
+        return (
+            &lt;div key={diaryData.dishId}&gt;
+                &lt;div  className=""col-sm-6 col-md-4 col-lg-3"" &gt;
+                    &lt;ul className=""list-group""&gt;
+                        &lt;li className=""list-group-item""&gt;
+                            &lt;img className=""img-thumbnail""src={diaryData.imageLink} alt=""No image available.""/&gt;
+                        &lt;/li&gt;
+                        &lt;li className=""list-group-item""&gt;{diaryData.dishName}&lt;/li&gt;
+                        &lt;li className=""list-group-item""&gt;Price: {diaryData.price}&lt;/li&gt;
+                        &lt;li className=""list-group-item""&gt;Calories: {diaryData.calories}&lt;/li&gt;
+                        &lt;li className=""list-group-item""&gt;Health Score: {diaryData.healthScoreM}&lt;/li&gt;
+                        &lt;div className=""container-fluid""&gt;
+                        &lt;li className=""list-group-item row""&gt;
+                            &lt;div className=""col-xs-4 carbs""&gt;
+                                {`${diaryData.carbohydrates}G Carbs`}
+                            &lt;/div&gt;
+                            &lt;div className=""col-xs-4 fat""&gt;
+                                {`${diaryData.totalFat}G Fat`}
+                            &lt;/div&gt;
+                            &lt;div className=""col-xs-4 protein""&gt;
+                                {`${diaryData.protein}G Protein`}
+                            &lt;/div&gt;
+                        &lt;/li&gt;
+                        &lt;/div&gt;
+                        &lt;li className=""list-group-item recharts-wrapper""&gt;
+                        &lt;DishChart data={diaryData} /&gt;
+                        &lt;/li&gt;
+                    &lt;/ul&gt;
+                &lt;/div&gt;
+                {($(window).width() &gt;= 480 &amp;&amp; $(window).width() &lt; 768) &amp;&amp;
+                    key % 2 == 1 &amp;&amp; 
+                        &lt;div className=""clearfix visible-sm-block""&gt;&lt;/div&gt;
+                }
+                {($(window).width() &gt;= 768 &amp;&amp; $(window).width() &lt; 992) &amp;&amp;
+                    key % 3 == 2 &amp;&amp;
+                        &lt;div className=""clearfix visible-md-block""&gt;&lt;/div&gt;
+                }
+                {$(window).width() &gt;= 992 &amp;&amp;
+                    key % 4 == 3 &amp;&amp;
+                        &lt;div className=""clearfix visible-lg-block""&gt;&lt;/div&gt;
+                }
+            &lt;/div&gt;
+        )
+    }
+
+    render() {
+        if (this.props.diary.data == undefined) {
+            return (
+                &lt;div&gt;
+                    Please enter a valid username.
+                &lt;/div&gt;
+            )
+        }
+
+        return (
+            &lt;div className=""diary""&gt;
+                {this.props.diary.data.map(this.renderDiary)}
+            &lt;/div&gt;
+        );
+    }
+}
+
+function mapStateToProps(state) {
+    return {
+        diary: state.diary
+    };
+}
+
+export default connect(mapStateToProps)(DiaryList);
+</code></pre>
+","8256962","","","","","2017-07-05 06:02:18","Having trouble implementing react-sticky component for username field","<reactjs>","0","2","","",""
+"47093638","1","","","2017-11-03 10:33:39","","1","234","<p>When I render a synchronous route on server-side and then the client side hydrate the dom, I get a warning because client side asynchronous route doesn't find the component.</p>
+
+<p><img src=""https://user-images.githubusercontent.com/12088397/32235451-cf34fbee-be5f-11e7-8112-15a7ee01982b.png"" alt=""image""></p>
+
+<p>In other hand react fiber reconciliation tries to remove this non hydratable node. So the page makes a blank flash on client side :(</p>
+
+<p><img src=""https://user-images.githubusercontent.com/12088397/32235473-e0ff5522-be5f-11e7-9562-512199aae4ab.png"" alt=""image""></p>
+
+<p>According to this next screenshot, the generated node from server side rendering will be remove. This node (div.home-page) is a dynamic component of the current route</p>
+
+<p><img src=""https://user-images.githubusercontent.com/12088397/32248737-e733daf4-be86-11e7-88c4-1a7ee2dcae8c.png"" alt=""image""></p>
+
+<p>So, how can I tell the reconciler to not remove this node, because it will be hydrated by the dynamic imported corresponding component?</p>
+
+<p>Some code snippets for more explanations</p>
+
+<p><strong>Routes definition</strong></p>
+
+<pre><code>import {
+  HomePage,
+} from '../bundles/Bundles';
+
+export default [
+  {
+    component: HomePage,
+    path: '/',
+    exact: true,
+    strict: true,
+  },
+];
+</code></pre>
+
+<p><strong>The Bundles.js used on server side</strong></p>
+
+<pre><code>export const HomePage = syncComponent('HomePage', require('../views/HomePage/HomePage'));
+</code></pre>
+
+<p><strong>The AsyncBundles.js used on client side</strong></p>
+
+<pre><code>export const HomePage = asyncComponent('HomePage', () =&gt; Promise.all([
+  import('../views/HomePage/HomePage' /* webpackChunkName: 'HomePage' */),
+  importCss('HomePage'),
+]));
+</code></pre>
+
+<p>Thanks to the <strong>NormalModuleReplacementPlugin</strong> webpack plugin I'm able to switch from Bundles.js and AsyncBundles.js for server and client rendering</p>
+
+<pre><code>new webpack.NormalModuleReplacementPlugin(/Bundles\.js/, 'AsyncBundles.js')
+</code></pre>
+
+<p><strong>HomePage.js component renders a simple div</strong></p>
+
+<pre><code>&lt;div className=""home-page""&gt;Home Page&lt;/div&gt;
+</code></pre>
+
+<p><strong>The main Wrapper.js that renders the routes</strong></p>
+
+<pre><code>  &lt;Route
+    render={({ location }) =&gt; (
+      &lt;div className=""app__wrapper""&gt;
+        &lt;Switch location={location}&gt;
+          {routes.map((route, index) =&gt; (
+            &lt;Route
+              key={route.path}
+              path={route.path}
+              exact={route.exact}
+              render={route.component}
+            /&gt;
+          ))}
+          &lt;Route
+            key={'not found'}
+            path={'*'}
+            render={NotFound}
+          /&gt;
+        &lt;/Switch&gt;
+      &lt;/div&gt;
+    )}
+  /&gt;
+</code></pre>
+
+<p><strong>The html generated on server-side looks like this:</strong></p>
+
+<pre><code>&lt;div class=""app__wrapper""&gt;
+  &lt;div class=""home-page""&gt;
+    Home Page
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>When I open the chrome debugger timeline, I get a <strong>flashing blank</strong> frame
+<img src=""https://user-images.githubusercontent.com/12088397/32326338-c05fd52a-bfd2-11e7-9386-44c50a8ee173.png"" alt=""image""></p>
+
+<p>Before the blank frame, it's the rendered html, after it's the chunked HomePage.123456.js that is rendered</p>
+","6195715","","6195715","","2017-11-03 10:50:23","2017-11-03 10:50:23","Server-side rendering and async routing, blank flash on client side with react@16","<reactjs><react-router-v4><ssr>","0","4","1","",""
+"39527313","1","43643282","","2016-09-16 08:50:42","","17","1258","<p>I have the following <code>redux</code> configuration in <code>react-native</code> using <code>react-native-router-flux</code> and <code>redux-persist</code>. I want to retrieve the last current route on refresh, however the route stack is being overwritten on reload.</p>
+
+<p>This is the <code>reducers/index.js</code> file</p>
+
+<pre><code>import { combineReducers, createStore, applyMiddleware, compose } from 'redux'
+import { persistStore, autoRehydrate } from 'redux-persist'
+import { AsyncStorage } from 'react-native'
+import logger from 'redux-logger'
+
+import { startServices } from '../services'
+import navigation from './navigation'
+import devices from './devices'
+import rooms from './rooms'
+
+
+import { ActionConst } from 'react-native-router-flux'
+
+function routes (state = {scene: {}}, action = {}) {
+  switch (action.type) {
+    // focus action is dispatched when a new screen comes into focus
+    case ActionConst.FOCUS:
+      return {
+        ...state,
+        scene: action.scene,
+      };
+
+    // ...other actions
+
+    default:
+      return state;
+  }
+}
+
+export const reducers = combineReducers({
+  routes,
+  navigation,
+  devices,
+  rooms
+})
+
+const middleware = [logger()]
+
+const store = createStore(
+  reducers,
+  compose(
+    autoRehydrate(),
+    applyMiddleware(...middleware)
+  )
+)
+
+persistStore(store, {storage: AsyncStorage}, function onStoreRehydrate () {
+  startServices()
+})
+
+export { store, reducers }
+</code></pre>
+
+<p>EDIT: This is the <code>index.js</code> with it's Provider and scenes:</p>
+
+<pre><code>import React, { Component } from 'react'
+import { store } from './reducers'
+import { Provider, connect } from 'react-redux'
+import { Router, Scene, Actions } from 'react-native-router-flux';
+
+import Home from './containers/home'
+import Login from './containers/login'
+import Device from './containers/device'
+
+
+const scenes = Actions.create(
+  &lt;Scene key=""root""&gt;
+      &lt;Scene key=""home"" component={Home} /&gt;
+      &lt;Scene key=""login"" component={Login} /&gt;
+      &lt;Scene key=""device"" component={Device} /&gt;
+  &lt;/Scene&gt;
+)
+
+const RouterWithRedux = connect()(Router)
+
+export default class EntryPoint extends Component {
+  render () {
+    return (
+      &lt;Provider store={store}&gt;
+        &lt;RouterWithRedux scenes={scenes} /&gt;
+      &lt;/Provider&gt;
+    )
+  }
+}
+</code></pre>
+","2633577","","2633577","","2016-09-25 13:48:16","2017-04-26 19:47:31","Router state not being persisted in react-native with redux","<reactjs><react-native><redux><react-redux><react-native-router-flux>","3","0","2","",""
+"47643740","1","","","2017-12-04 23:35:48","","0","60","<p>I am using material-ui-next and react-router-dom in my web application. (    <code>""material-ui"": ""^1.0.0-beta.21""</code>,<code>""react-router-dom"": ""^4.2.2""</code>) I feel like there might be a weird interplay here that isnt allowing me to click on any element in my browser (includes links and buttons in MUI). </p>
+
+<p>Here is my code that isnt allowing anything to be clicked on.</p>
+
+<pre><code>\*App.js*\    
+import { Route, Switch, Link } from 'react-router-dom'
+import Whoops404 from './ui/Whoops404'
+import { NavBar, HomePage,LoginPage} from './containers/home-containers'
+
+const App = () =&gt;
+        &lt;div&gt;
+&lt;NavBar/&gt;
+        &lt;ul&gt;
+          &lt;li&gt;&lt;Link to=""/""&gt;Home&lt;/Link&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;Link to=""/login""&gt;Login&lt;/Link&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+        &lt;Switch&gt;
+            &lt;Route exact path=""/"" component={HomePage}/&gt;
+            &lt;Route path=""/login/"" component={LoginPage}/&gt;
+            &lt;Route component={Whoops404} /&gt;
+        &lt;/Switch&gt;
+        &lt;/div&gt;
+
+
+export default App
+</code></pre>
+
+<p>and here is my index.js</p>
+
+<pre><code>/*index.js*/
+import React from 'react';
+import { hydrate } from 'react-dom';
+import { Provider } from 'react-redux';
+import { BrowserRouter } from 'react-router-dom';
+import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
+import { green, red } from 'material-ui/colors';
+import App from '../common/components/App.jsx';
+import storeFactory from '../common/store';
+
+const store = storeFactory(false, window.__INITIAL_STATE__)
+
+window.React = React
+window.store = store
+
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Looks like we are in development mode!');
+}
+
+const theme = createMuiTheme({
+    palette: {
+      primary: green,
+      accent: red,
+      type: 'light',
+    },
+  });
+
+class Main extends React.Component {
+// Remove the server-side injected CSS.
+componentDidMount() {
+    const jssStyles = document.getElementById('jss-server-side');
+    if (jssStyles &amp;&amp; jssStyles.parentNode) {
+    jssStyles.parentNode.removeChild(jssStyles);
+    }
+}
+
+render() {
+    return &lt;App {...this.props} /&gt;
+}
+}
+
+console.log('rendered from here...')
+
+hydrate(
+  &lt;Provider store={store}&gt;
+    &lt;BrowserRouter&gt;
+      &lt;MuiThemeProvider theme={theme}&gt;
+        &lt;Main /&gt;
+      &lt;/MuiThemeProvider&gt;
+    &lt;/BrowserRouter&gt;
+  &lt;/Provider&gt;,
+  document.getElementById('react-container'),
+);
+</code></pre>
+
+<p>The thing is that it ""works"" totally fine if you remove the <code>&lt;Switch&gt;</code> statement
+from the App.js. Of course, now I am unable to resolve any client side routes. </p>
+
+<p>What am I missing here?</p>
+","5648225","","","","","2017-12-04 23:35:48","Can't select any element in browser (material-ui-next, react-router-dom)","<react-router><react-redux><material-ui>","0","0","","",""
+"48659615","1","","","2018-02-07 08:59:28","","1","62","<p>I was trying to use code-splitting with <code>react-router</code> and found that <code>react-loadable</code> is adviced in multiple places (<a href=""https://github.com/ReactTraining/react-router/blob/master/packages/react-router-dom/docs/guides/code-splitting.md"" rel=""nofollow noreferrer"">https://github.com/ReactTraining/react-router/blob/master/packages/react-router-dom/docs/guides/code-splitting.md</a> and <a href=""https://reactjs.org/docs/code-splitting.html"" rel=""nofollow noreferrer"">https://reactjs.org/docs/code-splitting.html</a>). Is it possible to combine react-router and react-loadable with server-side rendering. By default my application tries to show loading element right after application has been initialized which defeats the purpose of server-side rendering. Ideally, only on initial page load I would use <code>ReactDOM.hydrate</code> function to initialize application (after the right chunk has been loaded) and then just continue using application as usual (showing loading element)</p>
+","3718704","","","","","2018-02-07 08:59:28","How to hydrate with react application that uses react-router after load?","<javascript><reactjs><react-router><ssr><react-loadable>","0","1","","",""
+"48427428","1","48484159","","2018-01-24 16:36:18","","-2","179","<p>The application I'm working on is based on React Fiber and React Router V3.</p>
+
+<p>Trying to use <code>hydrate()</code> instead of <code>render()</code> with <a href=""https://github.com/ReactTraining/react-router/blob/v3/docs/API.md#getcomponentnextstate-callback"" rel=""nofollow noreferrer"">async components</a> I've faced with the following issue: HTML returned from SSR is different from client-side one. </p>
+
+<p>As a result React remounts the whole DOM and throws the following warning: <code>Did not expect server HTML to contain...</code>.</p>
+
+<p>React Training does not provide solution as well: <a href=""https://reacttraining.com/react-router/web/guides/code-splitting/code-splitting-server-rendering"" rel=""nofollow noreferrer"">Code-splitting + server rendering</a></p>
+
+<p>Is there any solution to achieve this?</p>
+
+<h2>Updates:</h2>
+
+<h3>Simple Example</h3>
+
+<p><em>(pseudo code)</em></p>
+
+<p><strong>App.js:</strong></p>
+
+<pre><code>export default () =&gt; &lt;div&gt;Lorem Ipsum&lt;/div&gt;;
+</code></pre>
+
+<p><strong>client.js:</strong></p>
+
+<pre><code>const createRoutes = store =&gt; ({
+  path: '/',
+  getComponent(nextState, cb) {
+    require('./App'); // some async require
+  },
+  onEnter: (nextState, replace, cb) =&gt; {
+    store.dispatch(fetchData())
+      .then(() =&gt; cb())
+      .catch(cb);
+  }
+});
+
+match({history, routes: createRoutes(store)},
+  (error, redirectLocation, renderProps) =&gt; {
+  hydrate(
+    &lt;Router history={history} routes={createRoutes(store)} /&gt;,
+    document.getElementById('app')
+  );
+});
+</code></pre>
+
+<p><strong>server.js</strong></p>
+
+<pre><code>match({routes: createRoutes(store), location: req.url},
+  (err, redirectLocation, renderProps) =&gt; {
+  const content = renderToString(&lt;RouterContext {...renderProps}/&gt;);
+  // send content to client
+});
+</code></pre>
+","8663803","","8663803","","2018-01-28 07:55:16","2018-01-28 07:55:16","Use hydrate() with async. components","<javascript><reactjs><webpack><react-router><react-fiber>","1","1","","",""
+"48829972","1","","","2018-02-16 15:29:15","","0","51","<p>I've only been developing with Meteor 1.4 for a while, and now made the jump to 1.6. Things sure have changed (for the worse).</p>
+
+<p>Meteor used to be so easy to get started with. Now everything is a jumbled mess. It seems like every package wants to insert itself right at the start, so that you can't just import it and use it anymore, you have to change the setup/boilerplate of your app to get it to work. That also means the official documentation is useless because it can't account for every package you want to use.</p>
+
+<p>Anyway, I want to get started with <code>react-router</code> and <code>server-render</code>, which also requires <code>react-helmet</code> (I think). All of these are new to me and hey, they want to insert themselves right away and they all have awful documentation to begin with. </p>
+
+<p>Here's what I have so far, based on googling:</p>
+
+<p><strong><code>lib/main.js</code>:</strong></p>
+
+<pre><code>import React from 'react'
+
+import { Helmet } from 'react-helmet'
+
+import App from '../imports/ui/App.js'
+
+if (Meteor.isClient) {
+  import { hydrate } from 'react-dom'
+
+  hydrate(&lt;App /&gt;, document.getElementById('app'))
+}
+
+else {
+  import { renderToString } from 'react-dom/server'
+  import { onPageLoad } from 'meteor/server-render'
+  import NodeCache from 'node-cache'
+
+  const renderCache = new NodeCache({stdTTL: 432000})
+
+  onPageLoad((sink) =&gt; {
+    const path = sink.request.url.path
+    let htmlString = renderCache.get(path)
+    if (!htmlString) {
+      htmlString = renderToString(&lt;App location={path} /&gt;)
+      const helmet = Helmet.renderStatic()
+
+      renderCache.set(path, htmlString)
+      renderCache.set(path + ""_title"", helmet.title.toString())
+      renderCache.set(path + ""_meta"", helmet.meta.toString())
+      renderCache.set(path + ""_link"", helmet.link.toString())
+    }
+
+    sink.appendToHead(renderCache.get(path + ""_title""))
+    sink.appendToHead(renderCache.get(path + ""_meta""))
+    sink.appendToHead(renderCache.get(path + ""_link""))
+    sink.renderIntoElementById(""app"", htmlString);
+  })
+
+}
+</code></pre>
+
+<p>And then <code>App.js</code> is just an empty component right now.</p>
+
+<p>I don't know where to put my routing, or how (the docs assume you already know, for some reason). I think it also needs to insert itself in the <code>hydrate()</code> method on the client, but the example I got it from did not do that so I don't really know.</p>
+
+<p>I don't know whether to put my <code>main.html</code> on the client or both client and server.</p>
+
+<p><strong>I don't know how to set titles and meta tags and whatnot for each route.</strong> (I thought this would actually be in the documentation for <code>react-helmet</code> since that's all it's supposed to do but no...)</p>
+
+<p>Can anyone help me with the rest of this boilerplate? I have no idea what's going on in the Meteor world anymore.</p>
+","4746897","","","","","2018-02-16 15:29:15","Meteor setup (boilerplate) with server-render and react-router?","<javascript><reactjs><meteor>","0","2","","",""
+"46090713","1","46114589","","2017-09-07 07:43:57","","7","2598","<p>I'm working on a React Native application that also use Redux and I want to write tests with Jest. I'm not able to mock the ""navigation"" prop that is added by react-navigation.</p>
+
+<p>Here is my component:</p>
+
+
+
+<pre class=""lang-js prettyprint-override""><code>import React from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import { Text, View } from 'react-native';
+
+const Loading = (props) =&gt; {
+  if (props.rehydrated === true) {
+    const { navigate } = props.navigation;
+    navigate('Main');
+  }
+  return (
+    &lt;View&gt;
+      &lt;Text&gt;Loading...&lt;/Text&gt;
+    &lt;/View&gt;
+  );
+};
+
+Loading.propTypes = {
+  rehydrated: PropTypes.bool.isRequired,
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func.isRequired,
+  }).isRequired,
+};
+
+const mapStateToProps = state =&gt; ({
+  rehydrated: state.rehydrated,
+});
+
+export default connect(mapStateToProps)(Loading);
+</code></pre>
+
+<p>The Loading component is added as a screen to a DrawerNavigator.</p>
+
+<p>And here is the test:</p>
+
+<pre class=""lang-js prettyprint-override""><code>import React from 'react';
+import renderer from 'react-test-renderer';
+import mockStore from 'redux-mock-store';
+
+import Loading from '../';
+
+describe('Loading screen', () =&gt; {
+
+  it('should display loading text if not rehydrated', () =&gt; {
+    const store = mockStore({
+      rehydrated: false,
+      navigation: { navigate: jest.fn() },
+    });
+
+    expect(renderer.create(&lt;Loading store={store} /&gt;)).toMatchSnapshot();
+
+  });
+});
+</code></pre>
+
+<p>When I run the test, I get the following error:</p>
+
+<pre class=""lang-js prettyprint-override""><code>Warning: Failed prop type: The prop `navigation` is marked as required in `Loading`, but its value is `undefined`.
+          in Loading (created by Connect(Loading))
+          in Connect(Loading)
+</code></pre>
+
+<p>Any idea on how to mock the navigation property?</p>
+","1646670","","1175081","","2018-06-22 09:26:06","2018-06-22 09:26:06","Testing component that uses react-navigation with Jest","<react-native><mocking><jestjs><react-navigation>","1","0","0","",""
+"47152243","1","","","2017-11-07 07:31:09","","0","112","<p>I have an app which is server side rendered, and then the client side code hydrates the dom. I am using react 16 and react router 4. How do i scroll to the top of the page when i click on a link, but maintain the scroll when i go back to the original screen.</p>
+
+<p>server side code</p>
+
+<pre><code>  const markup = ReactDOMServer.renderToString(
+    &lt;StaticRouter location={ request.url } context={ context }&gt;
+      &lt;App /&gt;
+    &lt;/StaticRouter&gt;
+  );
+</code></pre>
+
+<p>App.js</p>
+
+<pre><code>class App extends Component&lt;{}, {}&gt; {
+  render() {
+    return (
+      &lt;div&gt;
+        &lt;Switch&gt;
+          &lt;Route exact path='/' component={ Homepage } /&gt;
+          &lt;Route  path='/learn-mode' component={ LearnMore } /&gt;
+        &lt;/Switch&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+</code></pre>
+
+<p><strong>Client  code</strong></p>
+
+<pre><code>import { hydrate } from 'react-dom';
+import App from './App';
+import React from 'react';
+
+hydrate((
+  &lt;BrowserRouter&gt;
+    &lt;App /&gt;
+  &lt;/BrowserRouter&gt;
+), document.getElementById('root'));
+</code></pre>
+
+<p>Most of the solutions i read online dealt with pure client rendered app and couldnt find a conclusive solution for an isomorphic. Any help here would be good.</p>
+","5298398","","5298398","","2017-11-07 11:13:06","2017-11-07 11:13:06","Scroll to top when route changes on server rendered react app","<javascript><reactjs><react-router-v4><serverside-rendering>","0","0","1","",""
+"41503971","1","","","2017-01-06 10:45:40","","0","117","<p>I am trying to set up redux-persist in a react-native project that is already using redux. I can not get it to work though.</p>
+
+<p>I followed this article: <a href=""https://medium.com/differential/building-offline-first-react-native-apps-b958acac0009#.vmshi0cxk"" rel=""nofollow noreferrer"">https://medium.com/differential/building-offline-first-react-native-apps-b958acac0009#.vmshi0cxk</a></p>
+
+<p>This is my set up in app.js:</p>
+
+<pre><code>import React, {Component} from 'react';
+import { Navigator, View, StyleSheet } from 'react-native';
+import { createStore, applyMiddleware, combineReducers } from 'redux';
+import { Provider } from 'react-redux';
+import thunk from 'redux-thunk';
+import { persistStore, autoRehydrate } from 'redux-persist';
+
+import * as reducers from '../reducers';
+
+const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
+
+configureStore = (onComplete) =&gt; {
+    const store = autoRehydrate()(createStoreWithMiddleware)(reducers);
+    persistStore(store, { storage: AsyncStorage }, onComplete);
+
+    return store;
+};
+</code></pre>
+
+<p>And the begining of App (in the same file):</p>
+
+<pre><code>class App extends Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+        isLoading: true,
+        store: configureStore(() =&gt; this.setState({ isLoading: false })),
+      };
+    }
+
+    render() {
+        if (this.state.isLoading) return null;
+        ....
+    }
+}
+</code></pre>
+
+<p>I get ""reducer is not a function"" as an error when trying this.</p>
+
+<p>In the /reducers folder I have index.js:</p>
+
+<pre><code>import recordReducer from './recordReducer';
+
+export {
+  recordReducer
+};
+</code></pre>
+
+<p>and in recordReducer.js:</p>
+
+<pre><code>import * as types from '../actions/actionTypes';
+
+const initialState = {};
+
+export default function recordReducer(state = initialState, action = {}) {    
+  switch (action.type) {
+    case types.SAVE_RECORDING_SUCCESS:
+      return {
+        ...state,
+        recordings: state.recordings ? state.recordings.concat([action.recording]) : [action.recording]
+      };
+    default:
+      return state;
+  }
+}
+</code></pre>
+","1221132","","","","","2017-01-06 10:45:40","Error setting up redux-persist in react-native","<react-native><redux>","0","2","","",""
+"44381242","1","45676147","","2017-06-06 04:04:24","","0","536","<p>I am currently working with react 15.4.2 and redux, i am going to keep my react/redux state whenever the browser refresh. and i found people are suggesting redux-persist but when i follow the instruction of basic usage, it doesn't work at all, all state returning to empty again when i refresh my browser. this is what shown by logger 
+<a href=""https://i.stack.imgur.com/3K5L3.jpg"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/3K5L3.jpg"" alt=""enter image description here""></a></p>
+
+<p>rehydrate only show once (at the first time ), and never happen again while doing another action. and here is my store.js </p>
+
+<pre><code>import {createStore, applyMiddleware} from ""redux"";
+import thunk from ""redux-thunk"";
+import logger from ""redux-logger"";
+import promise from ""redux-promise-middleware"";
+import {composeWithDevTools} from ""redux-devtools-extension"";
+import {autoRehydrate, persistStore} from 'redux-persist';
+
+import combineReducer from ""./reducers/combineReducer"";
+
+const middleware = composeWithDevTools(applyMiddleware(promise(), thunk, logger()), autoRehydrate());
+
+const store = createStore(combineReducer, middleware);
+persistStore(store);
+
+export default store;
+</code></pre>
+
+<p>and here is my index.js :</p>
+
+<pre><code>import React from ""react"";
+import ReacrDOM from ""react-dom"";
+import {Router, Route, IndexRoute, hashHistory, browserHistory} from ""react-router""
+import {Provider} from ""react-redux"";
+import {login_check} from ""./actions/logActions"";
+
+import store from ""./store"";
+import Layout from ""./pages/Layout"";
+import Dashboard from ""./pages/Dashboard"";
+import Login from ""./pages/login/index"";
+import User from ""./pages/user/index"";
+import Pemain from ""./pages/pemain/index"";
+
+const app = document.getElementById(""app"");
+
+function requireLogin() {
+    const {user_id, session_key}=store.getState().logReducer;
+    store.dispatch(login_check({user_id: user_id, session_key: session_key}))
+    const {logged_in}=store.getState().logReducer;
+    if (!logged_in) {
+        /*browserHistory.push('#/login');*/
+        hashHistory.push('/login');
+    }
+}
+
+ReacrDOM.render(
+    &lt;Provider store={store}&gt;
+        &lt;Router history={hashHistory}&gt;
+            &lt;Route path=""/login"" component={Login}/&gt;
+            &lt;Route path=""/"" component={Layout} onEnter={requireLogin}&gt;
+                &lt;IndexRoute component={Dashboard} onEnter={requireLogin}/&gt;
+                &lt;Route path=""user"" component={User} onEnter={requireLogin}/&gt;
+                &lt;Route path=""pemain"" component={Pemain} onEnter={requireLogin}/&gt;
+            &lt;/Route&gt;
+        &lt;/Router&gt;
+    &lt;/Provider&gt;
+    , app);
+</code></pre>
+
+<p>and here is package.json :</p>
+
+<pre><code>{
+  ""name"": ""learn-react"",
+  ""version"": ""1.0.0"",
+  ""description"": ""for learning purpose only"",
+  ""main"": ""index.js"",
+  ""scripts"": {
+    ""test"": ""echo \""Error: no test specified\"" &amp;&amp; exit 1"",
+    ""dev"": ""webpack-dev-server --content-base --inline --hot --port 3300""
+  },
+  ""keywords"": [
+    ""react"",
+    ""learning""
+  ],
+  ""author"": ""vidy hermes"",
+  ""license"": ""ISC"",
+  ""devDependencies"": {
+    ""webpack"": ""^2.2.1"",
+    ""webpack-dev-server"": ""^2.3.0"",
+    ""redux-devtools-extension"": ""^2.13.0"",
+    ""redux-logger"": ""^2.8.1""
+  },
+  ""dependencies"": {
+    ""axios"": ""^0.15.3"",
+    ""babel-core"": ""^6.22.1"",
+    ""babel-loader"": ""^6.2.10"",
+    ""babel-plugin-react-html-attrs"": ""^2.0.0"",
+    ""babel-plugin-transform-class-properties"": ""^6.22.0"",
+    ""babel-plugin-transform-decorators-legacy"": ""^1.3.4"",
+    ""babel-preset-es2015"": ""^6.22.0"",
+    ""babel-preset-react"": ""^6.22.0"",
+    ""babel-preset-stage-0"": ""^6.22.0"",
+    ""base-64"": ""^0.1.0"",
+    ""css-loader"": ""^0.26.2"",
+    ""file-loader"": ""^0.10.1"",
+    ""globalize"": ""^0.1.1"",
+    ""history"": ""^4.5.1"",
+    ""less"": ""^2.7.2"",
+    ""less-loader"": ""^2.2.3"",
+    ""moment"": ""^2.17.1"",
+    ""path"": ""^0.12.7"",
+    ""react"": ""15.4.2"",
+    ""react-dom"": ""15.4.2"",
+    ""react-redux"": ""^5.0.2"",
+    ""react-redux-loading-bar"": ""^2.8.2"",
+    ""react-router"": ""^3.0.2"",
+    ""react-widgets"": ""^3.4.6"",
+    ""redux"": ""^3.6.0"",
+    ""redux-persist"": ""^4.8.0"",
+    ""redux-promise-middleware"": ""^4.2.0"",
+    ""redux-thunk"": ""^2.2.0"",
+    ""style-loader"": ""^0.13.2"",
+    ""url-loader"": ""^0.5.8""
+  }
+}
+</code></pre>
+
+<p>i have google it for two days, and still haven't found any solution, how to make react-persist work? please kindly help me..</p>
+
+<p>regards,</p>
+
+<p>vidy hermes</p>
+","2771450","","2771450","","2017-06-06 08:01:10","2017-10-07 17:55:02","redux-persist does't work, rehydrate only occur once","<javascript><reactjs><redux><frontend>","2","1","","",""
+"46913301","1","","","2017-10-24 14:33:07","","0","49","<p>Im building a react native where I need to encrypt the locally stored data:</p>
+
+<ul>
+<li>node 7.10.1</li>
+<li>npm 4.2.0
+
+<ul>
+<li>""redux"": ""^3.7.2"",
+""redux-logger"": ""^3.0.6"",
+""redux-persist"": ""^4.10.1"",
+""redux-persist-transform-encrypt"": ""^1.0.2""</li>
+</ul></li>
+</ul>
+
+<p>My code looks like this:</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>        import { compose, applyMiddleware, createStore } from 'redux';
+        import {mainReducer} from './reducers/reducers';
+        import { createLogger } from 'redux-logger'
+        import thunk from 'redux-thunk'
+        import {getStoredState, persistStore, autoRehydrate } from 'redux-persist'
+        import {AsyncStorage} from 'react-native';
+        import createAsyncEncryptor from 'redux-persist-transform-encrypt';
+        
+        
+        const loggerMiddleware = createLogger({
+            level:'console',
+            logErrors:true,
+            predicate: (state, action) =&gt;{
+                console.log('---redux log---------'+action.type+'---------------------------------------');
+            }
+        });
+        
+        export const store = createStore(
+            mainReducer,
+            compose(
+                autoRehydrate( {log:true} ),
+                applyMiddleware(thunk, loggerMiddleware)
+            )
+        );
+        
+        
+        const asyncEncryptor = createAsyncEncryptor({
+            secretKey: 'my-super-secret-key'
+        });
+        
+        const persistConfig = {
+            storage: AsyncStorage,
+            transforms:[
+                asyncEncryptor
+            ],
+            serialize: true
+        }
+        
+        export const persister = persistStore(
+            store,
+            persistConfig,
+            ()=&gt;{
+                console.log('Rehydration complete');
+            }
+        );</code></pre>
+</div>
+</div>
+</p>
+
+<p>It persists correctly without encryption but when I add encryption transform as per <a href=""https://www.npmjs.com/package/redux-persist-transform-encrypt"" rel=""nofollow noreferrer"">this link</a>, it writes encrypted persist data but when rehydrating, I get an ""unexpected end of JSON input"" error.</p>
+
+<pre><code>ExceptionsManager.js:73 SyntaxError: Unexpected end of JSON input
+    at JSON.parse (&lt;anonymous&gt;)
+    at sync.js:30
+    at helpers.js:32
+    at Object.out (createTransform.js:21)
+    at getStoredState.js:63
+    at Array.reduceRight (&lt;anonymous&gt;)
+    at rehydrate (getStoredState.js:62)
+    at getStoredState.js:50
+    at AsyncStorage.js:86
+    at MessageQueue.__invokeCallback (MessageQueue.js:354)
+</code></pre>
+","5142827","","","","","2017-10-24 14:33:07","redux-persist-transform-encrypt gives 'unexpected end of JSON input' when it rehydrates","<encryption><redux><redux-persist>","0","0","","",""
+"49279583","1","49284361","","2018-03-14 13:54:05","","1","65","<p>I am getting a webpack TypeError when trying to use hydrate() in index.js. The error is not seen when I use ReactDOM.render() instead of hydrate and I am using hydrate for server side rendering.</p>
+
+<p><strong>src/index.js</strong></p>
+
+<pre><code>import React from 'react';
+import ReactDOM, { hydrate } from 'react-dom';
+import { Provider } from 'react-redux';
+import App from './App';
+import store from './store/configureStore';
+
+hydrate(
+  &lt;Provider store={store}&gt;
+    &lt;App /&gt;
+  &lt;/Provider&gt;,
+  document.getElementById('root')
+)
+</code></pre>
+
+<p><strong>config/webpack.config.dev.js</strong></p>
+
+<pre><code>'use strict';
+
+const autoprefixer = require('autoprefixer');
+const path = require('path');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
+const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
+const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin');
+const eslintFormatter = require('react-dev-utils/eslintFormatter');
+const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
+const getClientEnvironment = require('./env');
+const paths = require('./paths');
+
+// Webpack uses `publicPath` to determine where the app is being served from.
+// In development, we always serve from the root. This makes config easier.
+const publicPath = '/';
+// `publicUrl` is just like `publicPath`, but we will provide it to our app
+// as %PUBLIC_URL% in `index.html` and `process.env.PUBLIC_URL` in JavaScript.
+// Omit trailing slash as %PUBLIC_PATH%/xyz looks better than %PUBLIC_PATH%xyz.
+const publicUrl = '';
+// Get environment variables to inject into our app.
+const env = getClientEnvironment(publicUrl);
+
+// This is the development configuration.
+// It is focused on developer experience and fast rebuilds.
+// The production configuration is different and lives in a separate file.
+module.exports = {
+  // You may want 'eval' instead if you prefer to see the compiled output in DevTools.
+  // See the discussion in https://github.com/facebookincubator/create-react-app/issues/343.
+  devtool: 'cheap-module-source-map',
+  // These are the ""entry points"" to our application.
+  // This means they will be the ""root"" imports that are included in JS bundle.
+  // The first two entry points enable ""hot"" CSS and auto-refreshes for JS.
+  entry: [
+    // Include an alternative client for WebpackDevServer. A client's job is to
+    // connect to WebpackDevServer by a socket and get notified about changes.
+    // When you save a file, the client will either apply hot updates (in case
+    // of CSS changes), or refresh the page (in case of JS changes). When you
+    // make a syntax error, this client will display a syntax error overlay.
+    // Note: instead of the default WebpackDevServer client, we use a custom one
+    // to bring better experience for Create React App users. You can replace
+    // the line below with these two lines if you prefer the stock client:
+    // require.resolve('webpack-dev-server/client') + '?/',
+    // require.resolve('webpack/hot/dev-server'),
+    require.resolve('react-dev-utils/webpackHotDevClient'),
+    // We ship a few polyfills by default:
+    require.resolve('./polyfills'),
+    // Errors should be considered fatal in development
+    require.resolve('react-error-overlay'),
+    // Finally, this is your app's code:
+    paths.appIndexJs,
+    // We include the app code last so that if there is a runtime error during
+    // initialization, it doesn't blow up the WebpackDevServer client, and
+    // changing JS code would still trigger a refresh.
+  ],
+  output: {
+    // Next line is not used in dev but WebpackDevServer crashes without it:
+    path: paths.appBuild,
+    // Add /* filename */ comments to generated require()s in the output.
+    pathinfo: true,
+    // This does not produce a real file. It's just the virtual path that is
+    // served by WebpackDevServer in development. This is the JS bundle
+    // containing code from all our entry points, and the Webpack runtime.
+    filename: 'static/js/bundle.js',
+    // There are also additional JS chunk files if you use code splitting.
+    chunkFilename: 'static/js/[name].chunk.js',
+    // This is the URL that app is served from. We use ""/"" in development.
+    publicPath: publicPath,
+    // Point sourcemap entries to original disk location (format as URL on Windows)
+    devtoolModuleFilenameTemplate: info =&gt;
+      path.resolve(info.absoluteResourcePath).replace(/\\/g, '/'),
+  },
+  resolve: {
+    // This allows you to set a fallback for where Webpack should look for modules.
+    // We placed these paths second because we want `node_modules` to ""win""
+    // if there are any conflicts. This matches Node resolution mechanism.
+    // https://github.com/facebookincubator/create-react-app/issues/253
+    modules: ['node_modules', paths.appNodeModules].concat(
+      // It is guaranteed to exist because we tweak it in `env.js`
+      process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
+    ),
+    // These are the reasonable defaults supported by the Node ecosystem.
+    // We also include JSX as a common component filename extension to support
+    // some tools, although we do not recommend using it, see:
+    // https://github.com/facebookincubator/create-react-app/issues/290
+    // `web` extension prefixes have been added for better support
+    // for React Native Web.
+    extensions: ['.web.js', '.js', '.json', '.web.jsx', '.jsx'],
+    alias: {
+
+      // Support React Native Web
+      // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
+      'react-native': 'react-native-web',
+    },
+    plugins: [
+      // Prevents users from importing files from outside of src/ (or node_modules/).
+      // This often causes confusion because we only process files within src/ with babel.
+      // To fix this, we prevent you from importing files out of src/ -- if you'd like to,
+      // please link the files into your node_modules/ and let module-resolution kick in.
+      // Make sure your source files are compiled, as they will not be processed in any way.
+      new ModuleScopePlugin(paths.appSrc),
+    ],
+  },
+  module: {
+    strictExportPresence: true,
+    rules: [
+      // TODO: Disable require.ensure as it's not a standard language feature.
+      // We are waiting for https://github.com/facebookincubator/create-react-app/issues/2176.
+      // { parser: { requireEnsure: false } },
+
+      // First, run the linter.
+      // It's important to do this before Babel processes the JS.
+      {
+        test: /\.(js|jsx)$/,
+        enforce: 'pre',
+        use: [
+          {
+            options: {
+              formatter: eslintFormatter,
+
+            },
+            loader: require.resolve('eslint-loader'),
+          },
+        ],
+        include: paths.appSrc,
+      },
+      // ** ADDING/UPDATING LOADERS **
+      // The ""file"" loader handles all assets unless explicitly excluded.
+      // The `exclude` list *must* be updated with every change to loader extensions.
+      // When adding a new loader, you must add its `test`
+      // as a new entry in the `exclude` list for ""file"" loader.
+
+      // ""file"" loader makes sure those assets get served by WebpackDevServer.
+      // When you `import` an asset, you get its (virtual) filename.
+      // In production, they would get copied to the `build` folder.
+      {
+        exclude: [
+          /\.html$/,
+          /\.(js|jsx)$/,
+          /\.css$/,
+          /\.json$/,
+          /\.bmp$/,
+          /\.gif$/,
+          /\.jpe?g$/,
+          /\.png$/,
+        ],
+        loader: require.resolve('file-loader'),
+        options: {
+          name: 'static/media/[name].[hash:8].[ext]',
+        },
+      },
+      // ""url"" loader works like ""file"" loader except that it embeds assets
+      // smaller than specified limit in bytes as data URLs to avoid requests.
+      // A missing `test` is equivalent to a match.
+      {
+        test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+        loader: require.resolve('url-loader'),
+        options: {
+          limit: 10000,
+          name: 'static/media/[name].[hash:8].[ext]',
+        },
+      },
+      // Process JS with Babel.
+      {
+        test: /\.(js|jsx)$/,
+        include: paths.appSrc,
+        loader: require.resolve('babel-loader'),
+        options: {
+
+          // This is a feature of `babel-loader` for webpack (not Babel itself).
+          // It enables caching results in ./node_modules/.cache/babel-loader/
+          // directory for faster rebuilds.
+          cacheDirectory: true,
+        },
+      },
+      // ""postcss"" loader applies autoprefixer to our CSS.
+      // ""css"" loader resolves paths in CSS and adds assets as dependencies.
+      // ""style"" loader turns CSS into JS modules that inject &lt;style&gt; tags.
+      // In production, we use a plugin to extract that CSS to a file, but
+      // in development ""style"" loader enables hot editing of CSS.
+      {
+        test: /\.css$/,
+        use: [
+          require.resolve('style-loader'),
+          {
+            loader: require.resolve('css-loader'),
+            options: {
+              importLoaders: 1,
+            },
+          },
+          {
+            loader: require.resolve('postcss-loader'),
+            options: {
+              // Necessary for external CSS imports to work
+              // https://github.com/facebookincubator/create-react-app/issues/2677
+              ident: 'postcss',
+              plugins: () =&gt; [
+                require('postcss-flexbugs-fixes'),
+                autoprefixer({
+                  browsers: [
+                    '&gt;1%',
+                    'last 4 versions',
+                    'Firefox ESR',
+                    'not ie &lt; 9', // React doesn't support IE8 anyway
+                  ],
+                  flexbox: 'no-2009',
+                }),
+              ],
+            },
+          },
+        ],
+      },
+      // ** STOP ** Are you adding a new loader?
+      // Remember to add the new extension(s) to the ""file"" loader exclusion list.
+    ],
+  },
+  plugins: [
+    // Makes some environment variables available in index.html.
+    // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
+    // &lt;link rel=""shortcut icon"" href=""%PUBLIC_URL%/favicon.ico""&gt;
+    // In development, this will be an empty string.
+    new InterpolateHtmlPlugin(env.raw),
+    // Generates an `index.html` file with the &lt;script&gt; injected.
+    new HtmlWebpackPlugin({
+      inject: true,
+      template: paths.appHtml,
+    }),
+    // Add module names to factory functions so they appear in browser profiler.
+    new webpack.NamedModulesPlugin(),
+    // Makes some environment variables available to the JS code, for example:
+    // if (process.env.NODE_ENV === 'development') { ... }. See `./env.js`.
+    new webpack.DefinePlugin(env.stringified),
+    // This is necessary to emit hot updates (currently CSS only):
+    new webpack.HotModuleReplacementPlugin(),
+    // Watcher doesn't work well if you mistype casing in a path so we use
+    // a plugin that prints an error when you attempt to do this.
+    // See https://github.com/facebookincubator/create-react-app/issues/240
+    new CaseSensitivePathsPlugin(),
+    // If you require a missing module and then `npm install` it, you still have
+    // to restart the development server for Webpack to discover it. This plugin
+    // makes the discovery automatic so you don't have to restart.
+    // See https://github.com/facebookincubator/create-react-app/issues/186
+    new WatchMissingNodeModulesPlugin(paths.appNodeModules),
+    // Moment.js is an extremely popular library that bundles large locale files
+    // by default due to how Webpack interprets its code. This is a practical
+    // solution that requires the user to opt into importing specific locales.
+    // https://github.com/jmblog/how-to-optimize-momentjs-with-webpack
+    // You can remove this if you don't use Moment.js:
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+  ],
+  // Some libraries import Node modules but don't use them in the browser.
+  // Tell Webpack to provide empty mocks for them so importing them works.
+  node: {
+    dgram: 'empty',
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty',
+  },
+  // Turn off performance hints during development because we don't do any
+  // splitting or minification in interest of speed. These warnings become
+  // cumbersome.
+  performance: {
+    hints: false,
+  },
+};
+</code></pre>
+
+<p><strong>package.json</strong></p>
+
+<pre><code>{
+""name"": ""tratoli_backend"",
+  ""version"": ""0.1.0"",
+  ""private"": true,
+  ""dependencies"": {
+    ""autoprefixer"": ""7.1.1"",
+    ""babel-core"": ""6.25.0"",
+    ""babel-eslint"": ""7.2.3"",
+    ""babel-jest"": ""20.0.3"",
+    ""babel-loader"": ""7.0.0"",
+    ""babel-preset-react-app"": ""^3.0.1"",
+    ""babel-runtime"": ""6.23.0"",
+    ""case-sensitive-paths-webpack-plugin"": ""2.1.1"",
+    ""chalk"": ""1.1.3"",
+    ""css-loader"": ""0.28.4"",
+    ""dotenv"": ""4.0.0"",
+    ""eslint"": ""3.19.0"",
+    ""eslint-config-react-app"": ""^1.0.5"",
+    ""eslint-loader"": ""1.7.1"",
+    ""eslint-plugin-flowtype"": ""2.34.0"",
+    ""eslint-plugin-import"": ""2.2.0"",
+    ""eslint-plugin-jsx-a11y"": ""5.0.3"",
+    ""eslint-plugin-react"": ""7.1.0"",
+    ""express"": ""^4.16.2"",
+    ""extract-text-webpack-plugin"": ""2.1.2"",
+    ""file-loader"": ""0.11.2"",
+    ""fixed-data-table"": ""^0.6.4"",
+    ""fixed-data-table-2"": ""^0.7.17"",
+    ""fs-extra"": ""3.0.1"",
+    ""html-webpack-plugin"": ""2.29.0"",
+    ""isomorphic-fetch"": ""^2.2.1"",
+    ""jest"": ""20.0.4"",
+    ""object-assign"": ""4.1.1"",
+    ""postcss-flexbugs-fixes"": ""3.0.0"",
+    ""postcss-loader"": ""2.0.6"",
+    ""promise"": ""7.1.1"",
+    ""react"": ""^15.6.1"",
+    ""react-bootstrap"": ""^0.31.2"",
+    ""react-dev-utils"": ""^3.0.2"",
+    ""react-dom"": ""^15.6.1"",
+    ""react-error-overlay"": ""^1.0.9"",
+    ""react-redux"": ""^5.0.5"",
+    ""react-router"": ""^4.2.0"",
+    ""react-router-dom"": ""^4.1.2"",
+    ""react-router-redux"": ""next"",
+    ""react-select"": ""^1.0.0-rc.5"",
+    ""react-table"": ""^6.8.0"",
+    ""redux"": ""^3.7.2"",
+    ""redux-logger"": ""^3.0.6"",
+    ""redux-thunk"": ""^2.2.0"",
+    ""style-loader"": ""0.18.2"",
+    ""sw-precache-webpack-plugin"": ""0.11.3"",
+    ""url-loader"": ""0.5.9"",
+    ""webpack"": ""2.6.1"",
+    ""webpack-dev-server"": ""2.5.0"",
+    ""webpack-manifest-plugin"": ""1.1.0"",
+    ""webpack-node-externals"": ""^1.6.0"",
+    ""whatwg-fetch"": ""2.0.3""
+  },
+  ""scripts"": {
+    ""start"": ""node scripts/start.js"",
+    ""build"": ""node scripts/build.js &amp;&amp; npm run ssr"",
+    ""test"": ""node scripts/test.js --env=jsdom"",
+    ""start-ssr"": ""NODE_ENV=production webpack --config ./config/webpack.ssr.config.js"",
+    ""ssr"": ""NODE_ENV=production babel-node server/index.js --presets es2015,stage-2"",
+    ""ssr-start"": ""NODE_ENV=production node dist/server.js""
+  },
+  ""jest"": {
+    ""collectCoverageFrom"": [
+      ""src/**/*.{js,jsx}""
+    ],
+    ""setupFiles"": [
+      ""&lt;rootDir&gt;/config/polyfills.js""
+    ],
+    ""testMatch"": [
+      ""&lt;rootDir&gt;/src/**/__tests__/**/*.js?(x)"",
+      ""&lt;rootDir&gt;/src/**/?(*.)(spec|test).js?(x)""
+    ],
+    ""testEnvironment"": ""node"",
+    ""testURL"": ""http://localhost"",
+    ""transform"": {
+      ""^.+\\.(js|jsx)$"": ""&lt;rootDir&gt;/node_modules/babel-jest"",
+      ""^.+\\.css$"": ""&lt;rootDir&gt;/config/jest/cssTransform.js"",
+      ""^(?!.*\\.(js|jsx|css|json)$)"": ""&lt;rootDir&gt;/config/jest/fileTransform.js""
+    },
+    ""transformIgnorePatterns"": [
+      ""[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$""
+    ],
+    ""moduleNameMapper"": {
+      ""^react-native$"": ""react-native-web""
+    },
+    ""moduleFileExtensions"": [
+      ""web.js"",
+      ""js"",
+      ""json"",
+      ""web.jsx"",
+      ""jsx""
+    ]
+  },
+  ""babel"": {
+    ""plugins"": [
+      ""css-modules-transform""
+    ],
+    ""presets"": [
+      ""react-app""
+    ]
+  },
+  ""eslintConfig"": {
+    ""extends"": ""react-app""
+  },
+  ""devDependencies"": {
+    ""babel-cli"": ""^6.26.0"",
+    ""babel-plugin-css-modules-transform"": ""^1.5.0"",
+    ""babel-preset-es2015"": ""^6.24.1"",
+    ""babel-preset-stage-0"": ""^6.24.1"",
+    ""babel-preset-stage-2"": ""^6.24.1""
+  }
+}
+</code></pre>
+
+<p>And this here is the screenshot of the error message I received.
+<a href=""https://i.stack.imgur.com/d3JWV.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/d3JWV.png"" alt=""React error stack trace""></a></p>
+","2670178","","","","","2018-03-14 17:50:15","React hydrate TypeError: __webpack_require__.i(...) is not a function","<javascript><reactjs><webpack><babeljs><package.json>","1","0","1","",""
+"42130897","1","","","2017-02-09 07:44:18","","3","579","<p>I'm adding authentication into my app, which uses react-router.And react router is handling my login/signup page.Also I'm using passport for authentication and passport authentication is working fine.</p>
+
+<p>But I do experience a problem using this when my passport has a successful authentication and I'm redirecting to my dashboard page.</p>
+
+<p><strong>server.js:-</strong></p>
+
+<pre><code>app.get('/auth/google/callback',
+passport.authenticate('google', {
+successRedirect: '/dashboard',
+failureRedirect: '/',
+ }));
+
+
+
+ app.get('*',(req, res) =&gt; {
+  if (process.env.NODE_ENV === 'development') {
+    webpackIsomorphicTools.refresh();
+  }
+  const memoryHistory = createHistory(req.originalUrl);
+  const store=configureStore(memoryHistory);
+  const history = syncHistoryWithStore(memoryHistory, store);
+
+  function hydrateOnClient() {
+    res.send(`&lt;!doctype html&gt;${ReactDOM.renderToString(&lt;Default assets={webpackIsomorphicTools.assets()} store={store} /&gt;)}`);
+  }
+
+  match({ history, routes: routes(store), location: req.originalUrl },
+  (error, redirectLocation, renderProps) =&gt; {
+    if (redirectLocation) {
+      res.redirect(redirectLocation.pathname + redirectLocation.search);
+    } else if (error) {
+      console.error('ROUTER ERROR:', pretty.render(error));
+      res.status(500);
+      hydrateOnClient();
+    } else if (renderProps) {
+      const component = (
+        &lt;Provider store={store} key=""provider""&gt;
+          &lt;RouterContext {...renderProps} /&gt;
+        &lt;/Provider&gt;
+      );
+
+      res.status(200);
+
+      global.navigator = { userAgent: req.headers['user-agent'] };
+
+      res.send(`&lt;!doctype html&gt;${ReactDOM.renderToStaticMarkup(&lt;Default assets={webpackIsomorphicTools.assets()} component={component} store={store} /&gt;)}`);
+    } else {
+      res.status(404).send('Not found');
+    }
+  });
+});
+</code></pre>
+
+<p>What's the best way to derive a URL on the server side to a dashboard route served by react-router?</p>
+","7397626","","7397626","","2017-02-09 08:03:31","2017-02-16 05:26:25","Redirect into react-router from express","<node.js><reactjs><express><react-router>","0","0","","",""
+"50829213","1","","","2018-06-13 04:42:49","","13","222","<p>I have the following code:</p>
+
+<pre><code>const App = () =&gt; {
+    return (
+        &lt;Provider store={store}&gt;
+            &lt;PersistGate persistor={persistor} loading={&lt;Text&gt;Loading!&lt;/Text&gt;}&gt;
+                &lt;ConnectedRootComponent /&gt;
+            &lt;/PersistGate&gt;
+        &lt;/Provider&gt;
+    );
+};
+
+export default App;
+</code></pre>
+
+<p>which uses redux-persist to rehydrate state, and before this is complete, it will show what's sitting in the loading property. I have a Jest test (just the default one that comes with react native out of the box):</p>
+
+<pre><code>it('renders without crashing', () =&gt; {
+  const rendered = renderer.create(&lt;App /&gt;).toJSON();
+  console.log(""Rendering: "" + JSON.stringify(rendered));
+  expect(rendered).toBeTruthy();
+});
+</code></pre>
+
+<p>but although the test passes I see that the actions that <code>persist/PERSIST</code> and <code>persist/REHYDRATE</code> are still occurring, and the value printed to the console in the test (the rendered output) is:</p>
+
+<pre><code>{
+    ""type"": ""Text"",
+    ""props"": {
+        ""accessible"": true,
+        ""allowFontScaling"": true,
+        ""ellipsizeMode"": ""tail""
+    },
+    ""children"": [""Loading!""]
+}
+</code></pre>
+
+<p>What I want to do is wait until redux-persist has completed hydration, and then check the rendered value. How can I do this?</p>
+","4184113","","9206753","","2018-06-21 02:36:07","2018-06-22 16:14:34","How to wait for Redux Persist to rehydrate before ending test","<reactjs><react-native><jest><redux-persist>","2","1","1","",""
+"44614666","1","","","2017-06-18 11:51:56","","7","410","<p>I am totally new to react-apollo I am pretty confused that how to rehydrate state from the server side to client And my app is working, But the problem is it is not using preloaded state from Apollo After component rendered it is calling the API again.</p>
+
+<p>Seriously Redux Integration Makes Complicated only Apollo state is rendering not the custom redux state that's the problem here.But I don;t know how to integrate.</p>
+
+<p>Server.js</p>
+
+<pre><code>const HTML = ({ html,state}) =&gt; (
+
+    &lt;html lang=""en"" prefix=""og: http://ogp.me/ns#""&gt;
+    &lt;head&gt;
+        &lt;meta charSet=""utf-8"" /&gt;
+        &lt;meta httpEquiv=""X-UA-Compatible"" content=""IE=edge"" /&gt;
+        &lt;meta httpEquiv=""Content-Language"" content=""en"" /&gt;
+        &lt;meta name=""viewport"" content=""width=device-width, initial-scale=1"" /&gt;
+
+    &lt;/head&gt;
+    &lt;body&gt;
+    &lt;div
+        id=""app""
+        dangerouslySetInnerHTML={{ __html: html }} /&gt;
+    &lt;script dangerouslySetInnerHTML={{
+        __html: `window.__STATE__=${JSON.stringify(state)};`,
+    }} /&gt;
+
+    &lt;script src=""/static/app.js"" /&gt;
+
+    &lt;/body&gt;
+    &lt;/html&gt;
+);
+
+app.get('/*',(req,res) =&gt; {
+    const routeContext = {};
+    const client = serverClient();
+
+    const components = (
+        &lt;StaticRouter location={req.url} context={routeContext}&gt;
+            &lt;ApolloProvider store={store} client={client}&gt;
+                &lt;WApp /&gt;
+            &lt;/ApolloProvider&gt;
+        &lt;/StaticRouter&gt;
+    );
+
+    getDataFromTree(components).then(() =&gt; {
+        const html = ReactDOMServer.renderToString(components);
+        const initialState = {apollo: client.getInitialState()}
+
+
+        res.send(`&lt;!DOCTYPE html&gt;\n${ReactDOMServer.renderToStaticMarkup(
+            &lt;HTML
+                html={html}
+                state={initialState}
+                 /&gt;,
+        )}`)
+
+
+    })
+
+
+})
+</code></pre>
+
+<p>apolloClient.js</p>
+
+<pre><code>import ApolloClient, {
+    createNetworkInterface,
+    addTypeName,
+} from 'apollo-client';
+const isProduction = process.env.NODE_ENV !== 'development';
+const testUrl = 'http://localhost:3000/api';
+
+// const url = isProduction ? productionUrl : testUrl;
+const url =  testUrl;
+
+
+
+
+
+const client = new ApolloClient({
+
+    networkInterface: createNetworkInterface({uri:testUrl}),
+    dataIdFromObject:({id}) =&gt; id,
+    reduxRootKey:state =&gt; state.apollo,
+    initialState: (typeof window !=='undefined')? window.__STATE__:{}
+
+
+
+
+
+
+});
+
+
+
+
+
+
+
+export default client;
+</code></pre>
+
+<p>store.js</p>
+
+<pre><code>import { createStore, compose, applyMiddleware } from 'redux';
+import { syncHistoryWithStore } from 'react-router-redux';
+import thunk from 'redux-thunk';
+import {createLogger} from 'redux-logger';
+
+
+import client from '../apolloClient';
+import rootReducer from '../Reducers'
+
+//All Reducer
+import {initialState as allPosts} from '../Reducers/AllPosts_Reucer';
+const isProduction = process.env.NODE_ENV !== 'development';
+const isClient = typeof document !== 'undefined';
+const initialState = {
+    allPosts
+};
+
+const middlewares = [thunk, client.middleware()];
+const enhancers = [];
+
+if (!isProduction &amp;&amp; isClient) {
+    const loggerMiddleware = createLogger();
+    middlewares.push(loggerMiddleware);
+
+    if (typeof devToolsExtension === 'function') {
+        const devToolsExtension = window.devToolsExtension;
+        enhancers.push(devToolsExtension());
+    }
+}
+
+
+
+const composedEnhancers = compose(
+    applyMiddleware(...middlewares),
+    ...enhancers
+);
+const store = createStore(
+    rootReducer,
+    initialState,
+
+    composedEnhancers,
+);
+
+export default store;
+</code></pre>
+
+<p>Sample Component</p>
+
+<pre><code>import React,{Component} from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { graphql } from 'react-apollo';
+
+import gql from 'graphql-tag';
+
+import * as postActions from '../../Redux/Actions/postActions';
+
+
+class Home extends Component{
+    componentWillMount(){
+        // console.log('From Will Mount',this.props.posts)
+    }
+    renderAllPost(){
+        const {loading,posts} = this.props;
+
+        if(!loading){
+            return posts.map(data =&gt; {
+                return &lt;li key={data.id}&gt;{data.title}&lt;/li&gt;
+            })
+        }else{
+            return &lt;div&gt;loading&lt;/div&gt;
+        }
+    }
+    render(){
+    console.log(this.props);
+        return(
+            &lt;div&gt;
+
+                {this.renderAllPost()}
+
+            &lt;/div&gt;
+        )
+    }
+}
+
+
+//start from here
+const GetallPosts = gql`
+query getAllPosts{
+  posts{
+    id
+    title
+    body
+  }
+}
+`;
+
+// const mapStateToPros = (state) =&gt; ({
+//     allPosts:state.allPosts
+// });
+
+const mapDispatchToProps = (dispatch) =&gt; ({
+    actions:bindActionCreators(
+        postActions,
+        dispatch
+    )
+});
+
+
+const ContainerWithData = graphql(GetallPosts,{
+    props:({ data:{loading,posts} }) =&gt; ({
+        posts,
+        loading,
+    })
+})(Home)
+
+
+export default connect(
+    // mapStateToPros,
+    // mapDispatchToProps
+)(ContainerWithData)
+</code></pre>
+","5947166","","5734043","","2017-06-26 12:57:26","2017-10-07 20:10:45","How to rehydrate my apollo state from server side?","<javascript><reactjs><redux><apollo><apollostack>","1","1","1","",""
+"47267879","1","","","2017-11-13 15:29:39","","0","28","<p>I tried to use <code>kea</code> in my project (<a href=""https://kea.js.org/"" rel=""nofollow noreferrer"">https://kea.js.org/</a>) and after creating this simple example code, very similar to the one from the counter example (<a href=""https://kea.js.org/guide/counter"" rel=""nofollow noreferrer"">https://kea.js.org/guide/counter</a>) I started to get infinite loop of <code>%c action %c@@kea/hydrate store %</code></p>
+
+<p>My simple component (that does nothing)</p>
+
+<pre><code>import React from 'react';
+import PropTypes from 'prop-types';
+import logic from './logic';
+
+import ModuleWrapper from './Module.styles';
+
+const Module = ({ actions }) =&gt; (
+  &lt;ModuleWrapper&gt;
+    Hello
+    &lt;button&gt;+&lt;/button&gt;
+  &lt;/ModuleWrapper&gt;
+);
+
+Module.propTypes = {
+};
+
+Module.defaultProps = {
+};
+
+export default logic(Module);
+</code></pre>
+
+<p>And the <code>kea</code> logic from <code>logic.js</code></p>
+
+<pre><code>import { kea } from 'kea';
+import PropTypes from 'prop-types';
+
+const logic = kea({
+  actions: () =&gt; ({
+    increment: amount =&gt; ({ amount })
+  }),
+
+  reducers: ({ actions }) =&gt; ({
+    counter: [0, PropTypes.number, {
+      [actions.increment]: (state, payload) =&gt; state + payload.amount,
+      [actions.decrement]: (state, payload) =&gt; state - payload.amount
+    }]
+  }),
+});
+
+export default logic;
+</code></pre>
+","1003033","","","","","2017-11-13 15:29:39","Kea and infinite loop of `kea/hydrate store` actions","<reactjs><redux><react-redux>","0","0","","",""
+"46636455","1","46763270","","2017-10-08 21:56:10","","0","51","<p>I have 2 main components, <code>Home</code> and <code>Login</code>. </p>
+
+<p><code>Login</code>: logs the user in and redirects to home component</p>
+
+<p><code>Home</code>: does API call get some data.</p>
+
+<p>At <code>Login</code> component in <code>componentDidMount()</code>, i have a <code>console.log()</code>. The <code>console.log</code> gets executed on both <code>Login</code> and <code>Home</code> component even that its only present on <code>Login</code> component.</p>
+
+<p>At <code>Home</code> component in <code>componentDidMount()</code>, i have <code>getData()</code> method. 
+The <code>getData()</code> method gets executed on both <code>Login</code> and <code>Home</code> component even that its only present on <code>Home</code> component.</p>
+
+<p>I am not sure if this is do to redux rehydrate. Is there a way to prevent actions unique to a specific component being executed at the different component?</p>
+
+<p>store:</p>
+
+<pre><code>import { createStore, applyMiddleware, combineReducers } from 'redux';
+import thunk from 'redux-thunk';
+import logger from 'redux-logger';
+import reducer from './reducer';
+import homeReducer from './homeReducer';
+import {autoRehydrate, persistStore} from 'redux-persist';
+import localForage from 'localforage';
+
+const store = createStore(
+  combineReducers({
+    reducer,
+    homeReducer
+  }),
+  {},
+  applyMiddleware(thunk, logger),
+  autoRehydrate()
+);
+
+persistStore(store, {storage: localForage})
+export default store;
+</code></pre>
+
+<p>Login Component:</p>
+
+<pre><code>import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { login, setLogingSuccess } from '../../actions/loginActions';
+import  {Header}  from '../Shared/header';
+import PropTypes from 'prop-types';
+import cookies from 'universal-cookie';
+
+class LoginForm extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+     //...
+    };
+  }
+  componentDidMount(){
+    console.log('login component');
+   //...
+  }
+  componentWillReceiveProps(nextProps) {
+   //...
+  }
+
+  render() {
+    //...
+
+    return (
+      &lt;div className=""col-md-6 col-md-offset-3"" onSubmit={this.onSubmit}&gt;
+
+        &lt;h3&gt;Login&lt;/h3&gt;
+        &lt;form name=""LoginForm""&gt;
+          &lt;label htmlFor=""email""&gt;Email:&lt;/label&gt;
+          &lt;input
+            className=""form-control""
+            type=""email""
+            name=""email""
+            value={this.state.email}
+            onChange={e =&gt; this.setEmail(e)}
+          /&gt;
+          &lt;br /&gt;
+          &lt;label&gt;Password:&lt;/label&gt;
+          &lt;input
+            className=""form-control""
+            type=""password""
+            name=""password""
+
+            onChange={e =&gt; this.setPassword(e)}
+          /&gt;
+          &lt;br /&gt;
+          //...
+        &lt;/form&gt;
+      &lt;/div&gt;
+    );
+  }
+  };
+
+ //...
+}
+LoginForm.propTypes = {
+//...
+};
+
+const mapStateToProps = state =&gt; {
+  return {
+    //...
+  };
+};
+
+const mapDispatchToProps = dispatch =&gt; {
+  return {
+    //...
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginForm);
+</code></pre>
+
+<p>Home component:</p>
+
+<pre><code>import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import axios from 'axios';
+
+import Header from '../Shared/header';
+
+import {
+  //...
+} from '../../actions/homeActions';
+
+class Home extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      //...
+    };
+  }
+
+  componentDidMount(){
+    this.getData();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    //...
+  }
+
+  render() {
+    return (
+      &lt;div className=""col-md-6 col-md-offset-3""&gt;
+        &lt;Header /&gt;
+        &lt;div&gt;
+          &lt;h3&gt;Home&lt;/h3&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  getData = function(){
+    axios.get('/_/data/')
+      .then(success =&gt;{
+        console.log(success);
+      })
+      .catch(error =&gt;{
+        console.log(error)
+      });
+  };
+}
+
+Home.propTypes = {
+ //...
+};
+
+const mapStateToProps = state =&gt; {
+  return {
+//...
+  };
+};
+
+const mapDispatchToProps = dispatch =&gt; {
+  return {
+//..
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Home);
+</code></pre>
+
+<p>index.js:</p>
+
+<pre><code>import React from 'react';
+import { render } from 'react-dom';
+import { Provider } from 'react-redux';
+import store from './redux/store';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+
+import LoginForm from './components/LoginForm/LoginForm';
+import Home from './components/HomePage/home';
+
+class App extends React.Component {
+  render() {
+    return (
+      &lt;Provider store={store}&gt;
+        &lt;BrowserRouter&gt;
+          &lt;div&gt;
+            &lt;Route /&gt;
+            &lt;Switch&gt;
+              &lt;Route exact path={'/'} component={Home} /&gt;
+              &lt;Route path={'/login'} component={LoginForm} /&gt;
+              &lt;Route path=""*"" component={LoginForm} /&gt;
+            &lt;/Switch&gt;
+          &lt;/div&gt;
+        &lt;/BrowserRouter&gt;
+      &lt;/Provider&gt;
+    );
+  }
+}
+render(&lt;App /&gt;, document.getElementById('root'));
+</code></pre>
+","4012798","","5152720","","2017-10-09 07:11:59","2017-10-16 05:04:14","reactjs on page load ajax calls, console.log etc are called from accross components even if those components are not executed","<reactjs><redux><react-redux>","1","2","","",""
+"29824908","1","29826133","","2015-04-23 13:27:00","","37","9435","<p>I'm working on a minimal app which work with fluxible. Pretty much everything seems clear but one thing : the concept of dehydrate and rehydrated state.</p>
+
+<p>I've understood that it's what's needed to sync the store between the client and the server, but I don't know why. This line is very unclear to me :</p>
+
+<pre><code> var exposed = 'window.App=' + serialize(app.dehydrate(context)) + ';';
+</code></pre>
+
+<p>In server.js (<a href=""https://github.com/yahoo/fluxible/tree/master/examples/react-router"">https://github.com/yahoo/fluxible/tree/master/examples/react-router</a>)</p>
+
+<p>I would really appreciate if you could tell me in « simpler word » what it means.</p>
+","1645815","","249259","","2016-02-02 22:36:25","2016-02-04 07:36:13","What does « dehydrate » and « rehydrate » stand for in Fluxible?","<node.js><reactjs><fluxible>","3","0","17","",""

@@ -1,0 +1,105 @@
+Title,Tags,Body
+"Issue with react-addon-test-utils createElement","<javascript><unit-testing><reactjs><jsdom>","<p>I am updating my code from the now deprecated react/addons package to the react-addon-test-utils package. I use jsdom and inject a document and window element, as shown below.</p>
+
+<pre><code>import jsdom from 'jsdom';
+import chai from 'chai';
+import chaiImmutable from 'chai-immutable';
+
+const doc = jsdom.jsdom('&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;');
+const win = doc.defaultView;
+
+global.document = doc;
+global.window = win;
+
+Object.keys(window).forEach((key) =&gt; {
+  if (!(key in global)) {
+    global[key] = window[key];
+  }
+});
+
+chai.use(chaiImmutable);
+</code></pre>
+
+<h3>And here is my unit test.</h3>
+
+<pre><code>import {expect} from 'chai';
+import ErrorBlock from '../src/Controls/ErrorBlock';
+import React from 'react-addons-test-utils';
+
+const {renderIntoDocument, scryRenderedDOMComponentsWithClass, Simulate}
+  = React;
+
+describe('ErrorBlock', () =&gt; {
+
+  it('renders properly', () =&gt; {
+    const id = 'test';
+    const message = 'my message';
+    const alertStyle = ""alert-danger"";
+    const component = renderIntoDocument(
+      &lt;ErrorBlock id={id} message={message} alertStyle={alertStyle} /&gt;
+    );
+    const spanEntry = scryRenderedDOMComponentsWithClass(component, id + 'AlertMessage');
+    expect (spanEntry.length).to.equal(1);
+  });
+});
+</code></pre>
+
+<p>I am in the process of getting unit testing setup for a React UI module for use on some projects. However, when I switch over to the new react-addons-test-utils package, I get the following error:</p>
+
+<pre><code>TypeError: _reactAddonsTestUtils2.default.createElement is not a function
+</code></pre>
+
+<p>This error occurs on the line where I define my component. </p>
+
+<p>Why am I getting this error ONLY when using the new package?</p>
+"
+"react-dom/test-utils, TypeError: Cannot read property 'children' of undefined","<reactjs><jestjs>","<p>I use <code>react-dom/test-utils</code> to test my react component.</p>
+
+<p>But the return value of <code>scryRenderedDOMComponentsWithClass</code> has no <code>props</code></p>
+
+<p>and <code>props.children</code> property. Did I do something wrong or what?</p>
+
+<p>here is my test code: </p>
+
+<pre><code>it('renders item count correctly', () =&gt; {
+    const $$searchList  = TestUtils.renderIntoDocument(&lt;SearchList items={datas}/&gt;)
+    const list = TestUtils.scryRenderedDOMComponentsWithClass($$searchList, 'list');
+
+    expect(list.props.children).toHaveLength(4);
+    expect(items).toHaveLength(4);
+
+  });
+</code></pre>
+
+<p>here is the test result:</p>
+
+<pre><code>● component - SearchList test suites › renders item count correctly
+
+    TypeError: Cannot read property 'children' of undefined
+
+      at Object.&lt;anonymous&gt; (src/components/List/__tests__/SearchList.test.jsx:17:26)
+      at Promise.resolve.then.el (node_modules/p-map/index.js:42:16)
+      at process._tickCallback (internal/process/next_tick.js:109:7)
+
+  component - SearchList test suites
+    ✓ loads without error (43ms)
+    ✕ renders item count correctly (18ms)
+</code></pre>
+
+<p>-- update --</p>
+
+<p>Here is my component render: </p>
+
+<pre><code>return (
+      &lt;div className=""list""&gt;
+        {
+          items.map((item: Book, idx: number): React.ReactElement&lt;IListProps&lt;Book&gt;&gt; =&gt; {
+            return (
+              &lt;ListItem onClick={() =&gt; this.onItemClick(item, idx)} key={item.id} item={item}/&gt;
+            );
+          })
+        }
+      &lt;/div&gt;
+    );
+</code></pre>
+"

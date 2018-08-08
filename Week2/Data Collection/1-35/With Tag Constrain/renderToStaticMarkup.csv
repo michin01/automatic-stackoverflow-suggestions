@@ -1,0 +1,2242 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"34941646","1","34942231","","2016-01-22 07:54:12","","0","275","<p>I render server and client side with same jsx. I need some element only have html, and do not need data-reactid. (e.g. A pure html jsx layout has some dynamic variable but do not need data-reactid).</p>
+
+<p>And i except i can reuse the server side render dom which contains data-reactid, and do not need rerender the view.</p>
+
+<p>The other element has data-reactid which can do not need rerender by reactjs. 
+Cannot use <code>shouldComponentUpdate</code> because 'renderToString' method do not call <code>shouldComponentUpdate</code>.</p>
+
+<p>I don't except i should render two element with different function( e.g. renderToStaticMarkup, renderToString) and combine it because the element could be include by many element. Render split and combine could cause mistake when element is much more.</p>
+
+<p>Here is my fantasy:</p>
+
+<p>In this case, i want {this.props.children} have data-reactid but the outside html and budy (DefaultLayout) do not.</p>
+
+<pre><code>class DefaultLayout extends  React.Component{   
+        if (typeof window !== 'undefined') {
+            return (
+                &lt;div&gt;{this.props.children}&lt;/div&gt;
+            );
+        } 
+        return (
+        &lt;html&gt;
+            &lt;head&gt;
+            &lt;/head&gt;
+            &lt;body&gt;
+                &lt;div id=""container"" className='container'&gt;
+                    &lt;div&gt;{this.props.children}&lt;/div&gt;
+                &lt;/div&gt;
+                &lt;script src='/js/index.js'type='text/javascript'&gt;&lt;/script&gt;
+            &lt;/body&gt;
+        &lt;/html&gt;
+        );
+    }
+};
+DefaultLayout.noNeedDiffCompoment = true;
+export default DefaultLayout;
+</code></pre>
+
+<p>or a new pure html Compoment</p>
+
+<pre><code>class DefaultLayout extends  React.PureHtmlComponent{    
+
+        if (typeof window !== 'undefined') {
+            return (
+                &lt;div&gt;{this.props.children}&lt;/div&gt;
+            );
+        }
+        return (
+        &lt;html&gt;
+            &lt;head&gt;
+            &lt;/head&gt;
+            &lt;body&gt;
+                &lt;div id=""container"" className='container'&gt;
+                    &lt;div&gt;{this.props.children}&lt;/div&gt;
+                &lt;/div&gt;
+                &lt;script src='/js/index.js'type='text/javascript'&gt;&lt;/script&gt;
+            &lt;/body&gt;
+        &lt;/html&gt;
+        );
+    }
+};
+export default DefaultLayout;
+</code></pre>
+
+<p>and i can use this layout easly and not error in client side and server side.</p>
+
+<pre><code>class Somepage extends  React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render(){
+        return (
+            &lt;DefaultLayout&gt;
+                &lt;h1&gt;Hello world&lt;/h1&gt;
+            &lt;/DefaultLayout&gt;
+        );
+    }
+};
+</code></pre>
+
+<p>If i write as above, the render function can auto swap render function to render elements.</p>
+
+<p>Is there any graceful solution like this?</p>
+","5824846","","5824846","","2016-01-22 09:26:08","2017-01-24 08:54:14","Is there reactjs have auto switch render? (renderToStaticMarkup, renderToString)","<javascript><reactjs>","1","0","1","",""
+"43440326","1","","","2017-04-16 18:00:11","","3","2216","<p>maybe this issue is because the new version of the react router have few days, but I have been reading about this issue and I want to clarify what is going on. I am using the last version of the react router and I want to do the routing through redux. I follow the steps that are listed in the documentation of the redux router module: <a href=""https://github.com/ReactTraining/react-router/tree/master/packages/react-router-redux"" rel=""nofollow noreferrer"">https://github.com/ReactTraining/react-router/tree/master/packages/react-router-redux</a>, but I receive this error when I make the implementation: (I know that the issue is in the server render)</p>
+
+<pre><code>Invariant Violation: Browser history needs a DOM
+</code></pre>
+
+<p>Here is my code (the important parts):</p>
+
+<p><strong>server.js</strong></p>
+
+<pre><code>import { Provider } from 'react-redux';
+import store from './store';
+
+lisaApp.get('*', function (req, res) {
+  const context = {};
+
+  const html = renderToString(
+    &lt;Provider store={store}&gt;
+      &lt;MuiThemeProvider muiTheme={getMuiTheme()}&gt;
+        &lt;StaticRouter location={req.url} context={context}&gt;
+          &lt;Routes /&gt;
+        &lt;/StaticRouter&gt;
+      &lt;/MuiThemeProvider&gt;
+    &lt;/Provider&gt;,
+  );
+
+  res.setHeader('Content-Type', 'text/html');
+
+  if (context.url) {
+    res.writeHead(301, {
+      Location: context.url,
+    });
+    res.end();
+  }
+
+  res.write(
+    renderToStaticMarkup(&lt;Layout title={req.title} content={html} /&gt;),
+  );
+
+  res.end();
+}
+</code></pre>
+
+<p><strong>client.js</strong></p>
+
+<pre><code>import { Provider } from 'react-redux';
+import createHistory from 'history/createBrowserHistory';
+import { BrowserRouter } from 'react-router-dom';
+import store from './store';
+
+render((
+  &lt;Provider store={store}&gt;
+    &lt;MuiThemeProvider muiTheme={getMuiTheme()}&gt;
+      &lt;BrowserRouter history={createHistory()}&gt;
+        &lt;Routes /&gt;
+      &lt;/BrowserRouter&gt;
+    &lt;/MuiThemeProvider&gt;
+  &lt;/Provider&gt;),
+  document.getElementById('app'));
+</code></pre>
+
+<p><strong>store.js</strong></p>
+
+<pre><code>import { createStore, combineReducers, applyMiddleware } from 'redux'
+import createHistory from 'history/createBrowserHistory'
+import { ConnectedRouter, routerReducer, routerMiddleware, push } from 'react-router-redux'
+import thunk from 'redux-thunk';
+
+import reducer from './reducer';
+
+const history = createHistory()
+const middlewareHistory = routerMiddleware(history)
+
+const store = createStore(
+  combineReducers({
+    reducer,
+    router: routerReducer
+  }),
+  applyMiddleware(
+    middlewareHistory,   
+    thunk
+  )
+);
+
+export default store;
+</code></pre>
+
+<p><strong>component.js (dispatch)</strong></p>
+
+<pre><code>const mapDispatchToProps = dispatch =&gt; {
+  return {
+    onNavigateTo(dest) {
+      dispatch(push(dest));
+    }
+  };
+};
+</code></pre>
+
+<p>Obviously the dispatch, from my component never is called. Anyone can me clarify me where I am wrong? or maybe this feature is not implemented yet in the react router redux module? In advance Thanks.</p>
+","7566041","","","","","2017-05-20 15:07:12","New version react router doesn't work with redux","<javascript><reactjs><redux><react-router>","2","0","1","",""
+"34010585","1","34013151","","2015-12-01 00:30:43","","1","925","<p>I'm using <code>ReactDOMServer.renderToStaticMarkup</code> to render some html code onto a static webpage in a code block format.</p>
+
+<p>Here's a close approximation of what my code looks like:</p>
+
+<pre><code>import { html_beautify } from 'js-beautify';
+import { renderToStaticMarkup } from 'react-dom/server';
+
+...
+
+render() {
+    const snippet = html_beautify(renderToStaticMarkup(
+        &lt;div&gt;
+            &lt;script&gt;
+                generateWidget(&amp;#123;
+                    buttonSize: 'BUTTON_SIZE',
+                    elementID: 'ELEMENT_TO_INJECT_THE_WIDGET_INTO',
+                    userID: 'ID_OF_USER'
+                &amp;#125;);
+            &lt;/script&gt;
+        &lt;/div&gt;
+    ));
+    return (
+        &lt;pre&gt;
+            &lt;code&gt;
+                {snippet}
+            &lt;/code&gt;
+        &lt;/pre&gt;
+    );
+}
+</code></pre>
+
+<p>I was getting parsing errors from the JSX parser before I used the escape codes for <code>{</code> and <code>}</code>, so that's why those are present in the <code>render</code> function. </p>
+
+<p>My issue is that <code>renderToStaticMarkup</code> replaces the single quotes in the code snippet with their corresponding hexadecimal codes. The output looks like this: </p>
+
+<pre><code>...
+&lt;script&gt;
+    karma.generateWidget({
+        buttonSize: &amp; #x27;BUTTON_SIZE &amp; #x27;,
+        elementID: &amp; #x27;ELEMENT_TO_INJECT_THE_WIDGET_INTO &amp; #x27;,
+        userKarmaID: &amp; #x27;KARMA_ID_OF_USER &amp; #x27;
+    });
+&lt;/script&gt;
+</code></pre>
+
+<p>Is there some way to get rid of the <code>&amp; #x27;</code> hexadecimal codes being rendered by <code>renderToStaticMarkup</code> and have it render single quotes?</p>
+
+<p>Note that if I replace the single quotes with double quotes, the <code>&amp; #x27</code>'s are replaced with <code>&amp; quot;</code>'s.</p>
+","3689563","","","","","2015-12-01 05:20:51","React.renderToStaticMarkup outputs hexadecimal code","<html><reactjs><react-jsx>","1","0","","",""
+"45110293","1","45111124","","2017-07-14 19:24:56","","1","542","<p>I am extacting a tiny component from a bigger map component on an app using <a href=""http://leafletjs.com/"" rel=""nofollow noreferrer"">Leafet</a> and it seems impossible to include the JSX into the html string of Leafet DivIcon.</p>
+
+<p>bigger map component render part:</p>
+
+<pre><code>render () {
+  const {tobject, strings} = this.props
+
+  let circle = classes.redCircle
+
+  if (tobject.lastPoint.activeEvents.ignition) {
+    circle = classes.greenCircle
+  }
+
+  const icon = new window. L. DivIcon({
+  html:
+  ` &lt;div class= ${classes.tobjecticon}&gt;&lt;span class= ${classes.tobjecticontext}&gt;&lt;div class= ${circle}&gt;&lt;/div&gt;&lt;/span&gt;&lt;/div&gt; `
+})
+</code></pre>
+
+<p>newly extacted component StatusCircle.js:</p>
+
+<pre><code>import React from 'react'
+import classes from './StatusCircle.scss'
+
+export const StatusCircle = ({ status}) =&gt; {
+
+  let circle = classes.redCircle
+
+  if (status) {
+    circle = classes.greenCircle
+  }
+
+  return (
+    &lt;div className={circle} &gt;&lt;/div&gt;
+  )
+}
+
+export default StatusCircle
+</code></pre>
+
+<p>My question seems similar to <a href=""https://stackoverflow.com/questions/37079847/is-it-ok-to-use-reactdomserver-rendertostring-in-the-browser-in-areas-where-reac"">this one</a>. I've tried <strong>renderToString()</strong> of StatusCircle, but using ReactDOM (deprecated there) and not <a href=""https://facebook.github.io/react/docs/react-dom-server.html"" rel=""nofollow noreferrer"">ReactDOMServer</a> and it didn't work saying there is no such function. Is it okay to use ReactDOMServer.renderToString() or .renderToStaticMarkup() to achieve this or is it better to leave unchanged without extraction?</p>
+","6654410","","6654410","","2017-07-17 11:00:31","2017-07-17 11:00:31","Should I use ReactDOMServer.renderToString() or any other way to render a react component to a string?","<react-redux>","2","0","","",""
+"36709250","1","","","2016-04-19 05:23:17","","1","490","<p>I keep getting ""Invariant Violation: Invalid tag"" errors when I try to convert a jsx file to js and then generate html for saving to a static html file. Here is my test.js file:</p>
+
+<pre><code>var fs = require(""fs"");
+var babel = require(""babel-core"");
+var React = require(""react"");
+var ReactDOMServer = require(""react-dom/server"");
+fs.readFile('./template.js', function(err, data) {
+    var template = babel.transform(data, {
+        ""presets"": [""es2015"", ""react""],
+        ""plugins"": [""transform-es2015-modules-umd""]
+    });
+    template = React.createElement(template.code);
+    console.log(ReactDOMServer.renderToStaticMarkup(template));
+});
+</code></pre>
+
+<p>Here is my template.js file:</p>
+
+<pre><code>const React = require('React');
+
+module.exports = React.createClass({
+  render: function() {
+    return &lt;div&gt;Hello {this.props.name}&lt;/div&gt;;
+  }
+});
+</code></pre>
+
+<p>Here is the console dump:</p>
+
+<pre><code>Bills-MBP:white-label bshack$ node test.js
+/Users/bshack/Sites/white-label/node_modules/react/node_modules/fbjs/lib/invariant.js:45
+    throw error;
+    ^
+
+Invariant Violation: Invalid tag: (function (global, factory) {
+  if (typeof define === ""function"" &amp;&amp; define.amd) {
+    define(['module', 'React'], factory);
+  } else if (typeof exports !== ""undefined"") {
+    factory(module, require('React'));
+  } else {
+    var mod = {
+      exports: {}
+    };
+    factory(mod, global.React);
+    global.unknown = mod.exports;
+  }
+})(this, function (module, React) {
+  'use strict';
+
+  module.exports = React.createClass({
+    displayName: 'exports',
+
+    render: function render() {
+      return React.createElement(
+        'div',
+        null,
+        'Hello ',
+        this.props.name
+      );
+    }
+  });
+});
+at invariant (/Users/bshack/Sites/white-label/node_modules/react/node_modules/fbjs/lib/invariant.js:38:15)
+at validateDangerousTag (/Users/bshack/Sites/white-label/node_modules/react/lib/ReactDOMComponent.js:299:74)
+at new ReactDOMComponent (/Users/bshack/Sites/white-label/node_modules/react/lib/ReactDOMComponent.js:326:3)
+at Object.createInternalComponent (/Users/bshack/Sites/white-label/node_modules/react/lib/ReactNativeComponent.js:68:10)
+at instantiateReactComponent (/Users/bshack/Sites/white-label/node_modules/react/lib/instantiateReactComponent.js:70:39)
+at /Users/bshack/Sites/white-label/node_modules/react/lib/ReactServerRendering.js:37:31
+at ReactServerRenderingTransaction.Mixin.perform (/Users/bshack/Sites/white-label/node_modules/react/lib/Transaction.js:136:20)
+at renderToStringImpl (/Users/bshack/Sites/white-label/node_modules/react/lib/ReactServerRendering.js:36:24)
+at Object.renderToStaticMarkup (/Users/bshack/Sites/white-label/node_modules/react/lib/ReactServerRendering.js:59:10)
+at /Users/bshack/Sites/white-label/test.js:11:32
+</code></pre>
+
+<p>It keeps giving me the same error when I start to delete lines it complains about. Any ideas?</p>
+","149057","","","","","2016-04-19 05:23:17","React renderToStaticMarkup and ""Invariant Violation: Invalid tag"" error","<javascript><node.js><reactjs><jsx><babel>","0","3","","",""
+"34771084","1","","","2016-01-13 15:50:34","","0","1110","<p>Everything is about isomorphic application. I'm using <code>React</code> with <code>react-router</code> module on server side for routing purposes and have following warning in browser console. </p>
+
+<blockquote>
+  <p>Warning: render(...): Replacing React-rendered children with a new
+  root component. If you intended to update the children of this node,
+  you should instead have the existing children update their state and
+  render the new components instead of calling ReactDOM.render.</p>
+</blockquote>
+
+<p>I have following routes schema defined on <strong>backend</strong>:</p>
+
+<pre><code>&lt;Route path=""/"" component={App} &gt;
+    &lt;IndexRoute component={Home} /&gt;
+&lt;/Route&gt;
+</code></pre>
+
+<p>App component:</p>
+
+<pre><code>module.exports = React.createClass({
+  render : function() {
+    return &lt;html&gt;
+      &lt;head&gt;&lt;/head&gt;
+      &lt;body&gt;        
+        &lt;div id=""container""&gt;
+          { this.props.children }
+        &lt;/div&gt;        
+        &lt;script src=""/app/bundle.js""&gt;&lt;/script&gt;
+      &lt;/body&gt;
+    &lt;/html&gt;
+  }
+});
+</code></pre>
+
+<p>Home component:</p>
+
+<pre><code>module.exports = React.createClass({
+  render : function() {
+    return &lt;div&gt;Any content here&lt;/div&gt;
+  }
+});
+</code></pre>
+
+<p>After that I use on the <strong>frontend</strong>:</p>
+
+<pre><code>ReactDOM.render(&lt;Home /&gt;, document.getElementById('container'));
+</code></pre>
+
+<p><strong>Probable solution:</strong>
+If I understood correctly if I could render App component as static markup(<code>renderToStaticMarkup</code>) and Home component as a string (<code>renderToString</code>), then it would be ok.</p>
+
+<p>Is it possible to implement something like that with <code>react-router</code>?</p>
+","1918648","","1918648","","2016-01-13 16:42:30","2016-01-13 19:00:21","ReactJS react-router server-rendering issue","<javascript><reactjs><react-router>","1","4","","",""
+"44528139","1","","","2017-06-13 17:38:14","","0","264","<p>I'm trying to create a server rendered react app, the only part I'm stuck on is importing my components to my express server and getting the static markdown to send back to the user. Essentially what I have right now is this:</p>
+
+<p>Express server:</p>
+
+<pre><code>const Report = require('../public/source/components/index.js').default;
+....
+router.get('/*', function(req, res, next) {
+    var reportHTML = ReactDOMServer.renderToStaticMarkup(react.createElement(Report)))
+    res.render('index', { title: 'Report' });
+});
+</code></pre>
+
+<p>When I hit that route, I get the following error:</p>
+
+<pre><code>Warning: React.createElement: type is invalid -- expected a string
+(for built-in components) or a class/function (for composite components)
+but got: object. You likely forgot to export your component from the file
+it's defined in. Check the render method of `ReportApp`.
+in ReportApp
+</code></pre>
+
+<p>The contents of my index.js file, note that I stripped out a lot of the complexity involving graphql and setting the initial state, which is why this isn't a functional component.</p>
+
+<pre><code>import React, { Component } from 'react';
+import Header from './header/Header';
+import PageOneLayout from './pageOneLayout/PageOneLayout';
+import styles from './main.scss';
+
+const hexBackground = require('./assets/hex_background.png');
+
+export default class ReportApp extends Component {
+  render() {
+    return (
+      &lt;div className={styles.contentArea}&gt;
+        &lt;img src={`/build/${hexBackground}`} alt={'hexagonal background'} className={styles.hexBackground}/&gt;
+        &lt;Header client={""client name""} /&gt;
+        &lt;div className={styles.horizontalLine}&gt;&lt;/div&gt;
+        &lt;PageOneLayout chartData={this.state} /&gt;
+      &lt;/div&gt;
+    )
+  }
+}
+</code></pre>
+
+<p>Any pointers in the right direction would be appreciated!</p>
+
+<p>EDIT:</p>
+
+<p>here's my webpack:</p>
+
+<pre><code>/* eslint-disable no-console */
+/* eslint-disable import/no-extraneous-dependencies */
+import autoprefixer from 'autoprefixer';
+import nodemon from 'nodemon';
+import ExtractTextPlugin from 'extract-text-webpack-plugin';
+
+nodemon({
+    script: './bin/www',
+    ext: 'js json',
+    ignore: ['public/'],
+});
+
+nodemon.on('start', () =&gt; {
+    console.log('App has started');
+}).on('quit', () =&gt; {
+    console.log('App has quit');
+}).on('restart', files =&gt; console.log('App restarted due to: ', files));
+
+export default {
+    watch: true,
+    entry: './public/source/main.js',
+    output: { path: `${__dirname}/public/build/`, filename: 'main.js' },
+    module: {
+        loaders: [
+            {
+                test: /\.jsx?$/,
+                exclude: /node_modules/,
+                loader: 'babel',
+                query: {
+                     presets: ['react', 'es2015', 'stage-1'],
+                     plugins: ['transform-decorators-legacy'],
+                     cacheDirectory: true
+                 }
+            },
+            // {
+            //     test: /\.jsx?$/,
+            //     exclude: /node_modules/,
+            //     loader: 'eslint',
+            // },
+            {
+                test: /\.s?css$/,
+                loader: ExtractTextPlugin.extract('style-loader', 'css-loader?modules&amp;importLoaders=1&amp;localIdentName=[name]__[local]___[hash:base64:5]!postcss-loader!sass-loader?outputStyle=expanded&amp;sourceMap')
+            },
+            { test: /\.jpe?g$|\.gif$|\.png$|\.svg$|\.woff$|\.ttf$|\.wav$|\.mp3$/, loader: ""file"", output: {path: `${__dirname}/public/build/`, filename: 'logo.svg'}},
+        ],
+    },
+    // eslint: {
+    //     configFile: './public/.eslintrc',
+    // },
+    resolve: {
+        modulesDirectories: ['node_modules', 'public/source'],
+        extensions: ['', '.js', '.jsx'],
+    },
+    postcss: [
+        autoprefixer,
+    ],
+    plugins: [
+        new ExtractTextPlugin('main.css', { allChunks: true }),
+    ],
+};
+</code></pre>
+","6150419","","6150419","","2017-06-13 18:09:43","2017-06-13 18:09:43","ReactDOMServer renderToStaticMarkup on Node/Express server","<node.js><reactjs><express>","1","0","","",""
+"45804800","1","","","2017-08-21 20:09:20","","0","56","<p>I am trying to set up ApolloJS with server side rendering, react, redux and react router but am not having much luck. I have tried setting up as per the documents but it doesn't appear to work. The graphQL request gets made however the data returned (that is then used as initial data) does not come back in the expected format. for example: </p>
+
+<pre><code>data: 
+      { '$ROOT_QUERY.shop.products({""first"":10}).edges.0.node': [Object],
+        '$ROOT_QUERY.shop.products({""first"":10}).edges.0': [Object],
+        '$ROOT_QUERY.shop.products({""first"":10}).edges.1.node': [Object],
+        '$ROOT_QUERY.shop.products({""first"":10}).edges.1': [Object],
+        '$ROOT_QUERY.shop.products({""first"":10})': [Object],
+        '$ROOT_QUERY.shop': [Object],
+        ROOT_QUERY: [Object] },
+     optimistic: [],
+     reducerError: null }
+</code></pre>
+
+<p>This data seems to look like my actual graphQl query and is not actually converting it into a response. I am using version 1.4.14 of react apollo.</p>
+
+<p>Any idea if I am missing something?</p>
+
+<p>client.js</p>
+
+<pre><code>const client = new ApolloClient({
+  networkInterface: createNetworkInterface({ uri: '/graphql' }),
+  reduxRootSelector: store =&gt; store.apollo
+});
+
+const store = configureStore(client, window.__APOLLO_STATE__);
+const MOUNT_NODE = document.getElementById(""root"");
+
+render(
+  &lt;ApolloProvider store={store} client={client}&gt;
+    &lt;BrowserRouter&gt;
+      &lt;App /&gt;
+    &lt;/BrowserRouter&gt;
+  &lt;/ApolloProvider&gt;
+  , MOUNT_NODE);
+</code></pre>
+
+<p>server.js</p>
+
+<pre><code>app.get(""*"", (req, res) =&gt; {
+
+  const client = new ApolloClient({
+    ssrMode: true,
+    reduxRootSelector: store =&gt; store.apollo,
+    networkInterface: createNetworkInterface({
+      uri: `http://localhost:${PORT}/graphql`,
+      opts: {},
+    })
+  });
+
+  const store = configureStore(client);
+
+  const component = (
+    &lt;ApolloProvider client={client} store={store}&gt;
+      &lt;StaticRouter location={req.url} context={{}}&gt;
+        &lt;App /&gt;
+      &lt;/StaticRouter&gt;
+    &lt;/ApolloProvider&gt;
+  );
+
+  renderToStringWithData(component).then(content =&gt; {
+
+    const initialState = {
+      apollo: {
+        data: client.getInitialState()
+      }
+    };
+
+    console.log(client.getInitialState()) //The example data above gets returned here
+
+    const html = &lt;Html content={content} initialState={initialState} /&gt;;
+
+    res.send(`&lt;!doctype html&gt;\n${renderToStaticMarkup(html)}`);
+
+  }).catch(err =&gt; {
+    console.log(err);
+    res.status(500).send('Oops');
+  });
+});
+</code></pre>
+
+<p>component with query</p>
+
+<pre><code>const query = gql`{
+    shop {
+    products(first: 10) {
+      edges {
+        node {
+          title
+        }
+      }
+    }
+  }
+}`;
+
+const Home = () =&gt; (
+  &lt;DefaultLayout&gt;
+    &lt;Button content='Click Here' /&gt;
+    &lt;span&gt;home &lt;Link to=""/search""&gt;SEARCH&lt;/Link&gt;&lt;/span&gt;
+  &lt;/DefaultLayout&gt;
+);
+
+const HomeWithData = graphql(query)(Home);
+</code></pre>
+","4843251","","","","","2017-08-21 20:09:20","ssr ApolloJS with react redux","<reactjs><apollo><react-apollo>","0","0","","",""
+"41187292","1","","","2016-12-16 15:09:54","","0","162","<p>I'm trying to use the Apollo client and I am running into a few issues with dropping it into the react starter kit with redux.  <a href=""https://github.com/kriasoft/react-starter-kit/tree/feature/redux"" rel=""nofollow noreferrer"">https://github.com/kriasoft/react-starter-kit/tree/feature/redux</a></p>
+
+<p>Trying to use the techniques from here: <a href=""http://dev.apollodata.com/react/server-side-rendering.html"" rel=""nofollow noreferrer"">http://dev.apollodata.com/react/server-side-rendering.html</a></p>
+
+<p>But I get the error </p>
+
+<pre><code>warning.js:36Warning: React attempted to reuse markup in a container but the checksum was invalid. This generally means that you are using server rendering and the markup generated on the server was not what the client was expecting. React injected new markup to compensate which works but you have lost many of the benefits of server rendering. Instead, figure out why the markup being generated is different on the client or server:
+ (client) &lt;/div&gt;&lt;/header&gt;&lt;div data-reactid=""19""&gt;Lo
+ (server) &lt;/div&gt;&lt;/header&gt;&lt;div class=""Home-root-2IM
+</code></pre>
+
+<p>Here's my implementation</p>
+
+<pre><code>// server.js
+...
+const component = (
+  &lt;App context={context}&gt;
+    &lt;ApolloProvider client={context.client} store={context.store}&gt;
+      {route.component}
+    &lt;/ApolloProvider&gt;
+  &lt;/App&gt;
+);
+
+
+await getDataFromTree(component);
+
+data.children = ReactDOM.renderToString(component);
+data.style = [...css].join('');
+data.scripts = [
+  assets.vendor.js,
+  assets.client.js,
+];
+data.state = context.store.getState();
+if (assets[route.chunk]) {
+  data.scripts.push(assets[route.chunk].js);
+}
+
+const html = ReactDOM.renderToStaticMarkup(&lt;Html {...data} /&gt;);
+res.status(route.status || 200);
+res.send(`&lt;!doctype html&gt;${html}`);
+...
+</code></pre>
+
+<p>And client side</p>
+
+<pre><code>// client.js
+...
+const component = (
+  &lt;App context={context}&gt;
+    &lt;ApolloProvider client={context.client} store={context.store}&gt;
+      {route.component}
+    &lt;/ApolloProvider&gt;
+  &lt;/App&gt;
+);
+
+appInstance = ReactDOM.render(
+ component,
+  container,
+  () =&gt; onRenderComplete(route, location),
+);
+...
+
+
+// Home.js
+
+class Home extends React.Component {
+  static propTypes = {
+    collections: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      subtitle: PropTypes.string.isRequired,
+      photo: PropTypes.string,
+    })).isRequired,
+  };
+
+  render() {
+    const props = this.props;
+    const { loading, allCollections } = props.data;
+
+    if (loading) {
+      return &lt;div&gt;Loading&lt;/div&gt;;
+    } else {
+      return (
+        &lt;div className={s.root}&gt;
+          &lt;div className={s.container}&gt;
+            &lt;h1 className={s.title}&gt;Collections&lt;/h1&gt;
+            &lt;ul&gt;
+              {allCollections.map((collection) =&gt;
+                &lt;li key={collection.id}&gt;
+                  &lt;h3&gt;{collection.title}&lt;/h3&gt;
+                  &lt;img src={collection.photo} width=""200""/&gt;
+                &lt;/li&gt;
+              )}
+            &lt;/ul&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      );
+    }
+
+  }
+}
+
+Home.propTypes = {
+  data: PropTypes.shape({
+    loading: PropTypes.bool.isRequired,
+    allCollections: PropTypes.array,
+  }).isRequired,
+};
+
+
+const HomeWithStyles =  withStyles(s)(Home);
+const HomeWithData = graphql(getQuery)(HomeWithStyles);
+export default connect()(HomeWithData);
+
+
+
+// App.js
+import React, { Children, PropTypes } from 'react';
+
+const ContextType = {
+  // Enables critical path CSS rendering
+  // https://github.com/kriasoft/isomorphic-style-loader
+  insertCss: PropTypes.func.isRequired,
+  // Integrate Redux
+  // http://redux.js.org/docs/basics/UsageWithReact.html
+  store: PropTypes.shape({
+    subscribe: PropTypes.func.isRequired,
+    dispatch: PropTypes.func.isRequired,
+    getState: PropTypes.func.isRequired,
+  }).isRequired,
+  client: PropTypes.object.isRequired,
+};
+
+/**
+ * The top-level React component setting context (global) variables
+ * that can be accessed from all the child components.
+ *
+ * https://facebook.github.io/react/docs/context.html
+ *
+ * Usage example:
+ *
+ *   const context = {
+ *     history: createBrowserHistory(),
+ *     store: createStore(),
+ *   };
+ *
+ *   ReactDOM.render(
+ *     &lt;App context={context}&gt;
+ *       &lt;Layout&gt;
+ *         &lt;LandingPage /&gt;
+ *       &lt;/Layout&gt;
+ *     &lt;/App&gt;,
+ *     container,
+ *   );
+ */
+class App extends React.PureComponent {
+
+  static propTypes = {
+    context: PropTypes.shape(ContextType).isRequired,
+    children: PropTypes.element.isRequired,
+  };
+
+  static childContextTypes = ContextType;
+
+  getChildContext() {
+    return this.props.context;
+  }
+
+  render() {
+    // NOTE: If you need to add or modify header, footer etc. of the app,
+    // please do that inside the Layout component.
+    return Children.only(this.props.children);
+  }
+
+}
+
+export default App;
+</code></pre>
+","611750","","611750","","2016-12-17 18:45:12","2016-12-23 18:41:48","Getting checksum invalid warning when using apollo client isomorphically with react starter kit","<react-redux><isomorphic-javascript><react-starter-kit><react-apollo>","1","2","","",""
+"35298460","1","35298657","","2016-02-09 17:34:14","","1","1803","<p>I'm using <code>ReactDOMServer</code> to generate a static site via the server side and it doesn't seem to like this component specifically the opening <code>&lt;!DOCTYPE html&gt;</code> tag. (see below)</p>
+
+<p>I'm doing this as I'm trying to use React to fully render a page via the server-side for IE8 compatibility and eventually become an isomorphic app.</p>
+
+<p>Is there a best practice on how to fully render static markup with React via the server-side (with inclusions of the opening html tags, etc.)?</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>'use strict';
+
+import React from 'react';
+
+export default class Root extends React.Component {
+
+  render() {
+    return (
+      &lt;!DOCTYPE html&gt;
+      &lt;head&gt;
+      &lt;title&gt;Hello World!&lt;/title&gt;
+      &lt;/head&gt;
+      &lt;body&gt;
+
+      &lt;h1&gt;Hello World!&lt;/h1&gt;
+
+      &lt;/body&gt;
+      &lt;/html&gt;
+    );
+  }
+
+}</code></pre>
+</div>
+</div>
+</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>let html = ReactDOMServer.renderToStaticMarkup(&lt;Root /&gt;);</code></pre>
+</div>
+</div>
+</p>
+
+<p><strong>Bonus:</strong> Although a simple DOCTYPE is breaking it, eventually I'd like to add additional IE tags like below at the top.</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;!--[if lt IE 7]&gt;  &lt;html dir=""ltr"" lang=""en-US"" class=""no-js ie ie6 lte9 lte8 lte7""&gt; &lt;![endif]--&gt;
+&lt;!--[if IE 7]&gt;     &lt;html dir=""ltr"" lang=""en-US"" class=""no-js ie ie7 lte9 lte8 lte7""&gt; &lt;![endif]--&gt;
+&lt;!--[if IE 8]&gt;     &lt;html dir=""ltr"" lang=""en-US"" class=""no-js ie ie8 lte9 lte8""&gt; &lt;![endif]--&gt;
+&lt;!--[if IE 9]&gt;     &lt;html dir=""ltr"" lang=""en-US"" class=""no-js ie ie9 lte9""&gt; &lt;![endif]--&gt;
+&lt;!--[if gt IE 9]&gt;  &lt;html dir=""ltr"" lang=""en-US"" class=""no-js""&gt; &lt;![endif]--&gt;
+&lt;!--[if !IE]&gt;&lt;!--&gt;&lt;html&gt;&lt;!--&lt;![endif]--&gt;</code></pre>
+</div>
+</div>
+</p>
+","2593947","","","","","2016-02-09 17:45:02","ReactDOMServer.renderToStaticMarkup full markup","<javascript><reactjs>","1","0","","",""
+"37478854","1","37479227","","2016-05-27 08:42:42","","1","2246","<p>I am following this tutorial ""Building SVG Icons with React""</p>
+
+<p><a href=""http://jxnblk.com/react-icons/"" rel=""nofollow noreferrer"">http://jxnblk.com/react-icons/</a></p>
+
+<p>I am getting stuck when i am running the command <code>""npm run build""</code></p>
+
+<p>This is the <code>npm-debug.log</code></p>
+
+<pre><code>0 info it worked if it ends with ok
+1 verbose cli [ '/Users/villat/.nvm/versions/node/v5.0.0/bin/node',
+1 verbose cli   '/Users/villat/.nvm/versions/node/v5.0.0/bin/npm',
+1 verbose cli   'run',
+1 verbose cli   'build' ]
+2 info using npm@3.3.6
+3 info using node@v5.0.0
+4 verbose run-script [ 'prebuild', 'build', 'postbuild' ]
+5 info lifecycle react-icons@1.0.0~prebuild: react-icons@1.0.0
+6 silly lifecycle react-icons@1.0.0~prebuild: no script for prebuild, continuing
+7 info lifecycle react-icons@1.0.0~build: react-icons@1.0.0
+8 verbose lifecycle react-icons@1.0.0~build: unsafe-perm in lifecycle true
+9 verbose lifecycle react-icons@1.0.0~build: PATH: /Users/villat/.nvm/versions/node/v5.0.0/lib/node_modules/npm/bin/node-gyp-bin:/Users/villat/Downloads/Projects/react-icons/node_modules/.bin:/Users/villat/.nvm/versions/node/v5.0.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+10 verbose lifecycle react-icons@1.0.0~build: CWD: /Users/villat/Downloads/Projects/react-icons
+11 silly lifecycle react-icons@1.0.0~build: Args: [ '-c', 'node build' ]
+12 silly lifecycle react-icons@1.0.0~build: Returned: code: 1  signal: null
+13 info lifecycle react-icons@1.0.0~build: Failed to exec build script
+14 verbose stack Error: react-icons@1.0.0 build: `node build`
+14 verbose stack Exit status 1
+14 verbose stack     at EventEmitter.&lt;anonymous&gt; (/Users/villat/.nvm/versions/node/v5.0.0/lib/node_modules/npm/lib/utils/lifecycle.js:233:16)
+14 verbose stack     at emitTwo (events.js:87:13)
+14 verbose stack     at EventEmitter.emit (events.js:172:7)
+14 verbose stack     at ChildProcess.&lt;anonymous&gt; (/Users/villat/.nvm/versions/node/v5.0.0/lib/node_modules/npm/lib/utils/spawn.js:24:14)
+14 verbose stack     at emitTwo (events.js:87:13)
+14 verbose stack     at ChildProcess.emit (events.js:172:7)
+14 verbose stack     at maybeClose (internal/child_process.js:818:16)
+14 verbose stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:211:5)
+15 verbose pkgid react-icons@1.0.0
+16 verbose cwd /Users/villat/Downloads/Projects/react-icons
+17 error Darwin 15.4.0
+18 error argv ""/Users/villat/.nvm/versions/node/v5.0.0/bin/node"" ""/Users/villat/.nvm/versions/node/v5.0.0/bin/npm"" ""run"" ""build""
+19 error node v5.0.0
+20 error npm  v3.3.6
+21 error code ELIFECYCLE
+22 error react-icons@1.0.0 build: `node build`
+22 error Exit status 1
+23 error Failed at the react-icons@1.0.0 build script 'node build'.
+23 error This is most likely a problem with the react-icons package,
+23 error not with npm itself.
+23 error Tell the author that this fails on your system:
+23 error     node build
+23 error You can get their info via:
+23 error     npm owner ls react-icons
+23 error There is likely additional logging output above.
+24 verbose exit [ 1, true ]
+</code></pre>
+
+<p>In attached my terminal screenshot where it is complaining about <code>React.renderToStaticMarkup</code></p>
+
+<p><a href=""https://i.stack.imgur.com/oelks.png"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/oelks.png"" alt=""enter image description here""></a></p>
+
+<p>I have done a bit of research and i have not found any relevant solution for me</p>
+
+<p>I am using nvm to manage the node versions</p>
+
+<p>My node -v version is <code>5.0.0</code></p>
+","1581512","","","","","2016-05-27 09:01:19","TypeError: React.renderToStaticMarkup is not a function","<javascript><node.js><reactjs><reactive-programming>","1","0","","",""
+"37758834","1","","","2016-06-11 00:33:05","","3","946","<p><strong>Question:</strong></p>
+
+<p>How can I expose a react component's methods to other places? </p>
+
+<p>For example, I want to call React-Router's this.context.router.push(location) from an element outside of React. </p>
+
+<p>Perhaps I could add a React component's method to the window object so it can be called from any generic DOM event listener or even the console?</p>
+
+<p><strong>Background/Use Case:</strong></p>
+
+<p>I want to use jQuery DataTables in my React app because it provides many plugins and config which are still unavailable in the React ecosystem.</p>
+
+<p>I started from an existing React datatable component (implementation below). </p>
+
+<p>The original provides nice option to pass a render function which can, for example, render other React components inside the cells. Below, the cells in the 'Product Name' column are rendered as React-Router &lt; Link /> components.</p>
+
+<pre><code>    const data =  [
+        { 
+          product_id: '5001', 
+          product_price: '$5', 
+          product_name: 'Apple'
+         },
+         ...
+      ];
+
+    const renderUrl =
+      (val, row) =&gt; {
+        return (&lt;Link to={`/product/${row.product_id}`}&gt;{row.product_name}&lt;/Link&gt;);
+      };
+
+    const columns = [
+        { title: 'Product Name', prop: 'product_id', render: renderUrl },
+        { title: 'Price', prop: 'product_price' },
+      ];
+
+    &lt;DataTable
+      className=""datatable-container""
+      columns={columns}
+      initialData={data}
+    /&gt;
+</code></pre>
+
+<p>What I've done to modify the existing component involves hiding the table from React's DOM diffing algorithm, since it would otherwise break when jQuery DataTables modifies the DOM.</p>
+
+<ol>
+<li>Move the component's <em>render()</em> code into a custom method <em>getDtMarkup()</em> on the class (outside of the react lifecycle).</li>
+<li><p><em>render()</em> now outputs an empty div with a <em>ref</em> and <em>id</em></p>
+
+<pre><code>  render() {
+    return (
+      &lt;div&gt;
+        &lt;div ref=""dtContainer"" id=""dtContainer""&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+</code></pre></li>
+<li><p>componentDidMount uses ReactDomServer.renderToStaticMarkup to turn a React component into plain, non-react markup and appends this to the #dtContainer div from render(). Finally jQuery DataTables initializes the rendered table html as a fancy 'jQuery DataTable'.</p>
+
+<pre><code>componentDidMount() {
+
+  let table = this.getDTMarkup();
+  let dtContainer = this.refs.dtContainer;
+  let renderedTable = ReactDOMServer.renderToStaticMarkup(table, dtContainer);
+
+  $('#dtContainer').append(renderedTable);
+
+  let jqueryTable = $('#dt'); // hard coded in getDTMarkup() for now
+
+  // Turn html table into a jQuery DataTable with desired config options
+  jqueryTable.DataTable({
+    dom: '&lt;""html5buttons""B&gt;lTfgitp',
+    buttons: [
+      'copy', 'csv', 'excel', 'pdf', 'print'
+    ],
+    ""pagingType"": 'numbers',
+    ""bAutoWidth"": false,
+    ""bDestroy"": true,
+    ""fnDrawCallback"": function() {
+      console.log('datatables fnDrawCallback');
+    }
+  });
+}
+</code></pre></li>
+</ol>
+
+<blockquote>
+  <p>src <a href=""https://github.com/alecperkey/react-jquery-datatables/blob/master/src/Table.js#L89-L111"" rel=""nofollow"">https://github.com/alecperkey/react-jquery-datatables/blob/master/src/Table.js#L89-L111</a></p>
+</blockquote>
+
+<p>The limitation that has me asking this question is that I am now unable to use React components such as &lt; Link /> inside of this static, non-React markup. I am using &lt; a href=""""> for now, but this will reload the page, which is slower and causes the white flash of the browser.</p>
+","1289188","","","","","2016-12-09 18:42:59","reactjs - expose react component methods outside react tree","<jquery><reactjs><react-router><react-dom>","1","0","","",""
+"29062628","1","","","2015-03-15 15:47:56","","2","717","<p>I am very new to react. I tried to use react-router. But no matter how I change the code, it always give me the warning.</p>
+
+<blockquote>
+  <p>Warning: No route matches path ""/"". Make sure you have  somewhere in your routes</p>
+</blockquote>
+
+<p>After googling for few hours, still have no idea what is wrong. Can anyone give me some hint? Thank you</p>
+
+<p>In my app.js</p>
+
+<pre><code>Router.run(routes, Router.HistoryLocation, function(Handler, routerState) {
+var params = routerState.params;
+React.render(
+    &lt;Handler params={params}/&gt;,
+    document.getElementById('react-app')
+    )
+});
+</code></pre>
+
+<p>In my route.js</p>
+
+<pre><code>var routes = (
+&lt;Route name=""root"" path=""/"" handler={App}&gt;
+    &lt;DefaultRoute handler={Home} /&gt;
+    &lt;Route name=""commitments"" handler={CommitmentList} /&gt;
+    &lt;Route name=""commitment"" handler={Commitment} /&gt;
+&lt;/Route&gt;
+);
+</code></pre>
+
+<p>I am also use express and tring to do server-side rendering,</p>
+
+<pre><code>module.exports = {
+
+  index: function(req, res) {
+        var path = req.url;
+        Router.run(routes, req.url, function(Handler) {
+            var handler = React.createElement(Handler);
+            var markup = React.renderToStaticMarkup(handler);
+            res.render('home', {
+                markup: markup // Pass rendered react markup
+            });
+         });
+
+  }
+}
+</code></pre>
+","4140283","","","","","2015-05-21 19:00:27","Always showing No route matches path ""/"" when using react-rotuer","<reactjs><react-router>","1","1","","",""
+"37811259","1","","","2016-06-14 11:53:09","","3","375","<p>In our react.js based codebase, we use an external library which accepts raw html, and we had xss issues due to code like:</p>
+
+<pre><code>'&lt;div title=""' + dangerousTitle + ' ""&gt;' + dangerousText + '&lt;/div&gt;';
+</code></pre>
+
+<p>I need to come up with a policy for the team and it seemed possible to use:</p>
+
+<pre><code>ReactDOMServer.renderToStaticMarkup(
+     &lt;div title={dangerousTitle}&gt;
+         {dangerousText}
+     &lt;/div&gt;
+);
+</code></pre>
+
+<p>On the client side code. However, in react documentation, it is explicitly stated that renderToStaticMarkup is for server side use.</p>
+
+<p>Assuming we know what we are doing, does anybody have any argument against above use?</p>
+
+<p>PS: we considered _.escape, _.template with &lt;%-, `` template strings with escaping function, above seemed the best fit since the team is already used to react templates more than anything else.</p>
+","277291","","","","","2016-06-14 11:53:09","ReactDOMServer.renderToStaticMarkup on client side to prevent xss","<javascript><reactjs><xss>","0","3","1","",""
+"46151537","1","46151589","","2017-09-11 08:45:22","","3","3092","<p>I'm a beginner at <code>react.js</code>.</p>
+
+<p>I got this error:</p>
+
+<blockquote>
+  <p>Super expression must either be null or a function, not undefined</p>
+</blockquote>
+
+<p>full error output in my browser chrome console:</p>
+
+<blockquote>
+  <p>Uncaught TypeError: Super expression must either be null or a
+  function, not undefined
+      at _inherits (bundle.js:21166)
+      at bundle.js:21172
+      at Object.184.react (bundle.js:21196)
+      at s (bundle.js:1)
+      at e (bundle.js:1)
+      at bundle.js:1</p>
+</blockquote>
+
+<p>my codes:</p>
+
+<pre><code>const React=require('react');
+const ReactDom=require('react-dom');
+
+class App extends React .component{
+
+    render(){
+        return(
+            &lt;div&gt;
+                &lt; Header /&gt;,
+                &lt; Main /&gt;,
+                &lt; Footer /&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+class Header extends React .component{
+    render(){
+        return(
+            &lt;Header&gt;
+                &lt;nav&gt;
+                    &lt;h1&gt;Header&lt;/h1&gt;
+                &lt;/nav&gt;
+            &lt;/Header&gt;
+        );
+    }
+}
+
+
+class Main extends React .component{
+    render(){
+        return(
+            &lt;div&gt;
+                &lt;p&gt; text 1&lt;/p&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+class Footer extends React .component{
+    render(){
+        return(
+            &lt;h2&gt;Footer&lt;/h2&gt;
+        );
+    }
+}
+
+ReactDom .renderToStaticMarkup (&lt;App /&gt; ,document.getElementById('app'));
+</code></pre>
+","8568936","","","","","2017-09-11 08:55:11","Super expression must either be null or a function, not undefined - reactjs","<javascript><node.js><reactjs>","2","0","1","",""
+"39906084","1","","","2016-10-06 21:46:09","","0","535","<p>I am new to reactjs..</p>
+
+<p>I am trying to render the component (jsx) using renderToStaticMarkup but I am getting the below error:</p>
+
+<p><strong>Error:</strong></p>
+
+<pre><code>Invariant Violation: Invalid tag: &lt;html data-reactroot="""" data-reactid=""1"" data-re....
+</code></pre>
+
+<p><strong>server.js (snippet)</strong></p>
+
+<pre><code>var html = ReactDOMServer.renderToStaticMarkup(
+            React.createElement(
+            ReactDOMServer.renderToString(Component(props))
+        ),
+        script({dangerouslySetInnerHTML: {__html:
+            'var APP_PROP = ' + safeStringify(props) + ';'
+        }}),
+
+      script({src: '//cdnjs.cloudflare.com/ajax/libs/react/15.3.0/react.min.js'}),
+      script({src: '//cdnjs.cloudflare.com/ajax/libs/react/15.3.0/react-dom.min.js'}),
+      script({src: '/bundle.js'})
+
+    )
+        response.send(html)
+    }
+</code></pre>
+
+<p>component.jsx</p>
+
+<pre><code>return(
+        &lt;html&gt;
+        &lt;head&gt;&lt;/head&gt;
+        &lt;body&gt;
+        &lt;div&gt;
+            &lt;ul&gt;{values}&lt;/ul&gt;
+            &lt;button onClick={this.handleClick}&gt;Click Me!&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;/body&gt;
+        &lt;/html&gt;
+        );
+    }
+</code></pre>
+","955140","","652669","","2017-01-22 04:47:38","2017-01-22 04:47:38","Error ""Invalid tag"" on renderToStaticMarkup","<node.js><reactjs><jsx><babel><serverside-rendering>","1","0","","",""
+"29396843","1","","","2015-04-01 17:13:30","","22","15333","<p>I am working on an isomorphic javascript app with express + react.  We started out using jade for server side templates for static content, but combining the two is quickly becoming unwieldy. We have ended up with something like this:</p>
+
+<p>In the express routes:</p>
+
+<pre><code>router.get(""/"", function(req, res) {
+  var webpackStats = require('../../config/webpack-stats.json');
+  var reactHtml = React.renderToString(HiwApp({}));
+  var slideshowHtml = React.renderToString(slideshowApp({}));
+  var config = {
+    webpackStats: webpackStats,
+    reactOutput: reactHtml,
+    slideshowHtml: slideshowHtml
+  };
+  res.render(""how_it_works/howitworks"", config);
+});
+</code></pre>
+
+<p>In Jade:</p>
+
+<pre><code>body
+  .company-logo.center
+  #react-main-mount
+    != reactOutput
+  include ./content_block_1.jade
+
+  include ./content_block_2.jade
+
+  #slideshow-main-mount
+    != slideshowHtml
+</code></pre>
+
+<p>This is very brittle-if we want jsx then a jade template then more jsx, we have to make sure we get the order right.</p>
+
+<p>My idea is to do it <em>all</em> with jsx. I know there is React.renderToStaticMarkup for this sort of thing, but that doesn't solve the problem of mixing dynamic with static pages.  </p>
+
+<p>The big questions: if we decide to do all of this with jsx (say layout.jsx which contains all components), then call <code>React.renderToString(App({});</code>, will this be a major performance hit? If so, is there a better way to do it to easily combine static and dynamic blocks?</p>
+","1703484","","","","","2016-06-04 17:16:31","Combining react and jade","<javascript><node.js><express><pug><reactjs>","2","1","10","",""
+"40179203","1","45820301","","2016-10-21 14:26:21","","1","1123","<p>i am studying create-react-app and SSR. </p>
+
+<p>I have add redux and react-router in this repo => <a href=""https://github.com/sarovin/StarteKit"" rel=""nofollow"">https://github.com/sarovin/StarteKit</a>.</p>
+
+<p>Now i want add SSR ( server side rendering ) without any modification to create-react-app. </p>
+
+<p>I have a PR where i try to implement it => <a href=""https://github.com/sarovin/StarteKit/pull/1"" rel=""nofollow"">https://github.com/sarovin/StarteKit/pull/1</a></p>
+
+<p>But i have some error because the function <code>onClick()</code> not work in my example:</p>
+
+<p>// App.js</p>
+
+<pre><code>import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
+import { switcher } from './actions/switcher';
+import logo from './logo.svg';
+import './App.css';
+
+const propTypes = {
+  switch: PropTypes.bool,
+  dispatch: PropTypes.func,
+};
+
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.onClick = this.onClick.bind(this);
+  }
+
+  onClick() {
+    console.log('onClick');
+    this.props.dispatch(switcher());
+  }
+
+  render() {
+    console.log('Switch', this.props.switch);
+    return (
+      &lt;div className=""App""&gt;
+        &lt;div className=""App-header""&gt;
+          {this.props.switch ? &lt;img src={logo} className=""App-logo"" alt=""logo"" /&gt; : null }
+          &lt;h2&gt;Welcome to React&lt;/h2&gt;
+        &lt;/div&gt;
+        &lt;label className=""switch"" &gt;
+          &lt;input checked={this.props.switch} type=""checkbox"" onChange={this.onClick} /&gt;
+          &lt;div className=""slider round""&gt;&lt;/div&gt;
+        &lt;/label&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+function mapStateToProps(state) {
+  return {
+    switch: state.switcher.get('switch'),
+  };
+}
+
+App.propTypes = propTypes;
+
+export default connect(mapStateToProps)(App);
+</code></pre>
+
+<p>//server.js</p>
+
+<pre><code>import express from 'express';
+import path from 'path';
+import bodyParser from 'body-parser';
+import hbs from 'express-hbs';
+import cors from 'cors';
+import React from 'react';
+import { createStore, combineReducers } from 'redux';
+import { Provider } from 'react-redux';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { RouterContext, match } from 'react-router';
+import routes from './routes';
+import * as reducers from './reducers';
+
+console.log('info', 'Init App');
+
+const app = express();
+app.set(""port"", process.env.PORT || 8080);
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+// Make index false, so that it is not resolved by default.
+app.use(express.static(path.resolve('build'), {index: false}));
+
+app.set(""views"", path.resolve('build'));
+app.set(""view engine"", ""html"");
+app.engine(""html"", hbs.express4());
+
+app.use((req, res, next) =&gt; {
+  match({routes: routes, location: req.url}, (err, redirectLocation, renderProps) =&gt; {
+    if (err) {
+      return res.status(500).send(err.message);
+    } else if (redirectLocation) {
+      res.redirect(302, redirectLocation.pathname + redirectLocation.search);
+    } else if(renderProps){
+      res.status(200);
+
+      console.log(renderProps);
+
+      const reducer = combineReducers(reducers);
+      const initialState = {};
+      let store = createStore(reducer, initialState);
+
+      let html = renderToStaticMarkup(
+        &lt;Provider store={store}&gt;
+          &lt;RouterContext {...renderProps}/&gt;
+        &lt;/Provider&gt;
+      );
+
+      console.log('store', store.getState());
+      res.render('index.html', { content: html });
+    }
+    else res.status(404).send('Page not found');
+  });
+});
+
+app.listen(app.get(""port""), () =&gt; {
+  console.log(""Express server starting on port: "" + app.get(""port""));
+});
+</code></pre>
+
+<p>Have any suggestion? </p>
+","3176972","","3176972","","2016-10-21 14:39:12","2018-07-04 23:56:43","Add Server Side Rendering to create-react-app","<reactjs><redux><react-router><create-react-app><server-rendering>","4","4","1","",""
+"51288895","1","","","2018-07-11 15:09:12","","0","20","<p>i'm trying to change the cursor within my reactJS app with an svg (i need to be able to change the cursor size and color), by doing something like this</p>
+
+<pre><code> const svg =
+ `url(""data:image/svg+xml,${encodeURIComponent(renderToStaticMarkup(&lt;SvgSymb {...props} /&gt;))}""), default`;
+
+    this.props.updateStyle({ '--cust-cursor': svg });
+</code></pre>
+
+<p>and then in my css calling it this way</p>
+
+<pre><code>* {
+  cursor: var(--cust-cursor) !important;
+}
+</code></pre>
+
+<p>this works perfectly, but unfortunately i have a request for this svg for each element from the page and this is causing performance issues. Any idea how can i manage this differently? I run this application in electron.
+Thanks!</p>
+","2899925","","","","","2018-07-11 15:09:12","Dynamically adding style to all elements in reactJS app using electron","<css><reactjs><svg><electron>","0","0","","",""
+"44670153","1","","","2017-06-21 08:00:13","","5","374","<p>I am new to graphql with react-appollo I would like to use react apollo with redux also server side rendering Every thing is fine my app is working but the problem is when my app render's it is actually recalling the api again it is not using my rendered state ..</p>
+
+<p><a href=""https://i.stack.imgur.com/semIK.gif"" rel=""nofollow noreferrer""><img src=""https://i.stack.imgur.com/semIK.gif"" alt=""enter image description here""></a></p>
+
+<p>server .js</p>
+
+<pre><code>import express from 'express';
+import bodyParser from 'body-parser';
+
+import path from 'path';
+import expressGraphQL from 'express-graphql';
+import schema from './GraphQL/Schema';
+import React from 'react';
+import ReactDOMServer from 'react-dom/server'
+import { StaticRouter } from 'react-router';
+import { ApolloClient, createNetworkInterface, ApolloProvider } from 'react-apollo';
+import { getDataFromTree } from ""react-apollo""
+import store from '../client/Redux/Store/store';
+
+import {serverClient} from './lib/apollo'
+
+require('es6-promise').polyfill();
+require('isomorphic-fetch');
+
+import WApp from '../client/App';
+
+//Dev HMR
+import HMR from './serverUtils/HMR';
+
+const app = express();
+app.use(bodyParser.json());
+
+app.use('/api', expressGraphQL({
+    schema,
+    graphiql: true
+}));
+app.use('/static',express.static('build'));
+HMR(app);
+
+function Html({ content, state }) {
+    return (
+        &lt;html&gt;
+        &lt;body&gt;
+        &lt;div id=""app""  dangerouslySetInnerHTML={{ __html: content }}/&gt;
+        &lt;script src=""/static/app.js"" /&gt;
+        &lt;script dangerouslySetInnerHTML={{
+            __html: `window.__APOLLO_STATE__=${JSON.stringify(state).replace(/&lt;/g, '\\u003c')};`,
+        }} /&gt;
+        &lt;/body&gt;
+        &lt;/html&gt;
+    );
+}
+
+function createReactHandler(req) {
+    return async function reactHandler(ctx) {
+        const routeContext = {};
+        const client = serverClient();
+
+        const components = (
+            &lt;StaticRouter location={req.url} context={routeContext}&gt;
+                &lt;ApolloProvider store={store} client={client}&gt;
+                    &lt;WApp /&gt;
+                &lt;/ApolloProvider&gt;
+            &lt;/StaticRouter&gt;
+        );
+
+        await getDataFromTree(components);
+
+        // const html = ReactDOMServer.renderToString(components);
+
+        // // Handle redirects
+        // if ([301, 302].includes(routeContext.status)) {
+        //     // 301 = permanent redirect, 302 = temporary
+        //     ctx.status = routeContext.status;
+        //
+        //     // Issue the new `Location:` header
+        //     ctx.redirect(routeContext.url);
+        //
+        //     // Return early -- no need to set a response body
+        //     return;
+        // }
+        //
+        // // Handle 404 Not Found
+        // if (routeContext.status === 404) {
+        //     // By default, just set the status code to 404.  You can add your
+        //     // own custom logic here, if you want to redirect to a permanent
+        //     // 404 route or set a different response on `ctx.body`
+        //     ctx.status = routeContext.status;
+        // }
+
+        //   return html;
+        // console.log(html)
+
+
+    }
+}
+
+
+
+const HTML = ({ html,state}) =&gt; (
+
+    &lt;html lang=""en"" prefix=""og: http://ogp.me/ns#""&gt;
+    &lt;head&gt;
+        &lt;meta charSet=""utf-8"" /&gt;
+        &lt;meta httpEquiv=""X-UA-Compatible"" content=""IE=edge"" /&gt;
+        &lt;meta httpEquiv=""Content-Language"" content=""en"" /&gt;
+        &lt;meta name=""viewport"" content=""width=device-width, initial-scale=1"" /&gt;
+
+    &lt;/head&gt;
+    &lt;body&gt;
+    &lt;div
+        id=""app""
+        dangerouslySetInnerHTML={{ __html: html }} /&gt;
+    &lt;script dangerouslySetInnerHTML={{
+        __html: `window.__STATE__=${JSON.stringify(state)};`,
+    }} /&gt;
+
+    &lt;script src=""/static/app.js"" /&gt;
+
+    &lt;/body&gt;
+    &lt;/html&gt;
+);
+
+app.get('/*',(req,res) =&gt; {
+    const routeContext = {};
+    const client = serverClient();
+
+    const components = (
+        &lt;StaticRouter location={req.url} context={routeContext}&gt;
+            &lt;ApolloProvider store={store} client={client}&gt;
+                &lt;WApp /&gt;
+            &lt;/ApolloProvider&gt;
+        &lt;/StaticRouter&gt;
+    );
+
+    getDataFromTree(components).then(() =&gt; {
+        const html = ReactDOMServer.renderToString(components);
+        const initialState = {apollo: client.getInitialState()}
+
+        console.log(client);
+
+        res.send(`&lt;!DOCTYPE html&gt;\n${ReactDOMServer.renderToStaticMarkup(
+            &lt;HTML
+                html={html}
+                state={initialState}
+                 /&gt;,
+        )}`)
+    })
+})
+
+
+
+
+app.listen(3000,() =&gt; {
+    console.log('Man I on')
+})
+</code></pre>
+
+<p>store.js</p>
+
+<pre><code>import { createStore, compose, applyMiddleware } from 'redux';
+import { syncHistoryWithStore } from 'react-router-redux';
+import thunk from 'redux-thunk';
+import {createLogger} from 'redux-logger';
+
+
+import client from '../apolloClient';
+import rootReducer from '../Reducers'
+
+//All Reducer
+import {initialState as allPosts} from '../Reducers/AllPosts_Reucer';
+const isProduction = process.env.NODE_ENV !== 'development';
+const isClient = typeof document !== 'undefined';
+const initialState = {
+    allPosts
+};
+
+const middlewares = [thunk, client.middleware()];
+const enhancers = [];
+
+if (!isProduction &amp;&amp; isClient) {
+    const loggerMiddleware = createLogger();
+    middlewares.push(loggerMiddleware);
+
+    if (typeof devToolsExtension === 'function') {
+        const devToolsExtension = window.devToolsExtension;
+        enhancers.push(devToolsExtension());
+    }
+}
+
+
+const composedEnhancers = compose(
+    applyMiddleware(...middlewares),
+    ...enhancers
+);
+const store = createStore(
+    rootReducer,
+    {},
+
+    composedEnhancers,
+);
+
+export default store;
+</code></pre>
+
+<p>apolloClient.js</p>
+
+<pre><code>import ApolloClient, {
+    createNetworkInterface,
+
+} from 'apollo-client';
+const isProduction = process.env.NODE_ENV !== 'development';
+const testUrl = 'http://localhost:3000/api';
+
+// const url = isProduction ? productionUrl : testUrl;
+const url =  testUrl;
+
+
+const client = new ApolloClient({
+
+    networkInterface: createNetworkInterface({uri:testUrl}),
+    dataIdFromObject:({id}) =&gt; id,
+    initialState: (typeof window !=='undefined')? window.__STATE__:{},
+    reduxRootSelector:state =&gt; state.custom
+
+});
+
+export default client;
+</code></pre>
+
+<p>Home.js</p>
+
+<pre><code>import React,{Component} from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { graphql } from 'react-apollo';
+
+import gql from 'graphql-tag';
+
+import * as postActions from '../../Redux/Actions/postActions';
+
+
+class Home extends Component{
+    componentWillMount(){
+        // console.log('From Will Mount',this.props.posts)
+    }
+    renderAllPost(){
+        const {loading,posts} = this.props;
+
+        if(!loading){
+            return posts.map(data =&gt; {
+                return &lt;li key={data.id}&gt;{data.title}&lt;/li&gt;
+            })
+        }else{
+            return &lt;div&gt;loading&lt;/div&gt;
+        }
+    }
+    render(){
+
+        return(
+            &lt;div&gt;
+
+                {this.renderAllPost()}
+
+            &lt;/div&gt;
+        )
+    }
+}
+
+
+//start from here
+const GetallPosts = gql`
+query getAllPosts{
+  posts{
+    id
+    title
+    body
+  }
+}
+`;
+
+const mapDispatchToProps = (dispatch) =&gt; ({
+    actions:bindActionCreators(
+        postActions,
+        dispatch
+    )
+});
+
+
+const ContainerWithData = graphql(GetallPosts,{
+    props:({ data:{loading,posts} }) =&gt; ({
+        posts,
+        loading,
+    })
+})(Home)
+
+
+export default connect(
+    // mapStateToPros,
+    // mapDispatchToProps
+)(ContainerWithData)
+</code></pre>
+","5947166","","2312051","","2017-06-30 07:51:35","2017-06-30 07:51:35","How to avoid client re fetching in react-apollo SSR with redux?","<node.js><reactjs><redux><graphql><react-apollo>","1","0","","",""
+"44713510","1","","","2017-06-23 05:13:33","","0","664","<p>I try to play with react-router but can't make it working with browserify. I'm stuck with this error: </p>
+
+<pre><code>events.js:182
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Cannot find module 'react-router-dom' from '/usr/src/app'
+    at /usr/src/app/node_modules/browserify/node_modules/browser-resolve/node_modules/resolve/lib/async.js:46:17
+    at process (/usr/src/app/node_modules/browserify/node_modules/browser-resolve/node_modules/resolve/lib/async.js:173:43)
+    at ondir (/usr/src/app/node_modules/browserify/node_modules/browser-resolve/node_modules/resolve/lib/async.js:188:17)
+    at load (/usr/src/app/node_modules/browserify/node_modules/browser-resolve/node_modules/resolve/lib/async.js:69:43)
+    at onex (/usr/src/app/node_modules/browserify/node_modules/browser-resolve/node_modules/resolve/lib/async.js:92:31)
+    at /usr/src/app/node_modules/browserify/node_modules/browser-resolve/node_modules/resolve/lib/async.js:22:47
+    at FSReqWrap.oncomplete (fs.js:152:21)
+npm info lifecycle irregular_verbs@1.0.0~start: Failed to exec start script
+</code></pre>
+
+<p>My first js file is <code>server.js</code> which generate a bundle to load <code>app.js</code>.
+I removed everything on my app.js file to be sure that no personal components create a conflict. So it is very light now! But still doesn't work.</p>
+
+<p>My app.js file:</p>
+
+<pre><code>var React = require('react');
+require('react-router-dom');
+React.render(&lt;div&gt;&lt;p&gt;Blop&lt;/p&gt;&lt;/div&gt;, document.getElementById('base_ihm'));
+</code></pre>
+
+<p>Without the <code>require('react-router-dom');</code>, everything works!</p>
+
+<p>My <code>server.js</code>:</p>
+
+<pre><code>var express = require('express');
+var browserify = require('browserify');
+var React = require('react');
+var jsx = require('node-jsx');
+var app = express();
+
+// Constants
+const PORT = 8080;
+
+jsx.install();
+
+// Enable compression
+var compression = require('compression');
+app.use(compression());
+
+// Create a path name bundle.js which call app.js and apply browserify
+app.use('/bundle.js', function(req, res) {
+  res.setHeader('content-type', 'application/javascript');
+  browserify('./app.js', {
+    debug: true
+  })
+  .transform('reactify')
+  .bundle()
+  .pipe(res);
+});
+
+// static ressources
+app.use(express.static(__dirname + '/static/css'));
+app.use(express.static(__dirname + '/static/images'));
+
+// Main route   
+app.use('/', function(req, res) {
+
+    res.setHeader('Content-Type', 'text/html');
+    res.end(React.renderToStaticMarkup(
+
+        React.createElement(
+            'html', null,
+
+            // Header
+            React.createElement(
+                'head', null,
+
+                // Title
+                React.createElement('title', null, 'Irregular Verbs'),
+
+                // Meta
+                React.createElement('meta', {charSet: 'UTF-8'}, null),
+                React.createElement('meta', {name: 'viewport', content: 'width=device-width, initial-scale=1'}, null),
+
+                // Custom CSS
+                React.createElement('link', { rel: 'stylesheet', href:     'main.css' }, null)
+            ),
+
+            // Body
+            React.DOM.body(
+                null,
+                React.DOM.div({
+                    id: 'base_ihm',
+                    dangerouslySetInnerHTML: {
+                    __html:     React.renderToString(React.createElement('div', null))
+                    }
+                }),
+
+                // Use the path create just before
+                React.DOM.script({
+                    src: '/bundle.js'
+                })
+            )
+        )
+    ));
+});
+
+var server = app.listen(PORT, function() {
+  var addr = server.address();
+  console.log('Listening @ http://%s:%d', addr.address, addr.port);
+});
+</code></pre>
+
+<p><strong>Is react-router well installed?</strong></p>
+
+<p>There is the content of my package.json file:</p>
+
+<pre><code>{
+  ""main"": ""server.js"",
+  ""scripts"": {
+    ""start"": ""node server.js""
+  },
+  ""dependencies"": {
+    ""express"": ""^4.13.3"",
+    ""body-parser"": ""^1.15.2"",
+    ""node-jsx"": ""^0.13.3"",
+    ""react"": ""^15.6.1"",
+    ""react-dom"": ""^15.6.1"",
+    ""react-router-dom"": ""^4.0.0"",
+    ""browserify"": ""^14.4.0"",
+    ""reactify"": ""^1.1.1"",
+    ""mysql"": ""^2.11.1""
+  }
+}
+</code></pre>
+
+<p>I use <code>docker</code> and <code>docker-compose</code>. On my Dockerfile, I added <code>RUN npm ls</code> and <code>RUN ls node_modules</code>: I can see <code>react-router</code> and <code>react-router-dom</code>. So there are here!</p>
+
+<p><strong>Any cache with docker?</strong></p>
+
+<p>I rename my image to be sure to use the good one and not an old one.
+I also restart my container using <code>docker-compose up --force-recreate</code>.
+So I presume it is ok.</p>
+
+<p><strong>Erreur with server.js where browserify is used</strong></p>
+
+<p>I think I've made a mistake in my server.js file but I have no idea...
+There are what I have tried with no success:</p>
+
+<ol>
+<li>I try to add a global:true then global:false at my transform('reactify')</li>
+<li>In my Dockerfile, I try to add <code>npm install react-router-dom -g</code> to be sure it was installed</li>
+<li>I finaly upgraded my versions. And also tried react-router-dom in version 4.1.1</li>
+<li>I replace the <code>require('react-router-dom')</code> by <code>require('./node_modules/react-router-dom')</code> but get the same error (except it was the new path which wasn't found).</li>
+</ol>
+
+<p>Do you have any idea? 
+Thank you for your help!</p>
+","8201365","","","","","2017-07-25 03:53:37","Browserify cannot find module 'react-router-dom'","<reactjs><docker><react-router><browserify>","1","0","1","",""
+"47245664","1","","","2017-11-12 05:09:37","","1","733","<p>Is there a way I could pass an array line props to child components in react with <code>&lt;Link to=""/abc/results""&gt;</code> - results component need an array from main component to render data. How to do this?
+there are other discussions around sending a single id - that appends to the url as well - but my question is - is there a way we can send data like an array of n number of object with Link?</p>
+
+<p><strong>Updated</strong>:
+client/index.js</p>
+
+<pre><code>import React from 'react';
+import { render } from 'react-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import store from '../components/redux/store';
+import App from '../components/app/app';
+
+render((
+  &lt;Provider store={store}&gt;
+    &lt;Router&gt;
+      &lt;App /&gt;
+    &lt;/Router&gt;
+  &lt;/Provider&gt;
+), document.getElementById('root'));
+</code></pre>
+
+<p>server.js:</p>
+
+<pre><code>export default function (req, res, next) {
+  const store = createStore(reducers, {}, applyMiddleware(thunk));
+  let foundPath = null;
+  let { path, component } = routes.routes.find(
+    ({ path, exact }) =&gt; {
+      foundPath = matchPath(req.url,
+        {
+          path,
+          exact,
+          strict: false
+        }
+      );
+      return foundPath;
+    }) || {};
+  if (!component) {
+    component = {};
+  }
+  if (!component.fetchData) {
+    component.fetchData = () =&gt; new Promise((resolve, reject) =&gt; resolve());
+  }
+  component.fetchData({ store, params: (foundPath ? foundPath.params : {}) }).then(() =&gt; {
+    const state = store.getState();
+    const preloadedState = JSON.stringify(state).replace(/&lt;/g, '\\u003c');
+    const context = {};
+
+    const html = ReactDOMServer.renderToStaticMarkup(
+      &lt;Provider store={store} &gt;
+        &lt;Router location={req.url} context={context} &gt;
+          &lt;App /&gt;
+        &lt;/Router&gt;
+      &lt;/Provider&gt;
+    );
+</code></pre>
+
+<p>....</p>
+
+<pre><code> &lt;Link to={{ pathname: '/abc/testing/results', state: { results: resultsArray } }}&gt; Click &lt;/Link&gt;
+</code></pre>
+
+<p>routes:
+....</p>
+
+<pre><code>routes: [
+
+      {
+          path: '/abc/testing/results',
+          component: Results,
+          exact: true
+        },
+{..},
+{..},
+]
+</code></pre>
+
+<p>......</p>
+","6633817","","6633817","","2017-11-12 07:23:55","2017-11-12 07:23:55","Pass an array of objects to another component using <Link> in react","<reactjs><redux><react-router><react-router-v4>","1","1","","",""
+"47246691","1","","","2017-11-12 07:59:12","","0","75","<p>When I click on link in browser - url gets updated but the page does not load - stays on the page ..? this is for my server side rendering application with react/redux - how to handle just client side link redirects with server side rendering? </p>
+
+<p>routes.js</p>
+
+<pre><code>export default {
+
+      routes: [
+        {
+          path: '/abc/',
+          component: Home,
+          exact: true
+        },
+
+        {
+          path: '/abc/testing/results',
+          component: Results,
+          exact: true
+        },
+        {
+          path: '*',
+          component: NotFound
+        }
+      ]
+    };
+</code></pre>
+
+<p>client - index.js:</p>
+
+<pre><code>render((
+  &lt;Provider store={store}&gt;
+    &lt;BrowserRouter history={createHistory()}&gt;
+      &lt;App /&gt;
+    &lt;/BrowserRouter&gt;
+  &lt;/Provider&gt;
+), document.getElementById('root'));
+</code></pre>
+
+<p>server.js</p>
+
+<pre><code>    export default function (req, res, next) {
+  const store = createStore(reducers, {}, applyMiddleware(thunk));
+  let foundPath = null;
+  let { path, component } = routeBank.routes.find(
+    ({ path, exact }) =&gt; {
+      foundPath = matchPath(req.url,
+        {
+          path,
+          exact,
+          strict: false
+        }
+      );
+      return foundPath;
+    }) || {};
+  if (!component) {
+    component = {};
+  }
+  if (!component.fetchData) {
+    console.log('no fetchData');
+    component.fetchData = () =&gt; new Promise((resolve, reject) =&gt; resolve());
+  }
+  component.fetchData({ store, params: (foundPath ? foundPath.params : {}) }).then(() =&gt; {
+    const state = store.getState();
+    const preloadedState = JSON.stringify(state).replace(/&lt;/g, '\\u003c');
+    const context = {};
+    const html = ReactDOMServer.renderToStaticMarkup(
+          &lt;Provider store={store} &gt;
+            &lt;StaticRouter history={createBrowserHistory()} location={req.url} context={context} &gt;
+              &lt;App /&gt;
+            &lt;/StaticRouter&gt;
+          &lt;/Provider&gt;
+        );
+</code></pre>
+
+<p>Link inside my component:</p>
+
+<pre><code>&lt;Link to={{ pathname: '/abc/test/results/', state: { results: results } }}&gt;CLick to load results&lt;/Link&gt;
+</code></pre>
+","6633817","","","","","2017-11-12 07:59:12","<Link> updates the url in address bar - but does not load the page in reactjs server side rendering","<react-redux><react-router-v4><react-router-dom>","0","0","","",""
+"44077412","1","","","2017-05-19 19:09:40","","0","223","<p>I am using babel-register to use ES6 classes in node environment and want to load and render React component dynamically using require(<strong>file_path</strong>) with ReactDomServer, but its showing me following error:</p>
+
+<p>""Invariant Violation: renderToStaticMarkup(): You must pass a valid ReactElement.""</p>
+
+<pre><code>// enable es6
+require('babel-register')({
+    ""presets"": [""es2015"", ""react""],
+    ""extensions"": ["".jsx"", "".js""]
+});
+
+// load component
+var testComponent = require(testComponentPath);
+
+console.log(testComponent); // { default: [Function: TestComponent] }
+
+var html = ReactDomServer.renderToStaticMarkup(testComponent);
+</code></pre>
+","932035","","932035","","2017-05-22 09:20:03","2017-12-05 02:30:21","How to load react component dynamically using require with babel-register","<node.js><reactjs><babel><react-dom-server><babel-register>","1","0","","",""
+"38489980","1","38573549","","2016-07-20 20:11:23","","1","104","<p>I get this error:</p>
+
+<pre><code>Invariant Violation: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object.
+</code></pre>
+
+<p>When trying to use <code>ReactDOMServer.renderToStaticMarkup</code>.</p>
+
+<p>This is my react app:</p>
+
+<pre><code>""use strict"";
+import React from 'react'
+
+module.exports = () =&gt; {
+    return (
+        &lt;div&gt;&lt;/div&gt;
+    );
+};
+</code></pre>
+
+<p>And this is my node server rendering code:</p>
+
+<pre><code>""use strict"";
+const path = require('path');
+const webpack = require('webpack');
+const React = require('react'), ReactDOMServer = require('react-dom/server'),
+DOM = React.DOM, body = DOM.body, div = DOM.div, script = DOM.script;
+webpack({
+    target: ""node"",
+    entry: [
+        path.resolve(__dirname, '../js', 'app.js'),
+    ],
+    module: {
+        loaders: [
+            {
+                exclude: /node_modules/,
+                loader: 'babel',
+                test: /\.js$/,
+            },
+        ]
+    },
+    output: {filename: 'app.bundle.js', path: __dirname},
+},() =&gt; {
+    const App = React.createFactory(require('./app.bundle.js'));
+    let html = ReactDOMServer.renderToStaticMarkup(body(null,
+        div({
+            id: 'root', dangerouslySetInnerHTML: {
+                __html: ReactDOMServer.renderToString(App())
+            }
+        })
+    ));
+});
+</code></pre>
+
+<p>Does anyone have an idea what cause this error and how to fix this?</p>
+
+<p>Thanks in advance.</p>
+","2413761","","2413761","","2016-07-21 07:28:17","2016-07-25 16:58:24","got ""Element type is invalid: expected a string"" when trying to server side rendering react","<node.js><reactjs><webpack><server-rendering>","1","0","","",""
+"40909687","1","","","2016-12-01 11:37:07","","3","229","<p>So I am attempting to use <code>static-site-generator-webpack-plugin</code> to generate a static site for the single-page react app I'm working on.</p>
+
+<p>The existing app uses react-dom's render function to render my app component into a div in my index.html file:</p>
+
+<p><strong>index.jsx</strong></p>
+
+<pre><code>import React from 'react';
+import {render} from 'react-dom';
+
+class App extends React.Component {
+  render () {
+    return &lt;p&gt;Hola!Yeah &lt;/p&gt;;
+  }
+}
+
+render(&lt;App/&gt;, document.getElementById('app'));
+</code></pre>
+
+<p><strong>index.html</strong></p>
+
+<pre><code>&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=""utf-8""&gt;
+    &lt;title&gt;React.js using NPM, Babel6 and Webpack&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=""app"" /&gt;
+    &lt;script src=""public/bundle.js"" type=""text/javascript""&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p><strong>webpack.config.json</strong></p>
+
+<pre><code>var webpack = require('webpack');
+var path = require('path');
+var StaticSiteGeneratorPlugin = require('static-site-generator-webpack-plugin')
+var data = require('./data')
+
+var BUILD_DIR = path.resolve(__dirname, 'src/client/public');
+var APP_DIR = path.resolve(__dirname, 'src/client/app');
+
+var config = {
+  entry: APP_DIR + '/index.jsx',
+  output: {
+    path: BUILD_DIR,
+    filename: 'bundle.js'
+  },
+  // Existing Code ....
+  module : {
+    loaders : [
+      {
+        test : /\.jsx?/,
+        include : APP_DIR,
+        loader : 'babel'
+      }
+    ]
+  },
+  plugins: [
+    new StaticSiteGeneratorPlugin('bundle.js', data.routes, data)
+  ]
+};
+
+module.exports = config;
+</code></pre>
+
+<p>But when I try to run webpack, I get this error:</p>
+
+<pre><code>ERROR in ReferenceError: document is not defined
+</code></pre>
+
+<p>based on some other tutorials, it looks like I should be able to render this way: </p>
+
+<pre><code>ReactDOMServer.renderToStaticMarkup(App)
+</code></pre>
+
+<p>But this only renders the component, without the rest of the contents of my index.html.</p>
+
+<p>What am I missing and how do I render my static site using webpack?</p>
+","814570","","","","","2016-12-01 11:37:07","Error rendering react app to static site using webpack: ReferenceError: document is not defined","<reactjs><webpack>","0","0","","",""
+"42130897","1","","","2017-02-09 07:44:18","","3","579","<p>I'm adding authentication into my app, which uses react-router.And react router is handling my login/signup page.Also I'm using passport for authentication and passport authentication is working fine.</p>
+
+<p>But I do experience a problem using this when my passport has a successful authentication and I'm redirecting to my dashboard page.</p>
+
+<p><strong>server.js:-</strong></p>
+
+<pre><code>app.get('/auth/google/callback',
+passport.authenticate('google', {
+successRedirect: '/dashboard',
+failureRedirect: '/',
+ }));
+
+
+
+ app.get('*',(req, res) =&gt; {
+  if (process.env.NODE_ENV === 'development') {
+    webpackIsomorphicTools.refresh();
+  }
+  const memoryHistory = createHistory(req.originalUrl);
+  const store=configureStore(memoryHistory);
+  const history = syncHistoryWithStore(memoryHistory, store);
+
+  function hydrateOnClient() {
+    res.send(`&lt;!doctype html&gt;${ReactDOM.renderToString(&lt;Default assets={webpackIsomorphicTools.assets()} store={store} /&gt;)}`);
+  }
+
+  match({ history, routes: routes(store), location: req.originalUrl },
+  (error, redirectLocation, renderProps) =&gt; {
+    if (redirectLocation) {
+      res.redirect(redirectLocation.pathname + redirectLocation.search);
+    } else if (error) {
+      console.error('ROUTER ERROR:', pretty.render(error));
+      res.status(500);
+      hydrateOnClient();
+    } else if (renderProps) {
+      const component = (
+        &lt;Provider store={store} key=""provider""&gt;
+          &lt;RouterContext {...renderProps} /&gt;
+        &lt;/Provider&gt;
+      );
+
+      res.status(200);
+
+      global.navigator = { userAgent: req.headers['user-agent'] };
+
+      res.send(`&lt;!doctype html&gt;${ReactDOM.renderToStaticMarkup(&lt;Default assets={webpackIsomorphicTools.assets()} component={component} store={store} /&gt;)}`);
+    } else {
+      res.status(404).send('Not found');
+    }
+  });
+});
+</code></pre>
+
+<p>What's the best way to derive a URL on the server side to a dashboard route served by react-router?</p>
+","7397626","","7397626","","2017-02-09 08:03:31","2017-02-16 05:26:25","Redirect into react-router from express","<node.js><reactjs><express><react-router>","0","0","","",""
+"32000333","1","32009400","","2015-08-13 23:59:50","","4","1364","<p>How to include the <em>autofocus</em> HTML property into an input using ReactJS component?</p>
+
+<p>I tried it with a React element that contains an input with <em>autofocus</em></p>
+
+<pre><code>&lt;input className='EI-input' autoFocus='true' tabIndex='0'
+                               name='username' type='text'
+                               ref='inputUser' autoComplete='on'
+                               placeholder='email' /&gt;
+</code></pre>
+
+<p>But when rendering to Static Markup I don't see the autofocus property rendered in the browser (inspecting with devTools in Chrome and FireFox)</p>
+
+<pre><code>const jsx = React.renderToStaticMarkup(&lt;InputWithAutoFocus /&gt;);
+console.log(jsx); // I don't see the autofocus attribute in the input
+</code></pre>
+
+<p>I also tried with just <em>autoFocus</em> and <em>autoFocus='on'</em> and <em>autofocus</em>. None of these seem to work.</p>
+
+<p>autoFocus should work, according the <a href=""https://facebook.github.io/react/docs/tags-and-attributes.html"" rel=""nofollow"">ReactJS docs</a>.</p>
+","985998","","","","","2015-08-14 11:50:58","HTML input autoFocus property not rendering with React.renderToStaticMarkup","<html5><reactjs>","1","0","2","",""
+"39263480","1","","","2016-09-01 05:41:35","","1","455","<p>I am using <a href=""https://github.com/beautify-web/js-beautify"" rel=""nofollow"">js-beautify</a> (the html-beautify option) to format html that is being displayed on my page, <s>it displays but it's collapsing all the html to 1 line which is obviously not ideal because it's a pain to read.</s> It is basically trying to format HTML as Javascript because the actual <code>html beautify</code> is not being applied.</p>
+
+<p>I'm using it in react as below inside a specific component file for that item does anyone know how to fix this?</p>
+
+<pre><code>import htmlBeautify from 'js-beautify'
+
+const htmlString = htmlBeautify(renderToStaticMarkup(&lt;Component /&gt;))
+
+export default () =&gt;
+    &lt;Example staticMarkup={htmlString}&gt;
+      &lt;Component /&gt;
+    &lt;/Example&gt;
+</code></pre>
+
+<p><strong>Update:</strong>
+<code>&lt;Example/&gt;</code> is another component that renders out a bunch of additional stuff like a markdown description. </p>
+
+<p>I'm using <a href=""https://github.com/alexlande/react-style-guide"" rel=""nofollow"">https://github.com/alexlande/react-style-guide</a> to create a styleguide and passing the static html markup to <code>staticMarkup</code> prop to display rather than just showing the react component which in this context isn't particulary useful.</p>
+","4466232","","4466232","","2016-09-15 01:55:40","2016-09-15 01:55:40","Configure js-beautify within a react component","<javascript><reactjs><js-beautify>","0","2","","",""

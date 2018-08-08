@@ -1,0 +1,193 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"50610079","1","","","2018-05-30 17:05:15","","0","33","<p>I have a code like this in my React application:</p>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+import ComponentB from './ComponentB';
+
+class ComponentA extends React.Component {
+    constructor(props) {
+        super(props);
+        this.condition = this.props.condition;
+    }
+
+    render() {
+         return ReactDOM.createPortal(
+            &lt;div id=""abc""&gt;&lt;/div&gt;,
+            document.getElementById('xyz'))
+    }
+
+    componentDidMount() {
+        ReactDOM.createPortal(
+            &lt;div&gt;
+                {
+
+                    this.condition &amp;&amp;
+                    &lt;ComponentB /&gt;
+                }
+            &lt;/div&gt;,
+            document.body)
+    }
+}
+</code></pre>
+
+<p>Basically, I want to render <code>ComponentB</code> only after <code>ComponentA</code> has been mounted to DOM. Hence I have put the code for <code>ComponentA</code> inside <code>componentDidMount</code> of <code>ComponentB</code>. But still <code>ComponentB</code> is rendering before <code>ComponentA</code> has finished mounting to DOM. </p>
+
+<p>Why is this happening and what's the solution to this problem?</p>
+","3706051","","","","","2018-05-30 17:45:21","componentDidMount firing before DOM is mounted when using createPortal in React","<javascript><reactjs>","1","0","","",""
+"50688446","1","","","2018-06-04 20:39:44","","0","32","<p>When I import ReactDom in my modal component to use the createPortal method the Modal works in all browsers except IE 11. But if I fail to import ReactDOM then the Modal works in all browsers, including IE 11.</p>
+
+<pre><code>// Component file
+import React from 'react';
+import ReactDOM from 'react-dom'; // removing this line allows modal to work in all browsers including IE 11
+
+export default class Modal extends React.Component {
+
+    ...
+
+    getModalWrapper() {
+        return (
+            &lt;div className=""Modal-overlay""&gt;
+                &lt;div className=""Modal-content""&gt;{this.props.children}&lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+
+    render() {
+        return (
+            ReactDOM.createPortal(this.getModalWrapper(), this.el)
+        );
+    }
+}</code></pre>
+
+<p>When I don't include the import of ReactDOM in this file the modal works in all browsers. But, in my tests naturally it errors saying <code>ReactDOM</code> is not defined.</p>
+
+<p>The error I get in IE 11 (and only in IE 11, the other browsers all work fine, including Edge) is:</p>
+
+<p><code>Objects are not valid as a React child (found: object with keys {$$typeof, key, children, containerInfo, implementation}). If you meant to render a collection of children, use an array instead.</code></p>
+
+<p>Other info:</p>
+
+<p>React Version: 16.4.0</p>
+
+<p>React Dom Version: 16.4.0</p>
+","9894107","","","","","2018-06-04 20:39:44","IE 11 only: ReactDOM.createPortal() error: Objects are not valid as a React child","<javascript><reactjs><internet-explorer>","0","2","","",""
+"50898287","1","","","2018-06-17 16:01:21","","0","134","<p>It's my first time working on a React App, and I'm struggling with this error: </p>
+
+<pre><code>Portal.js:97 Uncaught TypeError: _reactDom.default.createPortal is not a function
+at Portal.render (Portal.js:97)
+at vendor.js?v=OjVxDpV6…sUejeIABZq7AE:30228
+at measureLifeCyclePerf (vendor.js?v=OjVxDpV6…sUejeIABZq7AE:29508)
+at ReactCompositeComponentWrapper._renderValidatedComponentWithoutOwnerOrContext (vendor.js?v=OjVxDpV6…sUejeIABZq7AE:30227)
+at ReactCompositeComponentWrapper._renderValidatedComponent (vendor.js?v=OjVxDpV6…sUejeIABZq7AE:30254)
+at ReactCompositeComponentWrapper._updateRenderedComponent (vendor.js?v=OjVxDpV6…sUejeIABZq7AE:30178)
+at ReactCompositeComponentWrapper._performComponentUpdate (vendor.js?v=OjVxDpV6…sUejeIABZq7AE:30156)
+at ReactCompositeComponentWrapper.updateComponent (vendor.js?v=OjVxDpV6…sUejeIABZq7AE:30077)
+at ReactCompositeComponentWrapper.performUpdateIfNecessary (vendor.js?v=OjVxDpV6…sUejeIABZq7AE:29993)
+at Object.performUpdateIfNecessary (vendor.js?v=OjVxDpV6…sUejeIABZq7AE:12979)
+</code></pre>
+
+<p>These are the imports at my file: </p>
+
+<pre><code>import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import { FaceCard } from './FaceCard'
+import { Modal } from '@material-ui/core';
+import { Typography } from '@material-ui/core';
+</code></pre>
+
+<p>This is the code that I think is throwing the error: </p>
+
+<pre><code> &lt;Modal
+            aria-labelledby=""Title""
+            aria-describedby=""Description""
+            open={true}
+            onClose={this.handleClose}
+        &gt;
+            &lt;div&gt;
+                &lt;Typography variant=""title""&gt;
+                    This is the title
+                &lt;/Typography&gt;
+                &lt;Typography variant=""subheading""&gt;
+                    This is what the modal can contains
+                &lt;/Typography&gt;
+            &lt;/div&gt;
+        &lt;/Modal&gt;
+</code></pre>
+
+<p>The error appears when open={true} but not when open={false}. </p>
+
+<p>This is my package.json file: </p>
+
+<pre><code> {
+   ""name"": ""xxxxx"",
+   ""private"": true,
+   ""version"": ""0.0.0"",
+   ""devDependencies"": {
+      ""@types/history"": ""^4.6.2"",
+      ""@types/react"": ""^16.3.0"",
+      ""@types/react-dom"": ""^16.0.6"",
+      ""@types/react-hot-loader"": ""^3.0.6"",
+      ""@types/react-router"": ""^4.0.26"",
+      ""@types/react-router-dom"": ""^4.2.7"",
+      ""@types/webpack-env"": ""^1.13.6"",
+      ""aspnet-webpack"": ""^2.0.3"",
+      ""aspnet-webpack-react"": ""^3.0.0"",
+      ""awesome-typescript-loader"": ""^3.5.0"",
+      ""bootstrap"": ""3.3.7"",
+      ""css-loader"": ""0.28.4"",
+      ""event-source-polyfill"": ""0.0.9"",
+      ""extract-text-webpack-plugin"": ""2.1.2"",
+      ""file-loader"": ""0.11.2"",
+      ""isomorphic-fetch"": ""2.2.1"",
+      ""jquery"": ""3.2.1"",
+      ""json-loader"": ""0.5.4"",
+      ""react"": ""^16.3.0"",
+      ""react-dom"": ""^16.3.0"",
+      ""react-hot-loader"": ""^3.1.3"",
+      ""react-router-dom"": ""^4.3.1"",
+      ""style-loader"": ""0.18.2"",
+      ""typescript"": ""^2.9.2"",
+      ""url-loader"": ""0.5.9"",
+      ""webpack"": ""2.5.1"",
+      ""webpack-hot-middleware"": ""2.18.2""
+    },
+    ""dependencies"": {
+      ""@material-ui/core"": ""^1.2.1"",
+      ""npm"": ""^6.1.0"",
+      ""prop-types"": ""^15.6.1""
+    }
+  }
+</code></pre>
+
+<p>Do you have any idea about what's happening?</p>
+","3913905","","3913905","","2018-06-17 16:46:56","2018-06-19 03:38:05","Modal react component in material-ui app throwing error","<reactjs><material-ui>","3","0","","",""
+"46615839","1","46617149","","2017-10-07 01:31:07","","0","46","<p>I'd like to use some of the new features of react 16 in a library I am working on. However, if I were to use <code>componentDidCatch</code> or <code>ReactDOM.createPortal</code> in a component I expose, a library running react 15 would presumably not support those methods right?</p>
+
+<p>Is there a way to use the new features of React 16 without dropping support for React 15?</p>
+","686389","","","","","2017-10-07 05:58:18","How to use react 16 features without dropping support for react 15","<reactjs>","1","0","","",""
+"49504546","1","49505992","","2018-03-27 04:47:36","","3","202","<p>I understand that <a href=""https://medium.com/@dan_abramov/two-weird-tricks-that-fix-react-7cf9bbdef375"" rel=""nofollow noreferrer"">it's probably a bad idea</a> to <a href=""https://reactjs.org/docs/react-dom.html#render"" rel=""nofollow noreferrer""><code>ReactDOM.render()</code></a> into <code>document.body</code>. But are there any issues with using <a href=""https://reactjs.org/docs/portals.html"" rel=""nofollow noreferrer""><code>ReactDOM.createPortal()</code></a> with <code>document.body</code>?</p>
+
+<p>Tried looking for examples of React going bonkers when you render into body so I could test it out with createPortal but I wasn't able to find any.</p>
+
+<p>To put things into context, here's a sample usage I'm speaking about:</p>
+
+<pre><code>import React from 'react';
+import ReactDOM from 'react-dom';
+
+export default class Modal extends React.Component {
+    render() {
+        return ReactDOM.createPortal(
+            &lt;div className='modalContainer'&gt;
+                &lt;div className='modalBox'&gt;
+                    {this.props.children}
+                &lt;/div&gt;
+            &lt;/div&gt;,
+            document.body
+        );
+    }
+}
+</code></pre>
+
+<p>Haven't run into any issues with this pattern but I'd like to know if there are consequences as I start adding more libraries.</p>
+","1250319","","","","","2018-03-27 06:43:33","Is it safe to use ReactDOM.createPortal() with document.body?","<javascript><html><reactjs>","1","1","1","",""

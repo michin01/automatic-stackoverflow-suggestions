@@ -1,0 +1,1072 @@
+Id,PostTypeId,AcceptedAnswerId,ParentId,CreationDate,DeletionDate,Score,ViewCount,Body,OwnerUserId,OwnerDisplayName,LastEditorUserId,LastEditorDisplayName,LastEditDate,LastActivityDate,Title,Tags,AnswerCount,CommentCount,FavoriteCount,ClosedDate,CommunityOwnedDate
+"44409746","1","","","2017-06-07 10:12:46","","2","514","<p>I want to create custom form components that takes care of error messages itself.  These components use the angular material design, and will be used in a page that uses reactive forms.</p>
+
+<p>I simplified my code to get rid of the noise.  This is just a simple example of what I want to accomplish.</p>
+
+<p><br>
+MyForm.component.ts</p>
+
+<pre><code>@Component({
+  ...
+  template: `
+    &lt;form [formGroup]=""myForm""&gt;
+      &lt;app-text-input formControlName=""myTextInput""&gt;&lt;/app-text-input&gt;
+    &lt;/form&gt;
+  `
+})
+export class MyForm implements OnInit {
+
+  myForm: FormGroup;
+
+  constructor(private fb: FormBuilder){}
+
+  ngOnInit(): void {
+    this.myForm = fb.group({myTextInput:['',Validators.required]});
+  }
+}
+</code></pre>
+
+<p><br>
+TextInput.component.ts</p>
+
+<pre><code>@Component({
+  selector: 'app-text-input',
+  template: `
+    &lt;div class=""text-input""&gt;
+      &lt;md-input-container&gt;
+        &lt;input mdInput [(ngModel)]=""value""&gt;
+        &lt;md-error&gt;This field is required&lt;/md-error&gt;
+      &lt;/md-input-container&gt;
+   &lt;/div&gt;
+  `,
+  providers: [
+    provide:     NG_VALUE_ACCESSOR,
+    useExisting: forwardRef(()=&gt;TextInput),
+    multi:       true,
+  ]
+})
+
+export class TextInput implements ControlValueAccessor {
+
+  _value: string;
+
+  get value() {
+    return this._value;
+  }
+
+  set value(val) {
+    this._value = val;
+    this.propagateChange(val);
+  }
+
+  writeValue(value: string): void {
+    if (value) {
+      this._value = value;
+    }
+  }
+
+  registerOnChange(fn) {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched(): void {
+  }
+
+}
+</code></pre>
+
+<p>I tried several scenarios:</p>
+
+<p><strong>A.</strong> make TextInput a validator (implements Validator, provider: NG_VALIDATORS).  This way it's possible to know the error state of the TextInput component, based on the reactive form of the parent.  But I can't propagate this state to the input container in the text input itself.  How can I do that?</p>
+
+<p><strong>B.</strong> Copy/paste the validators of the TextInput component to the internal Input component.  I don't know how to do this correctly...</p>
+
+<p><strong>C.</strong> Mis-use mdHint with error-css to show errors based on the error-state that is grabbed when implementing scenario A.</p>
+
+<p><br/>
+Some tricks I used during my search:</p>
+
+<p>Get the name of the form control element:</p>
+
+<pre><code>@Input()
+formControlName: string;
+</code></pre>
+
+<p>Get the control container of TextInput in the constructor:</p>
+
+<pre><code>constructor(private controlContainer: ControlContainer) {}
+
+ngOnInit(): void {
+  this.control = this.controlContainer['form'].controls(this.formControlName);
+}
+</code></pre>
+
+<p>Get the inputContainer containing the inner input element:</p>
+
+<pre><code>@ViewChild(MdInputContainer) inputContainer: MdInputContainer;
+
+ngAfterViewInit(): void {
+  const innerControl = this.inputContainer._mdInputChild._ngControl;
+  ...
+}
+</code></pre>
+","473330","","","","","2017-06-07 10:12:46","Angular Material: How to make a custom form component with a inputContainer to be used in a reactive form?","<angular><material-design><angular-material><angular2-forms>","0","0","","",""
+"48761851","1","","","2018-02-13 07:48:56","","-1","20","<p>As the title says, I'm looking for a way to iterate an array (addresses) from parent component dynamically on child component using reactive forms.</p>
+
+<p>As it is now I don't get any errors but it doesn't display anything. </p>
+
+<p>I feel like I'm fumbling a bit in the dark so any help would be much appreciated. </p>
+
+<p><strong>Parent Component:</strong></p>
+
+<p>company-profile.component.ts</p>
+
+<pre><code>CreateForm(): void {
+    console.log('createFrom:');
+    this.companyProfileForm = this.fb.group({
+      title: ['', Validators.required],
+      registrationNumber: null,
+      webAddress: '',
+      description: '',
+      addresses: this.fb.array([this.createAddress()])
+    });
+  }
+
+  createAddress(): FormGroup {
+    return this.fb.group({
+      address: '',
+      postCode: '',
+      city: '',
+      countryId: null,
+    });
+  }
+
+ populateForm(): void {
+  console.log('populateForm: Populating form from companyId: ' + this.company.id);
+   this.companyProfileForm.reset({
+    title: this.company.title,
+    registrationNumber: this.company.registrationNumber,
+    webAddress: this.company.webAddress,
+    description: this.company.description,
+    addresses: this.company.addresses
+  });
+}
+</code></pre>
+
+<p>company.profile.component.html</p>
+
+<pre><code>&lt;div *ngIf=""company"" class=""row""&gt;
+        &lt;app-company-profile-address [addresses]=""companyProfileForm.controls['addresses']""&gt;&lt;/app-company-profile-address&gt;
+ &lt;/div&gt;
+</code></pre>
+
+<p><strong>Child Component</strong></p>
+
+<p>company-profile-address.component.ts</p>
+
+<pre><code>constructor(
+@Inject(forwardRef(() =&gt; CompanyProfileComponent))
+public companyProfileComponent: CompanyProfileComponent,
+private companyService: CompanyService,
+) {}
+</code></pre>
+
+<p>company-profile.address.componenet.html</p>
+
+<pre><code>&lt;div [formGroup]=""addresses""&gt;
+</code></pre>
+
+<p></p>
+
+<pre><code>&lt;div formArrayName=""addresses"" *ngFor=""let address of companyProfileComponent.companyProfileForm.get('base.addresses'); let i = index;""&gt;
+
+  &lt;div [formGroupName]=""i""&gt;
+    &lt;legend&gt;Address&lt;/legend&gt;
+    &lt;div class=""form-group"" aria-required=""""&gt;
+      &lt;label for=""postalAddress""&gt;Postal address&lt;/label&gt;
+      &lt;input formControlName=""address"" type=""text"" id=""postalAddress"" value=""address.address"" class=""form-control""&gt;
+    &lt;/div&gt;
+
+    &lt;div class=""row""&gt;
+      &lt;div class=""col-xs-4""&gt;
+
+        &lt;div class=""form-group""&gt;
+          &lt;label for=""postCode""&gt;Post code&lt;/label&gt;
+          &lt;input formControlName=""postCode"" type=""text"" id=""postCode"" value=""address.postCode"" class=""form-control""&gt;
+        &lt;/div&gt;
+
+      &lt;/div&gt;
+      &lt;div class=""col-xs-8""&gt;
+
+        &lt;div class=""form-group""&gt;
+          &lt;label for=""city""&gt;City&lt;/label&gt;
+          &lt;input formControlName=""city"" type=""text"" id=""city"" value=""address.city"" class=""form-control""&gt;
+        &lt;/div&gt;
+
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>
+</p>
+","5295864","","","","","2018-02-13 08:00:15","How to iterate an array from parent componenent form in angular (reactive forms)","<javascript><angular><typescript><angular-reactive-forms>","1","1","","",""
+"43846047","1","","","2017-05-08 11:05:19","","2","916","<p>I have defined a custom validator like below</p>
+
+<pre><code>import { Directive, forwardRef } from '@angular/core';
+import { NG_VALIDATORS, FormControl } from '@angular/forms';
+
+function validateRewardAmountFactory(goalAmount: number, quantity: number) {
+  return (c: FormControl) =&gt; {
+    const rewardAmount = c.value;
+    const isValidAmount = rewardAmount * quantity &lt; goalAmount ? true : false;
+    return isValidAmount ? null : { validateAmount: true };
+  };
+}
+
+@Directive({
+  selector: '[validateAmount][ngControl][validateAmount][ngModel],[validateAmount][ngFormControl]',
+  providers: [
+    { provide: NG_VALIDATORS, useExisting: forwardRef(() =&gt; RewardAmountValidator), multi: true }
+  ]
+})
+export class RewardAmountValidator {
+
+  validator: Function;
+
+  constructor(goalAmount: number, quantity: number) {
+    this.validator = validateRewardAmountFactory(goalAmount, quantity);
+  }
+
+  validate(c: FormControl) {
+    return this.validator(c);
+  }
+}
+</code></pre>
+
+<p>and then i have declared this directive in my module</p>
+
+<pre><code>@NgModule({
+  declarations: [RewardAmountValidator, ...]
+})
+</code></pre>
+
+<p>Now i want to use this custom validator in my reactive form and i am doing it like this</p>
+
+<pre><code>return this.fb.group({
+  'id': [project.id, Validators.required],
+  'type': ['reward', Validators.required],
+  'rewardAmount': ['', validateAmount(this.goalAmount, this.quantity)]
+});
+</code></pre>
+
+<p>}</p>
+
+<p>but it is giving me the error <code>Cannot find name 'validateAmount'</code></p>
+
+<p>So what is the correct way to use the custom validator in my reactive forms.</p>
+","5247871","","","","","2017-05-08 11:09:47","How to use Custom Validators in angular reactive forms","<angular><angular2-forms><angular2-directives>","1","1","","",""
+"40675476","1","","","2016-11-18 11:04:13","","0","508","<p>I'm trying to build a reactive form nested in 2 components.
+The <code>ParentComponent</code> works fine but i'm having troubles with the <code>ChildComponent</code>.This <code>ChildComponent</code> uses ControlValueAccessor.</p>
+
+<p><strong>Question: The fields appears in the view but changes dont go up to the parent. Why? Are my <code>ControlValueAccessor</code> functions correct?</strong></p>
+
+<p><strong>child.component.html</strong>
+</p>
+
+<pre><code>&lt;ul [formGroup]=""fieldsForm""&gt;
+    &lt;li *ngFor=""let field of fields""&gt;
+      &lt;label&gt;
+        &lt;input type=""checkbox"" [formControlName]=""field.$key""&gt;
+        {{field.$key}}
+      &lt;/label&gt;
+    &lt;/li&gt;
+
+&lt;/ul&gt;
+</code></pre>
+
+<p><strong>child.component.ts</strong>
+</p>
+
+<pre><code>import {Component, OnInit, Input, ChangeDetectionStrategy} from '@angular/core';
+import {FormGroup, FormBuilder, NG_VALUE_ACCESSOR, ControlValueAccessor} from ""@angular/forms"";
+import {NodeService} from ""../../node.service"";
+
+@Component({
+  selector: 'child',
+  templateUrl: './child.component.html',
+  styleUrls: ['./child.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() =&gt;ChildComponent), multi: true}
+  ]
+})
+export class ChildComponent implements OnInit,ControlValueAccessor {
+
+  public fieldsForm: FormGroup;
+  public fields: any = [];
+
+  @Input() currentFilter;
+  @Input() formControlName;
+
+  constructor(private fb: FormBuilder, private nodeService: NodeService) {
+    this.fieldsForm = this.fb.group({});
+  }
+
+  ngOnInit() {
+    this.getFilterValues(this.formControlName)
+    .subscribe(fields =&gt; {
+      const acc = {};
+      this.fields = fields;
+      fields.forEach(field =&gt; acc[field.$key] = [true]);
+      this.fieldsForm = this.fb.group(acc);
+    })
+  )
+
+  registerOnChange(fn: (value: any) =&gt; void) {
+    this.fieldsForm.valueChanges.subscribe(fn);
+  }
+
+  registerOnTouched() {}
+
+  getFilterValues(type) {
+    return this.nodeService.getFilterValues(type, {
+      query: { orderByValue: true, equalTo: 1 }
+    })
+  }
+
+}
+</code></pre>
+
+<p><strong>parent.component.ts</strong>
+</p>
+
+<pre><code>import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {FormBuilder, FormGroup} from ""@angular/forms"";
+import {Input} from ""@angular/core/src/metadata/directives"";
+import {Subject} from ""rxjs"";
+
+@Component({
+  selector: 'filter',
+  templateUrl: './filter.component.html',
+  styleUrls: ['./filter.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class ParentComponent implements OnInit {
+
+  public form: FormGroup;
+  public groupsForm:Subject&lt;any&gt; = new Subject();
+
+  @Input() groups;
+  @Input() currentFilters;
+
+  constructor(private fb: FormBuilder) {
+    this.form = this.fb.group({})
+  }
+
+  ngOnChanges() {
+    const acc = {};
+    this.groups.map(group =&gt; {
+      acc[group] = [];
+    });
+    this.groupsForm.next(acc);
+  }
+
+  ngOnInit() {
+    this.groupsForm.subscribe(groupForm =&gt; this.form =     this.fb.group(groupForm));
+
+    // Detect changes from from
+    this.form.valueChanges
+     .subscribe(console.log)
+  }
+
+}
+</code></pre>
+
+<p><strong>parent.component.html</strong>
+</p>
+
+<pre><code>&lt;form [formGroup]=""form"" novalidate&gt;
+  &lt;fieldset *ngFor=""let group of groups""&gt;
+
+    &lt;child [formControlName]=""group"" [currentFilter]=""currentFilters[group]""&gt;&lt;/child&gt;
+
+  &lt;/fieldset&gt;
+&lt;/form&gt;
+</code></pre>
+
+<p>I've been on this form for the last 3 weeks. I've done it with both types of forms, nested or in a single component. I feel like using <code>ControlValueAccessor</code>. I hope somebody can help me. Thanks!</p>
+","2203299","","2203299","","2016-11-18 13:21:02","2016-11-18 23:17:25","Building nested reactive form's issues","<angular><typescript><rxjs><observable><angular2-forms>","1","2","","",""
+"49156801","1","","","2018-03-07 16:27:58","","0","134","<p>I've a simple reactive form:</p>
+
+<p><em>home.component.html</em></p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;div class=""jumbotron""&gt;
+  &lt;h2&gt;Form with Validations&lt;/h2&gt;
+  &lt;form novalidate [formGroup]=""complexForm"" (ngSubmit)=""submitForm(complexForm.value)""&gt;
+    &lt;div class=""form-group"" [ngClass]=""{'has-error':!complexForm.controls['firstName'].valid &amp;&amp; complexForm.controls['firstName'].touched}""&gt;
+      &lt;label&gt;First Name:&lt;/label&gt;
+      &lt;custom-input name=""firstName"" [formControl]=""complexForm.controls['firstName']"" [(ngModel)]=""firstName""&gt;&lt;/custom-input&gt;
+      &lt;div *ngIf=""complexForm.controls['firstName'].hasError('required') &amp;&amp; complexForm.controls['firstName'].touched"" class=""alert alert-danger""&gt;You must include a first name.&lt;/div&gt;
+    &lt;/div&gt;
+&lt;div class=""form-group""&gt;
+      &lt;button type=""submit"" class=""btn btn-primary"" [disabled]=""!complexForm.valid""&gt;Submit&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/form&gt;
+&lt;/div&gt;</code></pre>
+</div>
+</div>
+</p>
+
+<p><em>home.component.ts</em></p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+})
+export class HomeComponent {
+  complexForm: FormGroup;
+
+  constructor(fb: FormBuilder) {
+    this.complexForm = fb.group({
+      'firstName': [null, Validators.required]
+    })
+    console.log(this.complexForm);
+    this.complexForm.valueChanges.subscribe((form: any) =&gt; {
+      console.log('form changed to:', form);
+    }
+    );
+  }
+
+  submitForm(value: any) {
+    console.log(value);
+  }
+}</code></pre>
+</div>
+</div>
+</p>
+
+<p>...a custom input component...</p>
+
+<p><em>custominput.component.ts</em></p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>import { Component, Input, forwardRef } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+
+const noop = () =&gt; { };
+
+const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
+  provide: NG_VALUE_ACCESSOR,
+  useExisting: forwardRef(() =&gt; CustomInputComponent),
+  multi: true
+};
+
+@Component({
+  selector: 'custom-input',
+  template: `&lt;input class=""form-control""
+                    [(ngModel)]=""value"" name=""somename""
+                    (blur)=""onTouched()""&gt;`,
+  //templateUrl: './custominput.component.html'
+  providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR]
+})
+
+export class CustomInputComponent implements ControlValueAccessor {
+  private _value: any = '';
+
+  private _onTouchedCallback: () =&gt; void = noop;
+
+  private _onChangeCallback: (_: any) =&gt; void = noop;
+
+  get value(): any { return this._value; };
+
+  set value(v: any) {
+    if (v !== this._value) {
+      this._value = v;
+      this._onChangeCallback(v);
+    }
+  }
+
+  onTouched() {
+    this._onTouchedCallback();
+  }
+
+  writeValue(value: any) {
+    if (value !== undefined) {
+      this._value = value;
+    }
+  }
+
+  registerOnChange(fn: any) {
+    this._onChangeCallback = fn;
+  }
+
+  registerOnTouched(fn: any) {
+    this._onTouchedCallback = fn;
+  }
+}</code></pre>
+</div>
+</div>
+</p>
+
+<p>...and a custom validator...</p>
+
+<p><em>emailvalidator.ts</em></p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>import { Directive, forwardRef } from '@angular/core';
+import { NG_VALIDATORS, FormControl } from '@angular/forms';
+
+function validateEmailFactory() {
+  return (c: FormControl) =&gt; {
+    let EMAIL_REGEXP = /^[a-z0-9!#$%&amp;'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
+
+    return EMAIL_REGEXP.test(c.value) ? null : {
+      validateEmail: {
+        valid: false
+      }
+    };
+  };
+}
+
+@Directive({
+  selector: '[validateEmail][ngModel],[validateEmail][formControl]',
+  providers: [
+    { provide: NG_VALIDATORS, useExisting: forwardRef(() =&gt; EmailValidator), multi: true }
+  ]
+})
+export class EmailValidator {
+  validator: Function;
+
+  constructor() {
+    this.validator = validateEmailFactory();
+  }
+
+  validate(c: FormControl) {
+    return this.validator(c);
+  }
+}</code></pre>
+</div>
+</div>
+</p>
+
+<p>My goal is to have the possibility to declare my custom validator (EmailValidator) both in a template-driven form and in a reactive form mode. Until now I managed to make it work only in the first but I could not figure out how to implement it on a reactive form. Where am I doing wrong?</p>
+","8253442","","","","","2018-03-07 16:27:58","How to implement a custom validator that works both in a reactive form and in a template-driven form?","<angular><forms><custom-validators>","0","1","","",""
+"44550106","1","","","2017-06-14 16:28:11","","2","1057","<p>I'm trying to encapsulate ng-bootstrap (Angular 4 and Bootstrap 4) datepicker inside a custom component adding the reactive forms validation too.</p>
+
+<p>I would to know if I've used the correct approach so I'll show you my code.</p>
+
+<p>This is the custom component:</p>
+
+<pre><code>@Component({
+    selector: 'ngb-date-time-picker',
+    template: `
+        &lt;div class=""form-inline"" [hidden]=""timeOnly""&gt;
+          &lt;div class=""form-group""&gt;
+            &lt;div class=""input-group""&gt;
+              &lt;input
+                readonly
+                class=""form-control form-control-danger""
+                [placeholder]=""placeholder""
+                name=""date""
+                [(ngModel)]=""dateStruct""
+                (ngModelChange)=""updateDate()""
+                ngbDatepicker
+                #datePicker=""ngbDatepicker""&gt;
+                &lt;div class=""input-group-addon btn-toggle-date-picker"" (click)=""datePicker.toggle()"" &gt;
+                  &lt;i class=""material-icons md-18""&gt;date_range&lt;/i&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;ngb-timepicker [(ngModel)]=""timeStruct"" (ngModelChange)=""updateTime()"" [meridian]=""true"" [hidden]=""dateOnly""&gt;&lt;/ngb-timepicker&gt;
+      `,
+    styles: [`
+        .form-group {
+            width: 100%;
+        }
+        .btn-toggle-date-picker {
+            cursor: pointer;
+        }
+        .btn-toggle-date-picker:hover {
+            background-color: #ccc;
+        }
+    `],
+    providers: [
+        NgbDatepickerConfig,
+        I18n,
+        { provide: NgbDatepickerI18n, useClass: NgbMultiLanguageDatepickerI18n },
+        { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() =&gt; NgbDateTimePickerComponent), multi: true },
+        { provide: NG_VALIDATORS, useExisting: forwardRef(() =&gt; NgbDateTimePickerComponent), multi: true }
+    ]
+})
+export class NgbDateTimePickerComponent implements OnInit, OnChanges, ControlValueAccessor {
+
+    @Input() placeholder: string;
+    @Input() isRequired: boolean = true;
+
+    protected onChange: any = () =&gt; { };
+    protected onTouched: any = () =&gt; { };
+
+    private _date: Date = null;
+
+    //get accessor
+    @Input()
+    get date(): Date {
+        return this._date;
+    };
+
+    //set accessor
+    set date(val: Date) {
+        this._date = val;
+        this.onChange(val);
+    }
+
+    @Output() dateChange: EventEmitter&lt;Date&gt; = new EventEmitter&lt;Date&gt;();
+
+    @Input() minDate: Date = null;
+
+    @Input() dateOnly: boolean = false;
+    @Input() timeOnly: boolean = false;
+
+    @Input() startOfDay: boolean = false;
+    @Input() endOfDay: boolean = false;
+
+    dateStruct: NgbDateStruct;
+    timeStruct: NgbTimeStruct;
+
+    constructor(private config: NgbDatepickerConfig) { }   
+
+    ngOnInit(): void {
+        if (this.minDate != null) {
+            this.config.minDate = { year: getYear(this.minDate), month: getMonth(this.minDate) + 1, day: getDate(this.minDate) };
+        }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes.date &amp;&amp; changes.date.currentValue !== changes.date.previousValue &amp;&amp; changes.date.currentValue != null) {
+            this.dateStruct = {
+                day: getDate(this.date),
+                month: getMonth(this.date) + 1,
+                year: getYear(this.date)
+            };
+            this.timeStruct = {
+                second: getSeconds(this.date),
+                minute: getMinutes(this.date),
+                hour: getHours(this.date),
+            };
+        } else if (changes.date &amp;&amp; changes.date.currentValue == null) {
+            this.dateStruct = null;
+            this.timeStruct = null;
+        }
+    }
+
+    updateDate(): void {
+        if (this._date == null) {
+            this._date = new Date();
+        }
+
+        const newDate: Date = setYear(setMonth(setDate(this._date, this.dateStruct.day), this.dateStruct.month - 1), this.dateStruct.year);
+
+        if (this.startOfDay) {
+            setHours(setMinutes(setSeconds(setMilliseconds(newDate, 0), 0), 0), 0);
+            newDate.setHours(0, 0, 0, 0);
+        } else if (this.endOfDay) {
+            newDate.setHours(23, 59, 59, 999);
+        } else {
+            let now: Date = new Date();
+            newDate.setHours(getHours(now), getMinutes(now), getSeconds(now), getMilliseconds(now));
+        }
+        this.dateChange.next(newDate);
+    }
+
+    updateTime(): void {
+        const newDate: Date = setHours(setMinutes(setSeconds(this._date, this.timeStruct.second), this.timeStruct.minute), this.timeStruct.hour);
+        this.dateChange.next(newDate);
+    }
+
+
+    public writeValue(value: any): void {
+        if (value) {
+            if (value === """") value = null;
+            this.date = value;
+        }
+    }
+
+    public registerOnChange(fn: (_: any) =&gt; {}): void { this.onChange = fn; }
+
+    public registerOnTouched(fn: () =&gt; {}): void { this.onTouched = fn; }
+
+    validate(c: FormControl) {
+        if (this.isRequired) {
+            let res = Validators.required(c)
+            return res;
+        }
+        return null;
+    }
+}
+</code></pre>
+
+<p>This is the component from which I use the custom component:</p>
+
+<pre><code>@Component({
+    moduleId: module.id.toString(),
+    template: require('./user-add-edit.component.html'),
+    styles: [require('./user-add-edit.component.scss')],
+    // make slide in/out animation available to this component
+    animations: [slideInOutAnimation],
+    // attach the slide in/out animation to the host (root) element of this component
+    host: { '[@slideInOutAnimation]': '' }
+})
+
+export class UserAddEditComponent implements OnInit, CanComponentDeactivate {
+    title: string = 'Aggiungi Abbonato';
+    isBusy: Subscription;
+    isEditMode: boolean = false;
+    isCancelling: boolean = false;
+    user: IUser = &lt;IUser&gt;{};
+    model: IPutUser = &lt;IPutUser&gt;{ };
+    addEditForm: FormGroup;
+
+    uploader: FileUploader = new FileUploader({ autoUpload: true });
+    uploading: boolean = false;
+
+    minDate: Date = new Date();
+
+    isCertificateChanged: boolean = false;
+
+    // Workaround for https://github.com/valor-software/ng2-file-upload/issues/220
+    @ViewChild('fileInput') fileInput: ElementRef
+
+    form: FormGroup;
+    counterValue = 3;
+    minValue = 0;
+    maxValue = 12;
+
+    constructor(private route: ActivatedRoute, private router: Router, private appService: AppService, private pubSubService: PubSubService,
+        private modalService: ModalService, private formBuilder: FormBuilder, @Inject('ORIGIN_URL') private originUrl: string,
+        public authService: AuthService, private toastyService: ToastyService)
+    {
+        // Uploader configuration
+        this.uploader.options.url = this.originUrl + '/api/certificates';
+        this.uploader.authToken = this.authService.getAuthToken();
+        this.uploader.onBeforeUploadItem = (item: FileItem) =&gt; this.uploading = true;
+        this.uploader.onCompleteItem = (item: FileItem, response: string, status: number, headers: ParsedResponseHeaders) =&gt; {
+            this.uploading = false;
+            var resp = JSON.parse(response);
+            if (resp.error) {
+                console.error(resp.error);
+                this.toastyService.error(resp.error);
+            }
+            this.model.medicalCertificateUrl = resp.url;
+            this.toastyService.success(""Caricamento completato."");
+        };
+
+
+        this.uploader.onAfterAddingFile = (item: FileItem) =&gt; {
+            // Workaround for https://github.com/valor-software/ng2-file-upload/issues/220
+            this.fileInput.nativeElement.value = '';
+
+            //this.setMedicalCertificateExpiryRequired(true);
+            this.addEditForm.addControl(""medicalCertificateExpiry"", new FormControl(""""));
+        };        
+    }
+
+    public ngOnInit(): void {
+        let userId: string = this.route.snapshot.params['id'];
+        if (userId) {
+            this.title = 'Modifica Abbonato';
+            this.isEditMode = true;
+            this.isBusy = this.appService.getUser(userId)
+                .subscribe(user =&gt; {
+                    this.user = user;
+
+                    this.model = &lt;IPutUser&gt;{
+                        id: this.user.id,
+                        firstName: this.user.firstName,
+                        lastName: this.user.lastName,
+                        taxCode: this.user.taxCode,
+                        userName: this.user.userName,
+                        phoneNumber: this.user.phoneNumber,
+                        email: this.user.email,
+                        medicalCertificateUrl: this.user.medicalCertificateUrl,
+                        medicalCertificateExpiry: this.user.medicalCertificateExpiry
+                    };
+
+                    if (user.medicalCertificateUrl != null) {
+                        this.addEditForm.addControl(""medicalCertificateExpiry"", new FormControl(""""));
+                        this.addEditForm.controls.medicalCertificateExpiry.patchValue(user.medicalCertificateExpiry);
+                    }
+
+                    this.onValueChanged();
+                });
+        }
+
+        this.initForm();
+
+        this.form = this.formBuilder.group({
+            counter: this.counterValue
+        });
+    }
+
+    dateChanged(event: any) {
+        console.log(""dateChanged"", event);
+    }
+
+    save(): void {
+        let apiCall: Observable&lt;any&gt;;
+        if (this.isEditMode) {
+            apiCall = this.appService.putUser(this.model);
+        } else {
+            apiCall = this.appService.postUser(this.model);
+        }
+
+        this.isBusy = apiCall.subscribe(() =&gt; {
+            this.router.navigate(['registry']);
+            this.pubSubService.publish('registry-updated');
+            this.pubSubService.publish('check-alerts');
+        });
+    }
+
+    removeCertificate(showToast: boolean = true): void {
+        this.appService.deleteCertificate(this.model.medicalCertificateUrl).subscribe(() =&gt; {
+            this.model.medicalCertificateUrl = null;
+            this.model.medicalCertificateExpiry = null;
+
+            this.addEditForm.removeControl(""medicalCertificateExpiry"");
+
+            if (showToast) {
+                this.toastyService.success(""Certificato rimosso con successo."");
+            }
+        });
+    }
+
+    canDeactivate(): Promise&lt;boolean&gt; | boolean {
+        if (this.isCancelling) {
+            let title: string = 'Conferma';
+            let message: string = 'Sicuro di voler annullare le modifiche?';
+            let isModelChanged: boolean = false;
+
+            if (this.isEditMode) {
+                this.isCertificateChanged = this.user.medicalCertificateUrl !== this.model.medicalCertificateUrl;
+                isModelChanged = this.user.firstName !== this.model.firstName
+                    || this.user.lastName !== this.model.lastName
+                    || this.user.taxCode !== this.model.taxCode
+                    || this.user.userName !== this.model.userName
+                    || this.user.phoneNumber !== this.model.phoneNumber
+                    || this.user.email !== this.model.email
+                    || this.isCertificateChanged
+                    || ((this.user.medicalCertificateExpiry != null &amp;&amp; this.model.medicalCertificateExpiry != null) ? (this.user.medicalCertificateExpiry.getTime() !== this.model.medicalCertificateExpiry.getTime()) : false)
+                    || (this.user.medicalCertificateExpiry != null &amp;&amp; this.model.medicalCertificateExpiry == null)
+                    || (this.user.medicalCertificateExpiry == null &amp;&amp; this.model.medicalCertificateExpiry != null);
+            } else {
+                if (this.model.medicalCertificateUrl) {
+                    this.isCertificateChanged = true;
+                }
+                if (this.model.firstName || this.model.lastName || this.model.taxCode || this.model.userName || this.model.phoneNumber || this.model.email
+                    || this.model.medicalCertificateUrl || this.model.medicalCertificateExpiry) {
+                    isModelChanged = true;
+                }
+            }
+
+            if (isModelChanged) {
+                return this.modalService.confirm(title, message, { cancelButtonLabel: 'Annulla', showClose: true })
+                    .then(ok =&gt; {
+                        if (ok &amp;&amp; this.isCertificateChanged &amp;&amp; this.model.medicalCertificateUrl) {
+                            this.removeCertificate(false);
+                        }
+                        this.isCancelling = false;
+                        return ok;
+                    });
+            }
+        }
+
+        return true;
+    }
+
+
+    private initForm() {
+        this.addEditForm = this.formBuilder.group({
+            firstName: ['', Validators.required],
+            lastName: ['', Validators.required],
+            taxCode: ['', [Validators.required, Validators.pattern(/^[a-zA-Z]{6}[0-9]{2}[a-zA-Z][0-9]{2}[a-zA-Z][0-9]{3}[a-zA-Z]$/)]],
+            userName: ['', [Validators.required, Validators.minLength(6)]],        
+            phoneNumber: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+            email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9\+\.\_\%\-\+]{1,256}\@[a-zA-Z0-9][a-zA-Z0-9\-]{0,64}(\.[a-zA-Z0-9][a-zA-Z0-9\-]{0,25})$/)]],
+        });
+
+        this.addEditForm.valueChanges
+            .subscribe(data =&gt; this.onValueChanged(data));
+
+        this.onValueChanged(); // (re)set validation messages now
+    }
+
+    onValueChanged(data?: any): void {
+        if (!this.addEditForm) { return; }
+        const form = this.addEditForm;
+
+        for (const field in this.formErrors) {
+            // clear previous error message (if any)
+            this.formErrors[field] = '';
+            const control = form.get(field);
+
+            if (control &amp;&amp; control.dirty &amp;&amp; !control.valid) {
+                const messages = this.validationMessages[field];
+                for (const key in control.errors) {
+                    this.formErrors[field] += messages[key] + ' ';
+                }
+            }
+        }
+    }
+
+    formErrors: any = {
+        'firstName': '',
+        'lastName': '',
+        'taxCode': '',
+        'userName': '',
+        'phoneNumber': '',
+        'email': '',
+        'medicalCertificateExpiry': ''
+    };
+
+    validationMessages: any = {
+        'firstName': {
+            'required': 'Nome é obbligatorio.'
+        },
+        'lastName': {
+            'required': 'Cognome é obbligatorio.'
+        },
+        'taxCode': {
+            'required': 'Codice Fiscale é obbligatorio.',
+            'pattern': 'Codice Fiscale non valido.'
+        },
+        'userName': {
+            'required': 'Username é obbligatorio.',
+            'minlength': 'Username deve avere almeno 6 caratteri.'
+        },
+        'phoneNumber': {
+            'required': 'Telefono é obbligatorio.',
+            'pattern': 'Telefono non valido.'
+        },
+        'email': {
+            'required': 'Email é obbligatorio.',
+            'pattern': 'Email non valida.'
+        },
+        'medicalCertificateExpiry': {
+            'required': 'Scadenza Certificato Medico é obbligatorio.'
+        }
+    };
+}
+</code></pre>
+
+<p>And this is the view:</p>
+
+<pre><code>&lt;div class=""side-form""&gt;
+    &lt;div [ngBusy]=""isBusy""&gt;&lt;/div&gt;
+
+    &lt;h1 style=""margin-bottom:1em;""&gt;{{title}}&lt;/h1&gt;
+    &lt;div class=""form-container""&gt;
+        &lt;form name=""form"" (ngSubmit)=""f.form.valid &amp;&amp; save()"" #f=""ngForm"" [formGroup]=""addEditForm"" novalidate&gt;
+            &lt;div class=""form-group"" [ngClass]=""{ 'has-danger': formErrors.firstName }""&gt;
+                &lt;label class=""form-control-label"" for=""firstName""&gt;Nome&lt;/label&gt;
+                &lt;input type=""text"" id=""firstName"" name=""firstName"" placeholder=""Nome"" [(ngModel)]=""model.firstName"" formControlName=""firstName"" class=""form-control form-control-danger"" required /&gt;
+
+                &lt;div *ngIf=""formErrors.firstName"" class=""form-control-feedback""&gt;
+                    {{ formErrors.firstName }}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=""form-group"" [ngClass]=""{ 'has-danger': formErrors.lastName }""&gt;
+                &lt;label class=""form-control-label"" for=""lastName""&gt;Cognome&lt;/label&gt;
+                &lt;input type=""text"" id=""lastName"" name=""lastName"" placeholder=""Cognome"" [(ngModel)]=""model.lastName"" formControlName=""lastName"" class=""form-control form-control-danger"" required /&gt;
+
+                &lt;div *ngIf=""formErrors.lastName"" class=""form-control-feedback""&gt;
+                    {{ formErrors.lastName }}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=""form-group"" [ngClass]=""{ 'has-danger': formErrors.taxCode }""&gt;
+                &lt;label class=""form-control-label"" for=""taxCode""&gt;Codice Fiscale&lt;/label&gt;
+                &lt;input type=""text"" id=""taxCode"" name=""taxCode"" placeholder=""Codice Fiscale"" [(ngModel)]=""model.taxCode"" formControlName=""taxCode"" class=""form-control form-control-danger"" required style=""text-transform:uppercase""/&gt;
+
+                &lt;div *ngIf=""formErrors.taxCode"" class=""form-control-feedback""&gt;
+                    {{ formErrors.taxCode }}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=""form-group"" [ngClass]=""{ 'has-danger': formErrors.userName }""&gt;
+                &lt;label class=""form-control-label"" for=""userName""&gt;Username&lt;/label&gt;
+                &lt;input type=""text"" id=""userName"" name=""userName"" placeholder=""Username"" [(ngModel)]=""model.userName"" formControlName=""userName"" class=""form-control form-control-danger"" required min=""6"" /&gt;
+
+                &lt;div *ngIf=""formErrors.userName"" class=""form-control-feedback""&gt;
+                    {{ formErrors.userName }}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=""form-group"" [ngClass]=""{ 'has-danger': formErrors.phoneNumber }""&gt;
+                &lt;label class=""form-control-label"" for=""phoneNumber""&gt;Telefono&lt;/label&gt;
+                &lt;input type=""text"" id=""phoneNumber"" name=""phoneNumber"" placeholder=""Telefono"" [(ngModel)]=""model.phoneNumber"" formControlName=""phoneNumber"" class=""form-control form-control-danger"" required /&gt;
+
+                &lt;div *ngIf=""formErrors.phoneNumber"" class=""form-control-feedback""&gt;
+                    {{ formErrors.phoneNumber }}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=""form-group"" [ngClass]=""{ 'has-danger': formErrors.email }""&gt;
+                &lt;label class=""form-control-label"" for=""email""&gt;Email&lt;/label&gt;
+                &lt;input type=""email"" id=""email"" name=""email"" placeholder=""Email"" [(ngModel)]=""model.email"" formControlName=""email"" class=""form-control form-control-danger"" required /&gt; &lt;!-- email --&gt;
+
+                &lt;div *ngIf=""formErrors.email"" class=""form-control-feedback""&gt;
+                    {{ formErrors.email }}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=""form-group"" [ngClass]=""{ 'has-danger': formErrors.medicalCertificateUrl }""&gt;
+                &lt;label class=""form-control-label"" for=""medicalCertificateUrl""&gt;Certificato Medico&lt;/label&gt;
+                &lt;div&gt;
+                    &lt;input #fileInput type=""file"" ng2FileSelect [uploader]=""uploader"" style=""display:none;"" /&gt;
+                    &lt;button id=""browse"" name=""browse"" type=""button"" class=""btn btn-default"" (click)=""fileInput.click()"" style=""display:inline-block;"" [disabled]=""model.medicalCertificateUrl""&gt;Scegli file...&lt;/button&gt;
+                    &lt;img *ngIf=""uploading"" src=""data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="" /&gt;
+
+                    &lt;span style=""margin-left:.5em"" *ngIf=""!model.medicalCertificateUrl""&gt;Nessun file selezionato&lt;/span&gt;
+
+                    &lt;div *ngIf=""model.medicalCertificateUrl"" style=""display:inline-block""&gt;
+                        &lt;span style=""margin-left:.5em""&gt;{{ model.medicalCertificateUrl }}&lt;/span&gt;
+                        &lt;button type=""button"" class=""btn btn-danger btn-clear"" (click)=""removeCertificate()"" title=""Rimuovi certificato""&gt;
+                            &lt;i class=""material-icons md-18""&gt;clear&lt;/i&gt;
+                        &lt;/button&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=""form-group"" [ngClass]=""{ 'has-danger': formErrors.medicalCertificateExpiry }"" *ngIf=""model.medicalCertificateUrl""&gt;
+                &lt;label class=""form-control-label"" for=""medicalCertificateExpiry""&gt;Scadenza Certificato Medico&lt;/label&gt;
+                &lt;ngb-date-time-picker id=""medicalCertificateExpiry"" name=""medicalCertificateExpiry""
+                                      formControlName=""medicalCertificateExpiry""
+                                      [(date)]=""model.medicalCertificateExpiry""
+                                      (dateChange)=""dateChanged($event)""
+                                      [dateOnly]=""true""
+                                      [endOfDay]=""true""
+                                      [minDate]=""minDate""
+                                      placeholder=""Scadenza...""&gt; 
+                &lt;/ngb-date-time-picker&gt;
+                &lt;div *ngIf=""formErrors.medicalCertificateExpiry"" class=""form-control-feedback""&gt;
+                    {{ formErrors.medicalCertificateExpiry }}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=""form-group""&gt;
+                &lt;button type=""button"" class=""btn btn-secondary"" routerLink=""/registry"" (click)=""isCancelling = true""&gt;Annulla&lt;/button&gt;
+                &lt;button type=""submit"" class=""btn btn-primary"" [disabled]=""!addEditForm.valid""&gt;Salva&lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>That do you think about it? Is there something to improve in your opinion?</p>
+
+<p>Thank you all in advance :)</p>
+","1058278","","1058278","","2017-06-15 12:48:35","2017-06-15 12:48:35","ng-bootstrap datepicker custom component with reactive forms validation","<angular><datepicker><ng-bootstrap><angular2-ngmodel><reactive-forms>","0","0","","",""

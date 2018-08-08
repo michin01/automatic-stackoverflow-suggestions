@@ -1,0 +1,142 @@
+Title,Tags,Body
+"Testing onClick event on react component using Jasmine","<unit-testing><reactjs><jasmine>","<p>I have a React component that has buttons for which the onClick events are bound to functions passed as properties from the parent component, e.g. <code>&lt;Counter counter=0 incrementCounter={incrementFunction} decrementCounter={decrementFunction} /&gt;</code>.</p>
+
+<p>I'm new to unit testing React components so I'm trying to check that the function gets called when clicking on the increment/decrement buttons. For this I'm using Jasmine's spyOn method, but it never seems to catch the function being called.</p>
+
+<p>If I output a console.log in the function I'm using (e.g. <code>let incrementCounter = () =&gt; { console.log(""increment!""); };</code>) then I can tell the function is being called when I do <code>TestUtils.Simulate.click(incrementButton);</code>, however the test still won't pass. What am I missing?</p>
+
+<p><strong>Counter.js</strong></p>
+
+<pre><code>import React, { Component, PropTypes } from ""react"";
+
+class Counter extends Component {
+
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    const { incrementCounter, decrementCounter, counter } = this.props;
+    return (
+
+        &lt;div&gt;
+          &lt;h1&gt;Counter&lt;/h1&gt;
+          &lt;p&gt;
+            &lt;b&gt;Counter: {counter} times&lt;/b&gt;
+            {"" ""}
+            &lt;button onClick={incrementCounter}&gt;+&lt;/button&gt;
+            {"" ""}
+            &lt;button onClick={decrementCounter}&gt;-&lt;/button&gt;
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+    );
+  }
+}
+
+Counter.propTypes = {
+  incrementCounter: PropTypes.func.isRequired,
+  decrementCounter: PropTypes.func.isRequired,
+  counter: PropTypes.number.isRequired
+};
+
+export default Counter;
+</code></pre>
+
+<p><strong>Counter.test.js</strong></p>
+
+<pre><code>import React from ""react"";
+import TestUtils from ""react/lib/ReactTestUtils"";
+import Counter from ""./Counter""
+
+describe(""Counter"", function () {
+
+  let renderedComponent = {};
+  let heading = {};
+  let decrementButton = {};
+  let incrementButton = {};
+  let incrementCounter = () =&gt; {};
+  let decrementCounter = () =&gt; {};
+  let counter = 0;
+
+  beforeEach(function(){
+
+    renderedComponent = TestUtils.renderIntoDocument(
+        &lt;Counter incrementCounter={incrementCounter} decrementCounter={decrementCounter} counter={counter} /&gt;
+    );
+
+    heading = TestUtils.findRenderedDOMComponentWithTag(renderedComponent, ""h1"");
+
+    let buttons = TestUtils.scryRenderedDOMComponentsWithTag(renderedComponent, ""button"");
+
+    decrementButton = buttons[1];
+    incrementButton = buttons[0];
+
+    this.incrementCounter = incrementCounter;
+
+  });
+
+  it(""renders without problems"", function () {
+
+    expect(TestUtils.isDOMComponent(heading)).toBe(true);
+    expect(heading.innerText).toMatch(/Counter/g);
+
+    expect(TestUtils.isDOMComponent(decrementButton)).toBe(true);
+    expect(decrementButton.innerText).toMatch(/-/g);
+
+    expect(TestUtils.isDOMComponent(incrementButton)).toBe(true);
+    expect(incrementButton.innerText).toMatch(/\+/g);
+
+  });
+
+  it(""fires the increment function"", function() {
+
+    spyOn(this, ""incrementCounter"");
+    TestUtils.Simulate.click(incrementButton);
+    expect(this.incrementCounter).toHaveBeenCalled(); // Error: fuction doesn't get called
+
+  });
+
+});
+</code></pre>
+"
+"Using React.addons.TestUtils to reactjs test components","<javascript><reactjs><reactjs-testutils>","<p>I am reading the <code>reactjs</code> documentation but I am having a having a hard time fully understanding it. I wish there were more step by step examples.</p>
+
+<p>I want to be able to test my components and their child components but I am not sure how to create mocks or instances of my components to test them. </p>
+
+<p>code:</p>
+
+<pre><code>import React from 'react/addons';
+import Layout from '../../app/views/layout.js';
+
+var TestUtils = React.addons.TestUtils;
+
+var mockLayout;
+
+describe('Layout (deep copy)', function() {
+    beforeEach(function() {
+        mockLayout = TestUtils.renderIntoDocument(&lt;Layout /&gt;);
+    });
+
+    it('is DOM Component', function(done) {
+        assert(TestUtils.isDOMComponent(mockLayout));
+        done();
+    });
+});
+</code></pre>
+
+<p>I am getting the error and I am not sure what it means:</p>
+
+<pre><code>TypeError: Cannot read property 'getRouteAtDepth' of undefined
+    at RouteHandler.createChildRouteHandler (base/spec/views/layout.js:23821:39)
+    at RouteHandler.render (base/spec/views/layout.js:23836:27)
+    at ReactCompositeComponentMixin._renderValidatedComponentWithoutOwnerOrContext (base/spec/views/layout.js:12011:35)
+    at ReactCompositeComponentMixin._renderValidatedComponent (base/spec/views/layout.js:12038:15)
+    at ReactPerf.measure.wrapper (base/spec/views/layout.js:3744:22)
+    at ReactCompositeComponentMixin.mountComponent (base/spec/views/layout.js:11459:31)
+    at ReactPerf.measure.wrapper [as mountComponent] (base/spec/views/layout.js:3744:22)
+    at Object.ReactReconciler.mountComponent (base/spec/views/layout.js:3819:36)
+    at ReactDOMComponent.ReactMultiChild.Mixin.mountChildren (base/spec/views/layout.js:13014:45)
+    at ReactDOMComponent.Mixin._createContentMarkup (base/spec/views/layout.js:12598:33)window.__karma__.result @ debug.html:37(anonymous function) @ adapter.js:98require.register.EventEmitter.emit @ mocha.js:616(anonymous function) @ adapter.js:73require.register.EventEmitter.emit @ mocha.js:611require.register.Runner.fail @ mocha.js:4797require.register.Runner.failHook @ mocha.js:4822(anonymous function) @ mocha.js:4863done @ mocha.js:4518require.register.Runnable.run @ mocha.js:4558next @ mocha.js:4855(anonymous function) @ mocha.js:4876timeslice @ mocha.js:6483
+</code></pre>
+"
