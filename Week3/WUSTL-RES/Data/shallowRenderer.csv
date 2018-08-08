@@ -1,0 +1,350 @@
+Id,Title,CommentCount,Body,Text
+"32277383","react testing: shallow rendering - getRenderOutput returning null","0","<p>I'm just getting started with react testing, trying to use shallow rendering.</p>
+
+<p>I can't figure what's going on here - I believe my code follows all instructions I've seen with examples (e.g. <a href=""http://racingtadpole.com/blog/test-react-with-jest/"" rel=""nofollow"">http://racingtadpole.com/blog/test-react-with-jest/</a>)</p>
+
+<p>but I'm getting null with <code>shallowRenderer.getRenderOutput();</code></p>
+
+<p>Additionally I'm confused as when I log out shallowRenderer, I don't see any getRenderOutput method??</p>
+
+<pre class=""lang-jsx prettyprint-override""><code>import React from 'react/addons';
+import Icon from '../../components/shared/Icon.jsx';
+
+const TestUtils = React.addons.TestUtils;
+
+function getRenderOutput(elt) {
+  console.log('elt: ', elt);
+  const shallowRenderer = TestUtils.createRenderer();
+  shallowRenderer.render(elt);
+  console.log('shallowRenderer: ', shallowRenderer);
+  const output = shallowRenderer.getRenderOutput();
+  console.log('output: ', output);
+  return output;
+}
+
+
+describe('&lt;Icon /&gt;', () =&gt; {
+
+  it('should pass props through', () =&gt; {
+    const result = getRenderOutput(&lt;Icon type='octicon' name='file-directory' classNames=""icon-roomy icon-muted"" /&gt;);
+    console.log('result: ', result);
+  });
+
+});
+</code></pre>
+
+<p>And the resulting output:</p>
+
+<pre><code>elt:  
+
+{ type:
+   { [Function: Icon]
+     _isMockFunction: true,
+     mock: { calls: [], instances: [] },
+     mockClear: [Function],
+     mockReturnValueOnce: [Function],
+     mockReturnValue: [Function],
+     mockImpl: [Function],
+     mockImplementation: [Function],
+     mockReturnThis: [Function],
+     _getMockImplementation: [Function],
+     defaultProps: { type: 'fa', classNames: '' },
+     propTypes:
+      { type: [Object],
+        name: [Object],
+        prefix: [Object],
+        classNames: [Object],
+        title: [Object] } },
+  key: null,
+  ref: null,
+  _owner: null,
+  _context: {},
+  _store:
+   { props:
+      { type: 'octicon',
+        name: 'file-directory',
+        classNames: 'icon-roomy icon-muted' },
+     originalProps:
+      { type: 'octicon',
+        name: 'file-directory',
+        classNames: 'icon-roomy icon-muted' } } }
+shallowRenderer:  { _instance:
+   { _currentElement:
+      { type: [Object],
+        key: null,
+        ref: null,
+        _owner: null,
+        _context: {},
+        _store: [Object] },
+     _rootNodeID: '.0',
+     _instance:
+      { getClassNames: [Object],
+        render: [Object],
+        setState: [Object],
+        forceUpdate: [Object],
+        props: [Object],
+        context: {},
+        refs: {},
+        _reactInternalInstance: [Circular],
+        state: null },
+     _pendingElement: null,
+     _pendingStateQueue: null,
+     _pendingReplaceState: false,
+     _pendingForceUpdate: false,
+     _renderedComponent: { _renderedOutput: null, _currentElement: [Object] },
+     _context: {},
+     _mountOrder: 1,
+     _isTopLevel: false,
+     _pendingCallbacks: null } }
+output:  null
+result:  null
+</code></pre>
+",""
+"34611727","How can I write a unit test for a react component that calls reduxjs's mapStateToProps?","0","<p>I'm trying to write unit tests for a container component called <code>AsyncApp</code> but I get the following error ""<code>mapStateToProps</code> must return an object. Instead received undefined.""</p>
+
+<p>This is my set-up.</p>
+
+<p><strong>Root.js</strong></p>
+
+<pre><code>import configureStore from '../configureStore';
+import React, { Component } from 'react';
+import { Provider } from 'react-redux';
+import AsyncApp from './AsyncApp';
+
+const store = configureStore();
+
+export default class Root extends Component {
+  render() {
+    return (
+      &lt;Provider store={store}&gt;
+        &lt;AsyncApp /&gt;
+      &lt;/Provider&gt;
+    );
+  }
+}
+</code></pre>
+
+<p><strong>configureStore.js</strong></p>
+
+<pre><code>import { createStore, applyMiddleware } from 'redux';
+import thunkMiddleware from 'redux-thunk';
+import createLogger from 'redux-logger';
+import rootReducer from './reducers';
+
+const loggerMiddleware = createLogger();
+
+const createStoreWithMiddleware = applyMiddleware(
+  thunkMiddleware
+  //loggerMiddleware
+)(createStore);
+
+export default function configureStore(initialState) {
+  return createStoreWithMiddleware(rootReducer, initialState);
+}
+</code></pre>
+
+<p><strong>AsyncApp.js</strong></p>
+
+<pre><code>import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
+import { foo } from '../actions';
+import FooComponent from '../components/FooComponent';
+
+class AsyncApp extends Component {
+  constructor(props) {
+    super(props);
+    this.onFoo= this.onFoo.bind(this);
+    this.state = {}; // &lt;--- adding this doesn't fix the issue
+  }
+
+  onFoo(count) {
+    this.props.dispatch(foo(count));
+  }
+
+  render () {
+    const {total} = this.props;
+
+    return (
+      &lt;div&gt;
+        &lt;FooComponent onFoo={this.onFoo} total={total}/&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+function mapStateToProps(state) {
+  return state;
+}
+
+export default connect(mapStateToProps)(AsyncApp);
+</code></pre>
+
+<p>I'm passing <code>store</code> directly to <code>AsyncApp</code> in my test to avoid getting the following Runtime Error : <code>Could not find ""store"" in either the context or props of ""Connect(AsyncApp)"". Either wrap the root component in a &lt;Provider&gt;, or explicitly pass ""store"" as a prop to ""Connect(AsyncApp)"".</code></p>
+
+<p>The test isn't complete yet because I can't get past the <code>mapStateToProps</code> error message.</p>
+
+<p><strong>AsyncApp-test.js</strong></p>
+
+<pre><code>jest.dontMock('../../containers/AsyncApp');
+jest.dontMock('redux');
+jest.dontMock('react-redux');
+jest.dontMock('redux-thunk');
+jest.dontMock('../../configureStore');
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TestUtils from 'react-addons-test-utils';
+const configureStore = require( '../../configureStore');
+const AsyncApp = require('../../containers/AsyncApp');
+
+const store = configureStore();
+
+//const asyncApp = TestUtils.renderIntoDocument(
+  //&lt;AsyncApp store={store} /&gt;
+//);
+
+const shallowRenderer = TestUtils.createRenderer();
+shallowRenderer.render(&lt;AsyncApp store={store}/&gt;);
+</code></pre>
+
+<p>I want to eventually test that <code>AsyncApp</code> contains a <code>FooComponent</code>, and that a <code>foo</code> action is dispatched when <code>onFoo</code> is called. </p>
+
+<p>Is what I am trying to do achievable? Am I going about this the right way?</p>
+",""
+"36016939","connect method of react breaking my test case","0","<ul>
+<li>I am trying to write the test case for my jsx file...</li>
+<li>i took the sample test case from another jsx file...</li>
+<li>that file doesnt have connect method...</li>
+<li>but his file has connect method..</li>
+<li>I think because of this its breaking my test case...</li>
+<li>can you guys tell me how to fix it..</li>
+<li>providing my code below...</li>
+<li>clear code below
+<strong><a href=""https://gist.github.com/js08/d590e78e8923e68b191a"" rel=""nofollow"">https://gist.github.com/js08/d590e78e8923e68b191a</a></strong></li>
+</ul>
+
+<hr>
+
+<p>SyntaxError: C:/codebase/sports/test/sports-tests.js: Unexpected token (20:73)
+  18 |
+  19 |     it('should render correctly', () => {</p>
+
+<blockquote>
+  <p>20 |         shallowRenderer.render();
+       |                                                                          ^
+    21 |         /*let renderedElement = shallowRenderer.getRenderOutput();
+    22 |   </p>
+</blockquote>
+
+<pre><code>test case
+import {expect} from 'chai';
+import React from 'react';
+import TestUtils from 'react-addons-test-utils';
+import sportsPageDefault from '../src/sports-Page-Default';
+import initializeJsDom from './test-utils/dom.js';
+import {getGridLayoutClasses} from 'sports-css-grids';
+//import _difference from 'lodash/array/difference';
+
+
+describe('shallow renderer tests for sports-Page-Default ', function() {
+    let shallowRenderer = TestUtils.createRenderer();
+    console.log(""shallowRenderer"" + JSON.stringify(shallowRenderer));
+
+
+    it('should render correctly', () =&gt; {
+        shallowRenderer.render(&lt;sportsPageDefault headerClass='8887' layout= {id: 100, text: 'hello world'} sidebar= {id: 100, text: 'hello world'} title=""Demo"" /&gt;);
+        let renderedElement = shallowRenderer.getRenderOutput();
+        console.log(renderedElement);
+
+       /* let actualTitleEl = renderedElement.props.children[0].props.children[0];
+        let expectedTitleEl = &lt;h1 className=""transactionalPageHeader-appName font-serif""&gt;Demo&lt;/h1&gt;;
+        expect(actualTitleEl).to.deep.equal(expectedTitleEl);*/
+    });
+
+
+
+});
+
+actual code
+
+import './css/sports-bottom-layout.css';
+import './css/sports-Page.css';
+import './css/sports-leftCornerLayout.css';
+
+import React from 'react';
+import PageHeader from './components/page-header/page-header';
+import MainContent from './components/main-content';
+import sports-bottom-layout from './components/sports-bottom-layout/sports-bottom-layout';
+import {getPanelLayoutState} from './util/PageLayout';
+import {getGridLayoutClasses} from 'sports-css-grids/lib/js/gridLayout';
+import PagePureRenderMixin from './util/PagePureRenderMixin';
+import {connect} from 'react-redux';
+import {setHeaderPanelState, setRightPanelState} from './redux/layout/layout-actions';
+
+console.log(""inside"");
+let customMixin = PagePureRenderMixin({
+    state: {
+        mainPanelGridClassList: function(classArray) {
+            return classArray.length;
+            console.log(""classArray.length"" + classArray.length);
+        }
+    }
+});
+
+let PT = React.PropTypes;
+
+let sportsPageDefault = React.createClass({
+
+
+    propTypes: {
+        headerClass: React.PropTypes.string,
+        layout: PT.object.isRequired,
+        sports-leftCornerLayout: PT.oneOfType([
+            PT.func,
+            PT.object
+        ]),
+        title: PT.string.isRequired
+    },
+
+
+    //cpomponent m,ount code
+
+});
+
+function sportsShallow(itemA, itemB) {
+    for (let i in itemA) {
+        if (itemA[i] !== itemB[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+export default connect(state =&gt; ({
+    layout: state.Page.layout
+}))(sportsPageDefault);
+</code></pre>
+
+<p>Error: 
+    ts throwing an error since not sure how to pass in onof types for function....</p>
+
+<pre><code>shallowRenderer.render(&lt;sportsPageDefault headerClass='8887' layout= {{id: 100, text: 'hello world'}} sidebar= {[{onAppExit},{id: 100, text: 'hello world'}]} title={""Demo""} /&gt;);
+
+    propTypes: {
+        headerClass: React.PropTypes.string,
+        layout: PT.object.isRequired,
+        sports-leftCornerLayout: PT.oneOfType([
+            PT.func,
+            PT.object
+        ]),
+        title: PT.string.isRequired
+    },
+TypeError: Cannot read property 'propTypes' of undefined
+at [object Object].ReactCompositeComponentMixin._processProps (\node_modules\react\lib\ReactCompositeComponent.js:352:20)
+at [object Object].ReactCompositeComponentMixin.mountComponent (\node_modules\react\lib\ReactCompositeComponent.js:129:28)
+at [object Object].wrapper as mountComponent
+at [object Object].ReactShallowRenderer._render (\node_modules\react\lib\ReactTestUtils.js:362:14)
+at [object Object].ReactShallowRenderer.render (\node_modules\react\lib\ReactTestUtils.js:344:8)
+at Context. (C:/codebase/usaa-template-standard/test/usaa-template-standard-tests.js:23:25)
+</code></pre>
+",""
